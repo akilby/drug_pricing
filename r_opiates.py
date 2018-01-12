@@ -7,6 +7,7 @@ import calendar
 import os
 import datetime
 import praw
+###
 userJ = "scrape submissions to " + "/r/opiates using praw/python/terminal. By /user/jrreimer"
 
 r = praw.Reddit(client_id = '2do-OPn-K3ii3A',
