@@ -50,8 +50,8 @@ subreddit_scrape = "opiates"
 file_folder = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/"
 iterate_over_days = 1
 iterate_over = 86400*iterate_over_days
-start_date_string = 'January 2, 2018 UTC'
-end_date_string = 'January 15, 2018 UTC'
+start_date_string = 'January 10, 2018 UTC'
+end_date_string = 'January 16, 2018 UTC'
 
 def scrape_subreddit(iterate_over,start_date_string,end_date_string,subreddit_scrape,file_folder):
 	start_date = calendar.timegm(time.strptime(start_date_string, '%B %d, %Y UTC'))
@@ -94,7 +94,7 @@ def scrape_subreddit(iterate_over,start_date_string,end_date_string,subreddit_sc
 
 # input parameters
 os.chdir('/Users/jackiereimer/Dropbox/r_opiates Data/comments')
-file_folder = "/Users/Dropbox/r_opiates Data/comments/"
+file_folder = "/Users/jackiereimer/Dropbox/r_opiates Data/"
 
 def get_all_comments(submission_id_string,file_folder):
 	print(submission_id_string)
@@ -102,7 +102,7 @@ def get_all_comments(submission_id_string,file_folder):
 	submission = r.submission(id=submission_id_string)
 	scrape_time = calendar.timegm(time.gmtime())
 	subreddit_scrape ='Opiates_' + str(submission)	
-	filepath_csv = 'r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv'
+	filepath_csv = os.path.join(file_folder,'comments/r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv')
 	check_for_more = 1
 	while check_for_more is 1:
 		num_mores = 0
@@ -133,11 +133,15 @@ def get_all_comments(submission_id_string,file_folder):
 # bad_id refers to a small subset of the data that I have not encountered more than once.
 
 def scrape_all_comments(subreddit,file_folder):
+	start_date = calendar.timegm(time.strptime(start_date_string, '%B %d, %Y UTC'))
+	if end_date_string is 'today':
+		end_date = calendar.timegm(time.gmtime()) + iterate_over
+	else:
+		end_date = calendar.timegm(time.strptime(end_date_string, '%B %d, %Y UTC')) + iterate_over
 	ids = []
-	bad_id_list = []
 	scrape_time = calendar.timegm(time.gmtime())
-	filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/r_opiates_1514764800_1515801600.csv"
-	filepath_csv = os.path.join(file_folder,'r_' + subreddit + '-' + str(scrape_time) + '.csv')	
+	filepath_use = os.path.join(file_folder,'threads/r_opiates_' + str(start_date) + '_' + str(end_date) + '.csv')
+	filepath_csv = os.path.join(file_folder,'comments/r_' + subreddit + '-' + str(scrape_time) + '.csv')	
 	with open(filepath_use, 'r') as fp:
 		reader = csv.reader(fp)
 		for row in reader:
@@ -145,23 +149,7 @@ def scrape_all_comments(subreddit,file_folder):
 	idlist = list(set(ids))
 	subreddit = r.subreddit('Opiates')
 	for id in idlist:
-		bad_id = get_all_comments(id, file_folder)
-		bad_id_list.append(bad_id)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
-	return bad_id_list
+		get_all_comments(id,file_folder)
 
 ###################################################################################################################################
 
