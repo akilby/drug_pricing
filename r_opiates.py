@@ -452,7 +452,7 @@ except:
 # Notes
 
 # Earliest scrape January 1, 2008
-# Latest scrape	January 15, 2018
+# Latest scrape	January 19, 2018
 
 # Goal 2 Scrape everyhing being posted now
 
