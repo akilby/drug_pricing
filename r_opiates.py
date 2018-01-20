@@ -1,446 +1,247 @@
-
-# virtual environment "beautifulsoup"
-
 import csv
 import time
-import calendar
 import os
-import datetime
 import praw
-userJ = "scrape submissions to " + "/r/opiates using praw/python/terminal. By /user/jrreimer"
-
-r = praw.Reddit(client_id = '2do-OPn-K3ii3A',
-				client_secret = 'pBqEsDdGCk-E_n55vkb0ITFzl1Y',
-				password = '~KilbyAssignment',
-				username = 'jrreimer',
-				user_agent = userJ)
-
+import datetime
+import argparse
 from praw.models import MoreComments
 
 ###################################################################################################################################
 
-#Structure of document:
-#0 packages 		(above)
-#1 Complete PRAW functions
-#2 Complete data management functions
-#3 Work-in-progress code
-#4 Previous versions of finished code
+# Structure of document:
+# 0 packages         (above)
+# 1 Complete PRAW functions
+# 2 Complete data management functions
+# 3 Work-in-progress code
+# 4 Previous versions of finished code
 
-#Each finished function is orgonized accordingly:
-# 	name of function with short description
-#	input parameters (if needed)
-#	function
+# Each finished function is orgonized accordingly:
+#   name of function with short description
+#   input parameters (if needed)
+#   function
 
 # Note: My typical workflow follows:
-	# 1 Edit the date parameters of scrape_subreddit
-	# 2 Input and run scrape_subreddit for new posts
-	# 3 Input get_all_comments and scrape_all_comments
-	# 4 Run scrape_all_comments
+#   1 Edit the date parameters of scrape_subreddit
+#   2 Input and run scrape_subreddit for new posts
+#   3 Input get_all_comments and scrape_all_comments
+#   4 Run scrape_all_comments
+
+# virtual environment "beautifulsoup"
 
 ###################################################################################################################################
 
-# COMPLETE PRAW FUNCTIONS
+# Argument routine 1
+# Note you can access this information at the command line using 'help' -- type python r_opiates.py --help
 
-# scrape_subreddit pulls all top level threads between a given time frame
+parser = argparse.ArgumentParser()
+parser.add_argument("--subreddit", default='opiates', help="what subreddit to scrape (default is opiates)")
+parser.add_argument("--thread_folder_name", default='threads')
+parser.add_argument("--comment_folder_name", default='comments')
+parser.add_argument("--iterate_over_days", default='1')
+parser.add_argument("--datestring_start", default=None, help="starting date string in correct format (example: January-19-2018). Default will set to be 7 days prior.")
+parser.add_argument("--datestring_end", default=None, help="ending date string in correct format (example: January-19-2018). Default will be set to right now.")
+parser.add_argument("--days_look_back", default='7')
+parser.add_argument("--days_look_forward", default='0')
+parser.add_argument("--client_id", default='2do-OPn-K3ii3A')
+parser.add_argument("--client_secret", default='pBqEsDdGCk-E_n55vkb0ITFzl1Y')
+parser.add_argument("--password", default='~KilbyAssignment')
+parser.add_argument("--username", default='jrreimer')
+parser.add_argument("--file_folder", default=None)
 
-# input parameters
-
-subreddit_scrape = "opiates"
-file_folder = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/"
-iterate_over_days = 1
-iterate_over = 86400*iterate_over_days
-start_date_string = 'January __, 2018 UTC'
-end_date_string = 'January __, 2018 UTC'
-
-def scrape_subreddit(iterate_over,start_date_string,end_date_string,subreddit_scrape,file_folder):
-	start_date = calendar.timegm(time.strptime(start_date_string, '%B %d, %Y UTC'))
-	if end_date_string is 'today':
-		end_date = calendar.timegm(time.gmtime()) + iterate_over
-	else:
-		end_date = calendar.timegm(time.strptime(end_date_string, '%B %d, %Y UTC')) + iterate_over
-	filepath_csv = file_folder + "r_" + subreddit_scrape + "_" + str(start_date) + "_" + str(end_date) + ".csv"
-	print(filepath_csv)
-	i = 0
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		for iteration in range(start_date,end_date,iterate_over):
-			i1 = iteration
-			i2 = iteration + iterate_over
-			timestampstring = "timestamp:" + str(i1) + ".." + str(i2)
-			j=0
-			for submission in r.subreddit('Opiates').search(timestampstring, sort="new", syntax="cloudsearch", limit=None):
-				id = submission.id
-				url = submission.url
-				num_comments = submission.num_comments
-				short_link = submission.shortlink
-				author = submission.author
-				selftext = submission.selftext
-				title = submission.title
-				utc = submission.created_utc
-				a=(id,url,num_comments,short_link,author,title,selftext,utc)
-				writer.writerow(a)
-				i = i+1
-				j = j+1
-				if j>500:
-					f.close()
-					os.remove(filepath_csv)
-					raise Exception("Submissions greater than 500.")
-			time.sleep(2)
-			print(j)
-		print(i)
-
-# get_all_commets pulls comments from a set of threads and places them into a csv file 
-
-# input parameters
-os.chdir('/Users/jackiereimer/Dropbox/r_opiates Data/comments')
-file_folder = "/Users/jackiereimer/Dropbox/r_opiates Data/"
-
-def get_all_comments(submission_id_string,file_folder):
-	print(submission_id_string)
-	subreddit = r.subreddit('Opiates')
-	submission = r.submission(id=submission_id_string)
-	scrape_time = calendar.timegm(time.gmtime())
-	subreddit_scrape ='Opiates_' + str(submission)	
-	filepath_csv = os.path.join(file_folder,'comments/r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv')
-	check_for_more = 1
-	while check_for_more is 1:
-		num_mores = 0
-		for comment in submission.comments:
-			if isinstance(comment, MoreComments):
-				num_mores = num_mores + 1
-		if num_mores is 0:
-			check_for_more = 0
-		else :
-			submission.comments.get_comments(limit=None, threshold=0)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
-
-# scrape_all_comments creates a set of threads ids from an existing csv file.
-# It then performs get_all_comments on that set.
-# bad_id refers to a small subset of the data that I have not encountered more than once.
-
-def scrape_all_comments(subreddit,file_folder):
-	start_date = calendar.timegm(time.strptime(start_date_string, '%B %d, %Y UTC'))
-	if end_date_string is 'today':
-		end_date = calendar.timegm(time.gmtime()) + iterate_over
-	else:
-		end_date = calendar.timegm(time.strptime(end_date_string, '%B %d, %Y UTC')) + iterate_over
-	ids = []
-	scrape_time = calendar.timegm(time.gmtime())
-	filepath_use = os.path.join(file_folder,'threads/r_opiates_' + str(start_date) + '_' + str(end_date) + '.csv')
-	filepath_csv = os.path.join(file_folder,'comments/r_' + subreddit + '-' + str(scrape_time) + '.csv')	
-	with open(filepath_use, 'r') as fp:
-		reader = csv.reader(fp)
-		for row in reader:
-			ids.append(row[0])
-	idlist = list(set(ids))
-	subreddit = r.subreddit('Opiates')
-	for id in idlist:
-		get_all_comments(id,file_folder)
+args = parser.parse_args()
 
 ###################################################################################################################################
 
-# COMPLETE DATA MANAGEMENT FUNCTIONS
-
-# all_submissions collects all scraped posts into single csv
-
-def all_submissions():
-	row_list = []
-	for dumpname in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/threads/"):
-		filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/" + dumpname
-		if not dumpname.startswith('.'):
-			with open(filepath_use, 'r') as f:
-				reader = csv.reader(f)
-				for row in reader:
-					a = tuple(row)
-					row_list.append(a)
-	row_list = list(set(row_list))
-	#print row_list 
-	with open("/Users/jackiereimer/Dropbox/r_opiates Data/threads/all_dumps.csv", 'w') as f:
-		writer = csv.writer(f)
-		for row in row_list:
-			a = list(row) 
-			writer.writerow(a)
+# Argument routine 2 - can alter the below and copy-paste into terminal python for real-time work
 
 
-# all_comments collects all scraped comments into single csv
-
-def all_comments():
-	row_list = []
-	for commentname in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/comments/"):
-#		thread_details = [commentname.partition("_")[0], commentname.partition("_")[2].partition(".")[0]]
-		filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/comments/" + commentname
-		if not commentname.startswith('.'):
-			with open(filepath_use, 'r') as f:
-				reader = csv.reader(f)
-				for row in reader:
-#					b = thread_details + row
-#					a = tuple(b)
-					a = tuple(row)
-					row_list.append(a)
-	row_list = list(set(row_list))	
-	#print row_list 
-	with open("/Users/jackiereimer/Dropbox/r_opiates Data/comments/all_comments.csv", 'w') as f:
-		writer = csv.writer(f)
-		for row in row_list:
-			a = list(row) 
-			writer.writerow(a)
-
-#These three return all scraped data related to comments and threads containing a key term (case sensitive)
-
-def submission_has_word(word):
-	i = 0
-	for line in open("/Users/jackiereimer/Dropbox/r_opiates Data/threads/all_dumps.csv"):
-		if word in line:
-			print(line)
-			i = i + 1
-	return i
-
-def comment_has_word(word):
-	i = 0
-	for line in open("/Users/jackiereimer/Dropbox/r_opiates Data/comments/all_comments.csv"):
-		if word in line:
-			print(line)
-			i = i + 1
-	return i
+class ArgumentContainer(object):
+    def __init__(self):
+        self.subreddit = "opiates"
+        self.thread_folder_name = "threads"
+        self.comment_folder_name = "comments"
+        self.iterate_over_days = '1'
+        self.datestring_start = 'January-19-2018'
+        self.datestring_end = 'January-19-2018'
+        self.days_look_back = None
+        self.days_look_forward = None
+        self.client_id = '2do-OPn-K3ii3A'
+        self.client_secret = 'pBqEsDdGCk-E_n55vkb0ITFzl1Y'
+        self.password = '~KilbyAssignment'
+        self.username = 'jrreimer'
+        self.file_folder = None
 
 
-def comment_has_words(word1,word2):
-	i = 0
-	for line in open("/Users/jackiereimer/Dropbox/r_opiates Data/comments/all_comments.csv"):
-		if word1 in line:
-			if word2 in line:
-				print(line)
-				i = i + 1
-	return i
+if 'args' not in dir():
+    args = ArgumentContainer()
 
-#These return all scraped data within a certain column. I thought these would be helpful
-# for collecting ids to scrape comments but ultiately became somewhat useless
+###################################################################################################################################
 
 
-def get_usernames():
-	usernames = []
-	for comment_thread in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/comments/"):
-		filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/comments/" + comment_thread
-		if not comment_thread.startswith("."):
-			with open(filepath_use, 'r') as fp:
-				reader = csv.reader(fp)
-				for row in reader:
-					usernames.append(row[3])
-	for submission in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/threads/"):
-		filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/" + submission
-		if not submission.startswith("."):
-			with open(filepath_use, 'r') as fp:
-				reader = csv.reader(fp)
-				for row in reader:
-					usernames.append(row[4])
-	usernames = list(set(usernames))
-	return usernames
+def main():
 
-def get_submission_ids(subreddit):
-	ids = []
-	for dumpname in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/threads/"):
-		filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/" + dumpname
-		if dumpname.startswith('r_'+ subreddit_scrape):
-			with open(filepath_use, 'r') as fp:
-				reader = csv.reader(fp)
-				for row in reader:
-					ids.append(row[0])
-	idlist = list(set(ids))
-	return(idlist)
+    print('---------------------------------------------------------------------------------')
+
+    start_time, end_time = generate_time_bands(args.datestring_start, args.datestring_end, args.days_look_back, args.days_look_forward)
+    thread_folder, comment_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.subreddit, args.file_folder)
+
+    print('---------------------------------------------------------------------------------')
+
+    r = make_praw_agent(args)
+    idlist, thread_filepath_csv = scrape_subreddit(r, args.iterate_over_days, start_time, end_time, args.subreddit, thread_folder)
+
+    print('---------------------------------------------------------------------------------')
+
+    get_all_comments_from_idlist(r, idlist, comment_folder, args.subreddit)
+
+    print('---------------------------------------------------------------------------------')
 
 
 ###################################################################################################################################
 
-# WORK-IN-PROGRESS CODE
+
+def generate_time_bands(datestring_start=None, datestring_end=None, days_look_back=None, days_look_forward=None):
+    """
+    Flexibly takes a variety of date/time arguments and turns into datetime band in local time
+    """
+    if datestring_start and datestring_end:
+        start_time = time.mktime(time.strptime(datestring_start, '%B-%d-%Y'))
+        end_time = time.mktime(time.strptime(datestring_end, '%B-%d-%Y')) + 24 * 60 * 60
+    elif datestring_start and not datestring_end:
+        start_time = time.mktime(time.strptime(datestring_start, '%B-%d-%Y'))
+        end_time = start_time + int(days_look_forward) * 24 * 60 * 60
+    elif datestring_end and not datestring_start:
+        end_time = time.mktime(time.strptime(datestring_end, '%B-%d-%Y')) + 24 * 60 * 60
+        start_time = end_time - int(days_look_back) * 24 * 60 * 60
+    else:
+        end_time = time.mktime(datetime.datetime.now().timetuple())
+        start_time = end_time - int(days_look_back) * 24 * 60 * 60
+    print('Capture start date and time: %s' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time)))
+    print('Capture end date and time: %s' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time)))
+    return int(start_time), int(end_time)
 
 
-def comment_has_regexp(regexp):
-	i = 0
-	for line in open("/Users/jackiereimer/Dropbox/r_opiates Data/comments/all_comments.csv"):
-		if re.search(regexp,line):
-			print(line)
-			i = i + 1
-	return(i)
+def assign_working_dirs(thread_folder_name, comment_folder_name, subreddit, file_folder=None):
+    """
+    Assigns working directories according to which computer being run on
+    """
+    if file_folder:
+        use_path = os.path.join(file_folder, "r_%s/" % subreddit)
+    else:
+        if os.getcwd().split('/')[2] == 'akilby':
+            use_path = "/Users/akilby/Dropbox/Research/Data/r_%s/" % subreddit
+        else:
+            use_path = "/Users/jackiereimer/Dropbox/r_%s Data/" % subreddit
+    thread_folder = os.path.join(use_path, thread_folder_name)
+    comment_folder = os.path.join(use_path, comment_folder_name)
+    print('Thread folder: %s' % thread_folder)
+    print('Comment folder: %s' % comment_folder)
+    return thread_folder, comment_folder
 
 
-def new_and_old_submission_ids():
-	all_ids = get_submission_ids(subreddit)
-	ever_scraped_thread_ids = []
-	for comment_thread in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/comments/"):
-		ever_scraped_thread_ids.append(comment_thread.partition("_")[0])
-	ever_scraped_thread_ids = list(set(ever_scraped_thread_ids))
-	unscraped_thread_ids = [x for x in all_ids if x not in ever_scraped_thread_ids]
-	return(ever_scraped_thread_ids,unscraped_thread_ids)
-#	print(ever_scraped_thread_ids,unscraped_thread_ids)
-
-def update_comment_threads_to_fresh(time_difference):	
-	# time_difference is the threshold for the maximum time between when the thread was scraped, and the newest comment scraped, to see if it should be scraped again
-	candidate_threads = new_and_old_submission_ids[0]
+def make_praw_agent(args):
+    user_agent = "scrape submissions to " + "/r/%s using praw/python/terminal. By /user/%s" % (args.subreddit, args.username)
+    r = praw.Reddit(client_id=args.client_id,
+                    client_secret=args.client_secret,
+                    password=args.password,
+                    username=args.username,
+                    user_agent=user_agent)
+    return r
 
 
-###################################################################################################################################
-# PREVIOUS VERSIONS OF FINISHED CODE
+def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thread_folder):
+    """
+    scrape_subreddit pulls all top level threads between a given time frame
+    outputs an idlist and a thread filepath
+    """
+    ids = []
+    iterate_over = 86400 * int(iterate_over_days)
+    thread_filepath_csv = os.path.join(thread_folder, "r_" + subreddit + "_" + str(start_time) + "_" + str(end_time) + ".csv")
+    print('Writing thread headers to file: %s' % thread_filepath_csv)
+    i = 0
+    with open(thread_filepath_csv, 'w') as f:
+        writer = csv.writer(f)
+        for iteration in range(start_time, end_time, iterate_over):
+            i1 = iteration
+            i2 = iteration + iterate_over
+            timestampstring = "timestamp:" + str(i1) + ".." + str(i2)
+            j = 0
+            for submission in r.subreddit(subreddit).search(timestampstring, sort="new", syntax="cloudsearch", limit=None):
+                id = submission.id
+                ids.append(id)
+                a = (id, submission.url, submission.num_comments, submission.shortlink, submission.author, submission.title, submission.selftext, submission.created_utc)
+                writer.writerow(a)
+                i = i + 1
+                j = j + 1
+                if j > 500:
+                    f.close()
+                    os.remove(thread_filepath_csv)
+                    raise Exception("Submissions greater than 500.")
+            time.sleep(2)
+            print('%s threads from %s to %s' % (j, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(i1)), time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(i2))))
+        print('Total thread headers captured: %s' % i)
+        idlist = list(set(ids))
+        return idlist, thread_filepath_csv
 
-def get_all_comments(submission_id_string,file_folder):
-	print(submission_id_string)
-	subreddit = r.subreddit('Opiates')
-	submission = r.submission(id=submission_id_string)
-	scrape_time = calendar.timegm(time.gmtime())
-	subreddit_scrape ='Opiates_' + str(submission)	
-	filepath_csv = 'r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv'
-	check_for_more = 1
-	while check_for_more is 1:
-		num_mores = 0
-		for comment in submission.comments:
-			if isinstance(comment, MoreComments):
-				num_mores = num_mores + 1
-		if num_mores is 0:
-			check_for_more = 0
-		else :
-			submission.comments.get_comments(limit=None, threshold=0)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
 
-def scrape_all_comments(subreddit,file_folder):
-	ids = []
-	bad_id_list = []
-	filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/threads/r_opiates_1512950400_1513641600.csv"
-	filepath_csv = os.path.join(file_folder,'r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv')
-	with open(filepath_use, 'r') as fp:
-		reader = csv.reader(fp)
-		for row in reader:
-			ids.append(row[0])
-	idlist = list(set(ids))
-	subreddit = r.subreddit('Opiates')
-	for id in idlist:
-		bad_id = get_all_comments(id, file_folder)
-		bad_id_list.append(bad_id)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
-	return bad_id_list
+def get_all_comments_from_idlist(r, idlist, comment_folder, subreddit):
+    """
+    Takes a set of threads ids and pulls comments from a set of threads and places them into a csv file
+    """
+    tot_downloads = len(idlist)
+    k = 0
+    for submission_id_string in idlist:
+        k += 1
+        print('%s/%s: %s' % (k, tot_downloads, submission_id_string))
+        scrape_time = int(time.mktime(datetime.datetime.now().timetuple()))
+        submission = r.submission(id=submission_id_string)
+        subreddit_submission = subreddit + '_' + str(submission)
+        filepath_csv = os.path.join(comment_folder, subreddit_submission + '-' + str(scrape_time) + '.csv')
+        check_for_more = 1
+        while check_for_more is 1:
+            num_mores = 0
+            for comment in submission.comments:
+                if isinstance(comment, MoreComments):
+                    num_mores = num_mores + 1
+            if num_mores is 0:
+                check_for_more = 0
+            else:
+                submission.comments.get_comments(limit=None, threshold=0)
+        with open(filepath_csv, 'w') as f:
+            writer = csv.writer(f)
+            submission.comments.replace_more(limit=0)
+            for comment in submission.comments.list():
+                a = (comment.id, submission.url, submission.num_comments, comment.parent_id, comment.body, comment.author, comment.created_utc)
+                writer.writerow(a)
 
-def build_id_list(subreddit,file_folder)
-	ids = []
-	bad_id_list = []
-	scrape_time = calendar.timegm(time.gmtime())
-	filepath_use = os.path.join(file_folder,'r_' + subreddit + '_1513036800_1513728000.csv')
-	filepath_csv = os.path.join(file_folder,'r_' + subreddit + '-' + str(scrape_time) + '.csv')	
-	with open(filepath_use, 'r') as fp:
-		reader = csv.reader(fp)
-		for row in reader:
-			ids.append(row[0])
-	idlist = list(set(ids))
-	subreddit = r.subreddit('Opiates')
-	for id in idlist:
-		bad_id = get_all_comments(id, file_folder)
-		bad_id_list.append(bad_id)
 
-def scrape_all_comments(subreddit,file_folder):	
-	build_id_list(subreddit,file_folder)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
-	return idlist
-	return bad_id_list		
+def get_submission_idlist(thread_filepath_csv):
+    """
+    Opens a thread list csv file outputted by scrape_subreddit, and outputs a thread id list. Not necessary in main routine but
+    Useful in case want to access something from disk
+    """
+    ids = []
+    with open(thread_filepath_csv, 'r') as fp:
+        reader = csv.reader(fp)
+        for row in reader:
+            ids.append(row[0])
+    idlist = list(set(ids))
+    return idlist
 
-def get_all_comments(submission_id_string,file_folder):
-try:
-	print(submission_id_string)
-	print(type(submission_id_string))
-	if isinstance(submission_id_string, str) is False:
-		print("in loop")
-		submission_id_string = submission_id_string.decode('utf-8')
-		print(submission_id_string)
-		assert isinstance(submission_id_string, str)
-	subreddit = r.subreddit('Opiates')
-	submission = r.submission(id=submission_id_string)
-	scrape_time = calendar.timegm(time.gmtime())
-	subreddit_scrape ='Opiates_' + str(submission)	
-	filepath_csv = os.path.join(file_folder,'r_' + subreddit_scrape + '-' + str(scrape_time) + '.csv')
-	check_for_more = 1
-	while check_for_more is 1:
-		num_mores = 0
-		for comment in submission.comments:
-			if isinstance(comment, MoreComments):		
-				num_mores = num_mores + 1
-		if num_mores is 0:
-			check_for_more = 0
-		else :
-			submission.comments.get_comments(limit=None, threshold=0)
-	with open(filepath_csv, 'w') as f:
-		writer = csv.writer(f)
-		submission.comments.replace_more(limit=0)
-		comment_queue = submission.comments[:]
-		for comment in submission.comments.list():
-			id = comment.id
-			url = submission.url
-			num_comments = submission.num_comments
-			parent_id = comment.parent_id
-			text = comment.body
-			author = comment.author
-			utc = comment.created_utc
-			a=(id,url,num_comments,parent_id,text,author,utc)
-			writer.writerow(a)
-except:
-	return submission_id_string	
+
+if __name__ == '__main__':
+    main()
 
 ###################################################################################################################################
+
 # Problems to work out:
-	# In update_comment_threads_to_fresh
-	# 	Ever_scrapes_thread_ids:  what does this return? 
-	# 	unscraped_thread_ids: 	what does this return?
-	# In Comment_has_words:
-	#	Is this looking for both words in same comment?
-	# How to set time_difference
-	# scrape_all_comments does not close "neatly"
+    # In update_comment_threads_to_fresh
+    #   Ever_scrapes_thread_ids:  what does this return?
+    #   unscraped_thread_ids:   what does this return?
+    # In Comment_has_words:
+    #   Is this looking for both words in same comment?
+    # How to set time_difference
+    # scrape_all_comments does not close "neatly"
 
 
 ###################################################################################################################################
@@ -448,4 +249,6 @@ except:
 # Notes
 
 # Earliest scrape January 1, 2008
-# Latest scrape	January 19, 2018
+# Latest scrape January 19, 2018
+
+
