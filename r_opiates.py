@@ -141,7 +141,7 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_master_
         if os.getcwd().split('/')[2] == 'akilby':
             use_path = "/Users/akilby/Dropbox/Research/Data/r_%s/" % subreddit
         else:
-            use_path = "/Users/jackiereimer/Dropbox/r_%s Data/" % subreddit
+            use_path = "/Users/jackiereimer/Dropbox/r_%s/" % subreddit
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
     comment_master_folder = os.path.join(comment_folder, comment_master_folder_name)
