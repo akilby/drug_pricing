@@ -4,6 +4,9 @@ import os
 import praw
 import datetime
 import argparse
+import filecmp
+import glob
+import shutil
 from praw.models import MoreComments
 
 ###################################################################################################################################
@@ -37,6 +40,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--subreddit", default='opiates', help="what subreddit to scrape (default is opiates)")
 parser.add_argument("--thread_folder_name", default='threads')
 parser.add_argument("--comment_folder_name", default='comments')
+parser.add_argument("--comment_master_folder_name", default='master')
+parser.add_argument("--comment_dup_folder_name", default='duplicates')
 parser.add_argument("--iterate_over_days", default='1')
 parser.add_argument("--datestring_start", default=None, help="starting date string in correct format (example: January-19-2018). Default will set to be 7 days prior.")
 parser.add_argument("--datestring_end", default=None, help="ending date string in correct format (example: January-19-2018). Default will be set to right now.")
@@ -60,6 +65,8 @@ class ArgumentContainer(object):
         self.subreddit = "opiates"
         self.thread_folder_name = "threads"
         self.comment_folder_name = "comments"
+        self.comment_master_folder_name = 'master'
+        self.comment_dup_folder_name = 'duplicates'
         self.iterate_over_days = '1'
         self.datestring_start = 'January-19-2018'
         self.datestring_end = 'January-19-2018'
@@ -83,7 +90,7 @@ def main():
     print('---------------------------------------------------------------------------------')
 
     start_time, end_time = generate_time_bands(args.datestring_start, args.datestring_end, args.days_look_back, args.days_look_forward)
-    thread_folder, comment_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.subreddit, args.file_folder)
+    thread_folder, comment_folder, comment_master_folder, comment_dup_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_master_folder_name, args.comment_dup_folder_name, args.subreddit, args.file_folder)
 
     print('---------------------------------------------------------------------------------')
 
@@ -96,6 +103,9 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
+    separate_unique_and_dup_files(comment_folder, comment_master_folder, comment_dup_folder, sep='-')
+
+    print('---------------------------------------------------------------------------------')
 
 ##################################################################################################################################
 
@@ -121,7 +131,7 @@ def generate_time_bands(datestring_start=None, datestring_end=None, days_look_ba
     return int(start_time), int(end_time)
 
 
-def assign_working_dirs(thread_folder_name, comment_folder_name, subreddit, file_folder=None):
+def assign_working_dirs(thread_folder_name, comment_folder_name, comment_master_folder_name, comment_dup_folder_name, subreddit, file_folder=None):
     """
     Assigns working directories according to which computer being run on
     """
@@ -134,9 +144,11 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, subreddit, file
             use_path = "/Users/jackiereimer/Dropbox/r_%s Data/" % subreddit
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
+    comment_master_folder = os.path.join(comment_folder, comment_master_folder_name)
+    comment_dup_folder = os.path.join(comment_folder, comment_dup_folder_name)
     print('Thread folder: %s' % thread_folder)
     print('Comment folder: %s' % comment_folder)
-    return thread_folder, comment_folder
+    return thread_folder, comment_folder, comment_master_folder, comment_dup_folder
 
 
 def make_praw_agent(args):
@@ -227,6 +239,46 @@ def get_submission_idlist(thread_filepath_csv):
             ids.append(row[0])
     idlist = list(set(ids))
     return idlist
+
+
+def separate_unique_and_dup_files(folder, archive_subfolder, dup_subfolder, sep='-'):
+    """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
+    full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(dup_subfolder, '*'))
+    prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    move_to_dups = 0
+    move_to_master_archive = 0
+    for prefix in prefix_list:
+        if not os.path.isdir(os.path.join(folder, prefix)):
+            master_list, discard_list = uniquify_prefix(prefix, folder)
+            for filename in master_list:
+                if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
+                    shutil.move(filename, os.path.join(archive_subfolder, os.path.basename(filename)))
+                    move_to_master_archive += 1
+            for filename in discard_list:
+                if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
+                    shutil.move(filename, os.path.join(dup_subfolder, os.path.basename(filename)))
+                    move_to_dups += 1
+    print('Moved %s comment files to permanent archive; moved %s comment files to duplicates storage' % (move_to_master_archive, move_to_dups))
+
+
+def uniquify_prefix(prefix, folder):
+    prefix_file_list = glob.glob(os.path.join(folder, '**/%s*' % prefix), recursive=True)
+    master_list = [x for x in prefix_file_list if 'master' in x]
+    if master_list == []:
+        master_list = [[x for x in prefix_file_list if 'duplicates' not in x][0]]
+    discard_list = []
+    if len(prefix_file_list) > 1:
+        for item in [x for x in prefix_file_list if x not in master_list]:
+            duplicate = False
+            for master_item in master_list:
+                if duplicate is False:
+                    if filecmp.cmp(master_item, item):
+                        duplicate = True
+            if duplicate:
+                discard_list.append(item)
+            else:
+                master_list.append(item)
+    return master_list, discard_list
 
 
 if __name__ == '__main__':
