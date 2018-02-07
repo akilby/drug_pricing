@@ -245,11 +245,13 @@ def separate_unique_and_dup_files(folder, archive_subfolder, dup_subfolder, sep=
     """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
     full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(dup_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    print(prefix_list)
     move_to_dups = 0
     move_to_master_archive = 0
     for prefix in prefix_list:
         if not os.path.isdir(os.path.join(folder, prefix)):
             master_list, discard_list = uniquify_prefix(prefix, folder)
+            print("comparison done")
             for filename in master_list:
                 if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
                     shutil.move(filename, os.path.join(archive_subfolder, os.path.basename(filename)))
@@ -259,6 +261,26 @@ def separate_unique_and_dup_files(folder, archive_subfolder, dup_subfolder, sep=
                     shutil.move(filename, os.path.join(dup_subfolder, os.path.basename(filename)))
                     move_to_dups += 1
     print('Moved %s comment files to permanent archive; moved %s comment files to duplicates storage' % (move_to_master_archive, move_to_dups))
+
+
+try 
+
+
+
+os.remove
+
+shutil.remove
+
+"""
+
+it throws everything into master and duplicates
+1.put everything into a folder called working
+2.perform uniquify that moves unique 
+3. os.rmdir for working folder
+shutil.rmtree
+
+
+"""
 
 
 def uniquify_prefix(prefix, folder):
@@ -283,3 +305,15 @@ def uniquify_prefix(prefix, folder):
 
 if __name__ == '__main__':
     main()
+
+
+"""Is there a way to limit the scan of documents from 
+the entire data set to those that have been scraped recently?
+
+Is there a way to remove dups file from scan? 
+
+What is the point of building the complete file list if 
+differentiation is being done in according to master list?
+
+Where are the input parameters being defined for seperate_an...
+"""

@@ -11,24 +11,6 @@ from praw.models import MoreComments
 
 ###################################################################################################################################
 
-# Structure of document:
-# 0 packages         (above)
-# 1 Complete PRAW functions
-# 2 Complete data management functions
-# 3 Work-in-progress code
-# 4 Previous versions of finished code
-
-# Each finished function is orgonized accordingly:
-#   name of function with short description
-#   input parameters (if needed)
-#   function
-
-# Note: My typical workflow follows:
-#   1 Edit the date parameters of scrape_subreddit
-#   2 Input and run scrape_subreddit for new posts
-#   3 Input get_all_comments and scrape_all_comments
-#   4 Run scrape_all_comments
-
 # virtual environment "beautifulsoup"
 
 ###################################################################################################################################
@@ -283,24 +265,4 @@ def uniquify_prefix(prefix, folder):
 
 if __name__ == '__main__':
     main()
-
-###################################################################################################################################
-
-# Problems to work out:
-    # In update_comment_threads_to_fresh
-    #   Ever_scrapes_thread_ids:  what does this return?
-    #   unscraped_thread_ids:   what does this return?
-    # In Comment_has_words:
-    #   Is this looking for both words in same comment?
-    # How to set time_difference
-    # scrape_all_comments does not close "neatly"
-
-
-###################################################################################################################################
-
-# Notes
-
-# Earliest scrape January 1, 2008
-# Latest scrape January 19, 2018
-
 
