@@ -40,8 +40,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--subreddit", default='opiates', help="what subreddit to scrape (default is opiates)")
 parser.add_argument("--thread_folder_name", default='threads')
 parser.add_argument("--comment_folder_name", default='comments')
+parser.add_argument("--comment_working_folder_name", default='working')
 parser.add_argument("--comment_master_folder_name", default='master')
-parser.add_argument("--comment_dup_folder_name", default='duplicates')
 parser.add_argument("--iterate_over_days", default='1')
 parser.add_argument("--datestring_start", default=None, help="starting date string in correct format (example: January-19-2018). Default will set to be 7 days prior.")
 parser.add_argument("--datestring_end", default=None, help="ending date string in correct format (example: January-19-2018). Default will be set to right now.")
@@ -65,8 +65,8 @@ class ArgumentContainer(object):
         self.subreddit = "opiates"
         self.thread_folder_name = "threads"
         self.comment_folder_name = "comments"
+        self.comment_working_folder_name = 'working'
         self.comment_master_folder_name = 'master'
-        self.comment_dup_folder_name = 'duplicates'
         self.iterate_over_days = '1'
         self.datestring_start = 'January-19-2018'
         self.datestring_end = 'January-19-2018'
@@ -90,7 +90,7 @@ def main():
     print('---------------------------------------------------------------------------------')
 
     start_time, end_time = generate_time_bands(args.datestring_start, args.datestring_end, args.days_look_back, args.days_look_forward)
-    thread_folder, comment_folder, comment_master_folder, comment_dup_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_master_folder_name, args.comment_dup_folder_name, args.subreddit, args.file_folder)
+    thread_folder, comment_folder, comment_working_folder, comment_master_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_working_folder_name, args.comment_master_folder_name, args.subreddit, args.file_folder)
 
     print('---------------------------------------------------------------------------------')
 
@@ -99,11 +99,11 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    get_all_comments_from_idlist(r, idlist, comment_folder, args.subreddit)
+    get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit)
 
     print('---------------------------------------------------------------------------------')
 
-    separate_unique_and_dup_files(comment_folder, comment_master_folder, comment_dup_folder, sep='-')
+    separate_unique_and_dup_files(comment_folder, comment_master_folder, comment_working_folder, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
@@ -131,7 +131,7 @@ def generate_time_bands(datestring_start=None, datestring_end=None, days_look_ba
     return int(start_time), int(end_time)
 
 
-def assign_working_dirs(thread_folder_name, comment_folder_name, comment_master_folder_name, comment_dup_folder_name, subreddit, file_folder=None):
+def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working_folder_name, comment_master_folder_name, subreddit, file_folder=None):
     """
     Assigns working directories according to which computer being run on
     """
@@ -144,11 +144,11 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_master_
             use_path = "/Users/jackiereimer/Dropbox/r_%s/" % subreddit
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
+    comment_working_folder = os.path.join(comment_folder, comment_working_folder_name)
     comment_master_folder = os.path.join(comment_folder, comment_master_folder_name)
-    comment_dup_folder = os.path.join(comment_folder, comment_dup_folder_name)
     print('Thread folder: %s' % thread_folder)
     print('Comment folder: %s' % comment_folder)
-    return thread_folder, comment_folder, comment_master_folder, comment_dup_folder
+    return thread_folder, comment_folder, comment_working_folder, comment_master_folder
 
 
 def make_praw_agent(args):
@@ -196,7 +196,7 @@ def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thre
         return idlist, thread_filepath_csv
 
 
-def get_all_comments_from_idlist(r, idlist, comment_folder, subreddit):
+def get_all_comments_from_idlist(r, idlist, comment_working_folder, subreddit):
     """
     Takes a set of threads ids and pulls comments from a set of threads and places them into a csv file
     """
@@ -208,7 +208,7 @@ def get_all_comments_from_idlist(r, idlist, comment_folder, subreddit):
         scrape_time = int(time.mktime(datetime.datetime.now().timetuple()))
         submission = r.submission(id=submission_id_string)
         subreddit_submission = subreddit + '_' + str(submission)
-        filepath_csv = os.path.join(comment_folder, subreddit_submission + '-' + str(scrape_time) + '.csv')
+        filepath_csv = os.path.join(comment_working_folder, subreddit_submission + '-' + str(scrape_time) + '.csv')
         check_for_more = 1
         while check_for_more is 1:
             num_mores = 0
@@ -240,38 +240,33 @@ def get_submission_idlist(thread_filepath_csv):
     idlist = list(set(ids))
     return idlist
 
-
-def separate_unique_and_dup_files(folder, archive_subfolder, dup_subfolder, sep='-'):
+def separate_unique_and_dup_files(folder, archive_subfolder, working_subfolder, sep='-'):
     """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
-    full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(dup_subfolder, '*'))
+    full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(working_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
-    print(prefix_list)
     move_to_dups = 0
     move_to_master_archive = 0
     for prefix in prefix_list:
-        if not os.path.isdir(os.path.join(folder, prefix)):
-            master_list, discard_list = uniquify_prefix(prefix, folder)
-            print("comparison done")
+        if not os.path.isdir(os.path.join(working_subfolder, prefix)):
+            master_list, discard_list = uniquify_prefix(prefix, folder, working_subfolder)
+            print('%s uniquified' % (submission_id_string))
             for filename in master_list:
                 if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
                     shutil.move(filename, os.path.join(archive_subfolder, os.path.basename(filename)))
                     move_to_master_archive += 1
+                    print('%s moved to master folder' % submission_id_string)
             for filename in discard_list:
                 if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
-                    shutil.move(filename, os.path.join(dup_subfolder, os.path.basename(filename)))
                     move_to_dups += 1
-    print('Moved %s comment files to permanent archive; moved %s comment files to duplicates storage' % (move_to_master_archive, move_to_dups))
+    print("moving complete")
+    os.rmdir(working_subfolder)            
+    print('Moved %s comment files to permanent archive; moved %s duplicate comment files removed' % (move_to_master_archive, move_to_dups))
 
 
-try 
-
-
-
+"""
 os.remove
 
 shutil.remove
-
-"""
 
 it throws everything into master and duplicates
 1.put everything into a folder called working
@@ -283,11 +278,11 @@ shutil.rmtree
 """
 
 
-def uniquify_prefix(prefix, folder):
+def uniquify_prefix(prefix, folder, working_subfolder):
     prefix_file_list = glob.glob(os.path.join(folder, '**/%s*' % prefix), recursive=True)
     master_list = [x for x in prefix_file_list if 'master' in x]
-    if master_list == []:
-        master_list = [[x for x in prefix_file_list if 'duplicates' not in x][0]]
+#    if master_list == []:
+#        master_list = [[x for x in prefix_file_list if 'duplicates' not in x][0]]
     discard_list = []
     if len(prefix_file_list) > 1:
         for item in [x for x in prefix_file_list if x not in master_list]:
