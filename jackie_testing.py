@@ -249,12 +249,12 @@ def separate_unique_and_dup_files(folder, archive_subfolder, working_subfolder, 
     for prefix in prefix_list:
         if not os.path.isdir(os.path.join(working_subfolder, prefix)):
             master_list, discard_list = uniquify_prefix(prefix, folder, working_subfolder)
-            print('%s uniquified' % (submission_id_string))
+            print('uniquified')
             for filename in master_list:
                 if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
-                    shutil.move(filename, os.path.join(archive_subfolder, os.path.basename(filename)))
+                    shutil.move(filename, archive_subfolder)
                     move_to_master_archive += 1
-                    print('%s moved to master folder' % submission_id_string)
+                    print('%s moved to master folder' % filename)
             for filename in discard_list:
                 if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
                     move_to_dups += 1
