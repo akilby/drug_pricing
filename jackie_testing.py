@@ -103,7 +103,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    separate_unique_and_dup_files(comment_folder, comment_master_folder, comment_working_folder, sep='-')
+    separate_unique_and_dup_files(comment_master_folder, comment_working_folder, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
@@ -240,27 +240,33 @@ def get_submission_idlist(thread_filepath_csv):
     idlist = list(set(ids))
     return idlist
 
-def separate_unique_and_dup_files(folder, archive_subfolder, working_subfolder, sep='-'):
+def separate_unique_and_dup_files(master_subfolder, working_subfolder, sep='-'):
     """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
-    full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(working_subfolder, '*'))
+    # full_file_list = glob.glob(os.path.join(folder, '*')) + glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(working_subfolder, '*'))
+    # full_file_list1 = glob.glob(os.path.join(archive_subfolder, '*')) + glob.glob(os.path.join(working_subfolder, '*'))
+    full_file_list = glob.glob(os.path.join(working_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
     move_to_dups = 0
     move_to_master_archive = 0
+    total_count = len(prefix_list)
+    j = 0
     for prefix in prefix_list:
-        if not os.path.isdir(os.path.join(working_subfolder, prefix)):
-            master_list, discard_list = uniquify_prefix(prefix, folder, working_subfolder)
-            print('uniquified')
-            for filename in master_list:
-                if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
-                    shutil.move(filename, archive_subfolder)
-                    move_to_master_archive += 1
-                    print('%s moved to master folder' % filename)
-            for filename in discard_list:
-                if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
-                    move_to_dups += 1
+        j += 1
+        #if not os.path.isdir(os.path.join(working_subfolder, prefix)):
+        new_master_list, discard_list = uniquify_prefix(prefix, master_subfolder, working_subfolder)
+        print('uniquified prefix %s out of %s' % (j, total_count))
+        for filename in new_master_list:
+                #if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
+            shutil.move(filename, master_subfolder)
+            move_to_master_archive += 1
+            print('%s moved to master folder' % filename)
+        #for filename in discard_list:
+            #if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
+        #    move_to_dups += 1
     print("moving complete")
-    os.rmdir(working_subfolder)            
-    print('Moved %s comment files to permanent archive; moved %s duplicate comment files removed' % (move_to_master_archive, move_to_dups))
+    # os.rmdir(working_subfolder)  
+    remaining_files = len(glob.glob(os.path.join(working_subfolder, '*')))
+    print('Moved %s comment files to permanent archive; %s duplicate comment files remain' % (move_to_master_archive, remaining_files))
 
 
 """
@@ -278,24 +284,26 @@ shutil.rmtree
 """
 
 
-def uniquify_prefix(prefix, folder, working_subfolder):
-    prefix_file_list = glob.glob(os.path.join(folder, '**/%s*' % prefix), recursive=True)
-    master_list = [x for x in prefix_file_list if 'master' in x]
+def uniquify_prefix(prefix, master_subfolder, working_subfolder):
+    prefix_file_list_working = glob.glob(os.path.join(working_subfolder, '%s*' % prefix))
+    prefix_file_list_master = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
+    # master_list = [x for x in prefix_file_list if 'master' in x]
 #    if master_list == []:
 #        master_list = [[x for x in prefix_file_list if 'duplicates' not in x][0]]
     discard_list = []
-    if len(prefix_file_list) > 1:
-        for item in [x for x in prefix_file_list if x not in master_list]:
+    new_master_list = []
+    if prefix_file_list_master != []:
+        for item in prefix_file_list_working:
             duplicate = False
-            for master_item in master_list:
+            for master_item in prefix_file_list_master:
                 if duplicate is False:
                     if filecmp.cmp(master_item, item):
                         duplicate = True
             if duplicate:
                 discard_list.append(item)
             else:
-                master_list.append(item)
-    return master_list, discard_list
+                new_master_list.append(item)
+    return new_master_list, discard_list
 
 
 if __name__ == '__main__':
