@@ -23,6 +23,7 @@ parser.add_argument("--subreddit", default='opiates', help="what subreddit to sc
 parser.add_argument("--thread_folder_name", default='threads')
 parser.add_argument("--comment_folder_name", default='comments')
 parser.add_argument("--comment_working_folder_name", default='working')
+parser.add_argument("--comment_duplicate_folder_name", default='duplicates')
 parser.add_argument("--comment_master_folder_name", default='master')
 parser.add_argument("--iterate_over_days", default='1')
 parser.add_argument("--datestring_start", default=None, help="starting date string in correct format (example: January-19-2018). Default will set to be 7 days prior.")
@@ -48,6 +49,7 @@ class ArgumentContainer(object):
         self.thread_folder_name = "threads"
         self.comment_folder_name = "comments"
         self.comment_working_folder_name = 'working'
+        self.comment_duplicate_folder_name = 'duplicates'
         self.comment_master_folder_name = 'master'
         self.iterate_over_days = '1'
         self.datestring_start = 'January-19-2018'
@@ -72,7 +74,7 @@ def main():
     print('---------------------------------------------------------------------------------')
 
     start_time, end_time = generate_time_bands(args.datestring_start, args.datestring_end, args.days_look_back, args.days_look_forward)
-    thread_folder, comment_folder, comment_working_folder, comment_master_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_working_folder_name, args.comment_master_folder_name, args.subreddit, args.file_folder)
+    thread_folder, comment_folder, comment_working_folder, comment_master_folder, comment_duplicate_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_working_folder_name, args.comment_master_folder_name, args.comment_duplicate_folder_name, args.subreddit, args.file_folder)
 
     print('---------------------------------------------------------------------------------')
 
@@ -85,7 +87,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    separate_unique_and_dup_files(comment_master_folder, comment_working_folder, sep='-')
+    separate_unique_and_dup_files(comment_master_folder, comment_working_folder, comment_duplicate_folder, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
@@ -113,7 +115,7 @@ def generate_time_bands(datestring_start=None, datestring_end=None, days_look_ba
     return int(start_time), int(end_time)
 
 
-def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working_folder_name, comment_master_folder_name, subreddit, file_folder=None):
+def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working_folder_name, comment_master_folder_name, comment_duplicate_folder_name, subreddit, file_folder=None):
     """
     Assigns working directories according to which computer being run on
     """
@@ -127,10 +129,11 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
     comment_working_folder = os.path.join(comment_folder, comment_working_folder_name)
+    comment_duplicate_folder = os.path.join(comment_folder,comment_duplicate_folder_name)
     comment_master_folder = os.path.join(comment_folder, comment_master_folder_name)
     print('Thread folder: %s' % thread_folder)
     print('Comment folder: %s' % comment_folder)
-    return thread_folder, comment_folder, comment_working_folder, comment_master_folder
+    return thread_folder, comment_folder, comment_working_folder, comment_master_folder, comment_duplicate_folder
 
 
 def make_praw_agent(args):
@@ -222,7 +225,7 @@ def get_submission_idlist(thread_filepath_csv):
     idlist = list(set(ids))
     return idlist
 
-def separate_unique_and_dup_files(master_subfolder, working_subfolder, sep='-'):
+def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate_subfolder, sep='-'):
     """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
     full_file_list = glob.glob(os.path.join(working_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
