@@ -1,16 +1,138 @@
-import Quandl
-import pandas as pd
-
-df = Quandl.get('FMAC/HPI_AK')
-print(df.head())
-fifty_states = pd.read_html('https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States')
-print(fifty_states[0][1])
-for abbv in fifty_states[0][1]:
-    print("FMAC/HPI_%s" % str(abbv))
-
-
-
 import csv
+from filecmp import dircmp
+import time
+
+
+
+def uniquify_prefix(prefix, master_subfolder, complete_subfolder):
+    full_master_list = glob.glob(os.path.join(master_subfolder, '*'))
+    full_complete_list = glob.glob(os.path.join(complete_subfolder, '*'))
+    master_prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_master_list]))
+    complete_prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_complete_list]))
+    discard_list = []
+    new_complete_list = []
+    for item in prefix_file_list_master:
+        duplicate = False
+        for complete_item in prefix_file_list_complete:
+            if duplicate is False:
+                if filecmp.cmp(complete_item, item):
+                    duplicate = True
+        if duplicate:
+            discard_list.append(item)
+        else:
+            new_complete_list.append(item)
+            combine_complete_and_master()
+            with open(filepath_use,'r') as in_file, open(filepath_complete.csv,'w') as out_file:
+                seen = set() # set for fast O(1) amortized lookup
+    for row in in_file:
+        if row in seen: pass # will this skip over previously added comments or will this 
+    seen.add(line)
+    out_file.write(line)
+    print(seen)
+                writer = csv.writer(f)
+                for row in row_list:
+                    if 
+    return new_master_list, discard_list
+
+
+def combine_complete_and_master(prefix,):
+'''this compares current complete files to master file'''
+    full_master_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+    full_complete_file_list = glob.glob(os.path.join(complete_subfolder, '*'))
+    master_prefix_list = list(set([x.split(sep)[0].split('/')[-1] for item in full_master_file_list]))
+    complete_prefix_list = list(set([x.split(sep)[0].split('/')[-1] for item in full_complete_file_list]))
+    for master_prefix in master_prefix_list:
+        for complete_prefix in complete_prefix_list:
+            if master_prefix == complete_prefix:
+                filepath_use = os.path.join(master_comment_folder, master_prefix)
+                filepath_current_complete = os.path.join(complete_comment_folder, '*')
+                filepath_complete = os.path.join(complete_comment_files, complete_prefix + str(time.time()))
+                for item in filepath_use
+                with open(filepath_use, 'r') as in_file_1, open(filepath_current_complete, 'r') as in_file_2, open(filepath_complete, 'w') as out_file:
+                    seen = set()
+                    for row in input_file2
+                        if row in seen: 
+                            pass
+                        else:
+                            seen.add(row)
+                            print(seen)
+                    for row in in_file1:
+                        if row in seen: 
+                            pass # will this skip over previously added comments or will this 
+                        else:
+                            seen.add(row)
+                            out_file.write(row)
+            else:
+
+                    print(seen)
+
+
+
+def complete_comment_files(master_subfolder, complete_comment_folder, sep = '-'):
+'''this is the most complete function'''    
+    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+    prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    for file in full_file_list:
+        for prefix in prefix_list: 
+        filepath_use = os.path.join(master_subfolder, '*')
+        filepath_complete = os.path.join(complete_comment_folder, prefix)
+        with open(filepath_use,'r') as in_file, open(filepath_complete.csv,'w') as out_file:
+            seen = set()
+            for row in in_file:
+                if row in seen: pass # will this skip over previously added comments or will this 
+            seen.add(line)
+            out_file.write(line)
+            print(seen)
+
+
+
+
+
+
+
+ Deprecated code 
+
+
+def move_composing_files():
+    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+    
+    full_conent_file_list = []
+    for prefix in full_file_list:
+        generate_complete_file()
+
+
+def generate_complete_file():
+    prefix_file_list1 = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
+    prefix_file_list2 = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
+    if prefix not in full_conent_file_list:
+        for item in prefix_list:
+            if duplicate is False:
+                if filecmp.cmp() 
+            for master_item in prefix_file_list_master:
+                if duplicate is False:
+                    if filecmp.cmp(master_item, item):
+                        duplicate = True
+
+    discard_list = []
+    new_master_list = []
+    if prefix_file_list_master != []:
+        for item in prefix_file_list_working:
+            duplicate = False
+            for master_item in prefix_file_list_master:
+                if duplicate is False:
+                    if filecmp.cmp(master_item, item):
+                        duplicate = True
+            if duplicate:
+                discard_list.append(item)
+            else:
+                new_master_list.append(item)
+                with open("Users/jackiereimer/Dropbox/r_opiates/comments/all_comments.csv", "w") as f:
+                    writer = csv.writer(f)
+                    for row in row_list:
+                        if 
+    return new_master_list, discard_list
+
+
 input_file1 = "Desktop/test2/opiates_7x1k1c-1518663169 copy.csv"
 input_file2 = "Desktop/test2/opiates_7x1k1c-1518914343 copy.csv"
 output_file = "Desktop/test2/opiates_7x1k1c-final.csv"
