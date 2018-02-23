@@ -1,6 +1,8 @@
 import csv
 from filecmp import dircmp
 import time
+import glob
+import os
 
 
 def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
