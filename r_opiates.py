@@ -247,7 +247,7 @@ def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate
             print('%s moved to discard folder' % filename)    
     print("moving complete")
     remaining_files = len(glob.glob(os.path.join(working_subfolder, '*')))
-    print('Moved %s comment files to permanent archive; %s duplicate comment files remain' % (move_to_master_archive, remaining_files))
+    print('Moved %s comment files to permanent archive; Moved %s comment files to duplicate archive' % (move_to_master_archive, remaining_files))
 
 
 def uniquify_prefix(prefix, master_subfolder, working_subfolder):
