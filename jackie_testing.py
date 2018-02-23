@@ -256,9 +256,9 @@ def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate
     for prefix in prefix_list:
         j += 1
         #if not os.path.isdir(os.path.join(working_subfolder, prefix)):
-        new_master_list, discard_list = uniquify_prefix(prefix, master_subfolder, working_subfolder)
+        master_list, discard_list = uniquify_prefix(prefix, master_subfolder, working_subfolder)
         print('uniquified prefix %s out of %s' % (j, total_count))
-        for filename in new_master_list:
+        for filename in master_list:
                 #if os.path.normpath(os.path.dirname(filename)) == os.path.normpath(folder):
             shutil.move(filename, master_subfolder)
             move_to_master_archive += 1
@@ -296,7 +296,7 @@ def uniquify_prefix(prefix, master_subfolder, working_subfolder):
 #    if master_list == []:
 #        master_list = [[x for x in prefix_file_list if 'duplicates' not in x][0]]
     discard_list = []
-    new_master_list = []
+    master_list = []
     if prefix_file_list_master != []:
         for item in prefix_file_list_working:
             duplicate = False
@@ -307,8 +307,8 @@ def uniquify_prefix(prefix, master_subfolder, working_subfolder):
             if duplicate:
                 discard_list.append(item)
             else:
-                new_master_list.append(item)
-    return new_master_list, discard_list
+                master_list.append(item)
+    return master_list, discard_list
 
 
 if __name__ == '__main__':
