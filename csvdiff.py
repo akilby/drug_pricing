@@ -3,24 +3,44 @@ from filecmp import dircmp
 import time
 
 
-def complete_comment_files(master_subfolder, complete_comment_folder, sep = '-'):
-'''this is the most complete function'''    
-    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
+    '''this is the most complete function'''
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
-    for file in full_file_list:
-        for prefix in prefix_list: 
-        filepath_use = os.path.join(master_subfolder, '*')
-        filepath_complete = os.path.join(complete_comment_folder, prefix)
-        with open(filepath_use,'r') as in_file, open(filepath_complete.csv,'w') as out_file:
-            writer = csv.writer(out_file)
-            seen = set()
-            for row in in_file:
-                if row in seen: 
-                    pass # will this skip over previously added comments or will this 
-                else:
-                    seen.add(row)
-                    writer.writerow(row)
-        print(seen)
+    for prefix in prefix_list:
+        file_list = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
+        master_row_list = []
+        for filepath_use in file_list:
+            with open(filepath_use, 'r') as in_file:
+                comment_file = csv.reader(in_file)
+                for row in comment_file:
+                    print(row)
+                    if row not in master_row_list:
+                        master_row_list.append(row)
+        outfilename = os.path.join(complete_comment_folder, '%s.csv' % prefix)
+        with open(outfilename, 'w') as outfile:
+            writer = csv.writer(outfile)
+            writer.writerows(master_row_list)
+            
+            
+
+# def complete_comment_files(master_subfolder, complete_comment_folder, sep = '-'):
+# '''this is the most complete function'''    
+#    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+#    prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+#    for file in full_file_list:
+#        for prefix in prefix_list: 
+#        filepath_use = os.path.join(master_subfolder, '*')
+#        filepath_complete = os.path.join(complete_comment_folder, prefix)
+#        with open(filepath_use,'r') as in_file, open(filepath_complete.csv,'w') as out_file:
+#            writer = csv.writer(out_file)
+#            seen = set()
+#            for row in in_file:
+#                if row in seen: 
+#                    pass # will this skip over previously added comments or will this 
+#                else:
+#                    seen.add(row)
+#                    writer.writerow(row)
+#        print(seen)
 
 
 
