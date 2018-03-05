@@ -7,7 +7,6 @@ import os
 
 def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
     '''this is the most complete function'''
-    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
     for prefix in prefix_list:
         file_list = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
