@@ -55,8 +55,8 @@ class ArgumentContainer(object):
         self.comment_master_folder_name = 'master'
         self.comment_complete_folder_name = 'complete'
         self.iterate_over_days = '1'
-        self.datestring_start = 'January-19-2018'
-        self.datestring_end = 'January-19-2018'
+        self.datestring_start = 'March-03-2018'
+        self.datestring_end = 'March-05-2018'
         self.days_look_back = None
         self.days_look_forward = None
         self.client_id = '2do-OPn-K3ii3A'
@@ -127,7 +127,7 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working
     Assigns working directories according to which computer being run on
     """
     if file_folder:
-        use_path = os.path.join(file_folder, "r_%s/" % subreddit)
+        use_path = os.path.join(file_folder, subreddit)
     else:
         if os.getcwd().split('/')[2] == 'akilby':
             use_path = "/Users/akilby/Dropbox/Research/Data/%s/" % subreddit
@@ -136,7 +136,7 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
     comment_working_folder = os.path.join(comment_folder, comment_working_folder_name)
-    comment_duplicate_folder = os.path.join(comment_folder,comment_duplicate_folder_name)
+    comment_duplicate_folder = os.path.join(comment_folder, comment_duplicate_folder_name)
     comment_master_folder = os.path.join(comment_folder, comment_master_folder_name)
     comment_complete_folder = os.path.join(comment_folder, comment_complete_folder_name)
     print('Thread folder: %s' % thread_folder)
@@ -237,6 +237,7 @@ def get_submission_idlist(thread_filepath_csv):
     idlist = list(set(ids))
     return idlist
 
+
 def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate_subfolder, sep='-'):
     """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
     full_file_list = glob.glob(os.path.join(working_subfolder, '*'))
@@ -245,9 +246,13 @@ def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate
     move_to_master_archive = 0
     total_count = len(prefix_list)
     j = 0
+    new_count = 0
+    dup_count = 0
     for prefix in prefix_list:
         j += 1
         new_master_list, discard_list = uniquify_prefix(prefix, master_subfolder, working_subfolder)
+        new_count += len(new_master_list)
+        dup_count += len(discard_list)
         print('uniquified prefix %s out of %s' % (j, total_count))
         for filename in new_master_list:
             shutil.move(filename, master_subfolder)
@@ -258,27 +263,50 @@ def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate
             move_to_dups += 1
             print('%s moved to discard folder' % filename)
     print("moving complete")
-    remaining_files = len(glob.glob(os.path.join(working_subfolder, '*')))
-    print('Moved %s comment files to permanent archive; Moved %s comment files to duplicate archive' % (move_to_master_archive, remaining_files))
+    # remaining_files = len(glob.glob(os.path.join(working_subfolder, '*')))
+    print('Moved %s comment files to permanent archive; Moved %s comment files to duplicate archive' % (new_count, dup_count))
 
 
 def uniquify_prefix(prefix, master_subfolder, working_subfolder):
     prefix_file_list_working = glob.glob(os.path.join(working_subfolder, '%s*' % prefix))
     prefix_file_list_master = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
-    discard_list = []
-    new_master_list = []
-    if prefix_file_list_master != []:
-        for item in prefix_file_list_working:
+    candidate_list, discard_list1 = return_nondup_files(prefix_file_list_working)
+    new_master_list, discard_list2 = return_new_nondup_files(candidate_list, prefix_file_list_master)
+    return new_master_list, discard_list1 + discard_list2
+
+
+def return_new_nondup_files(candidate_list, master_list):
+    new_master_list, discard_list = [], []
+    for item in candidate_list:
+        duplicate = False
+        for master_item in master_list:
+            if duplicate is False:
+                if filecmp.cmp(master_item, item):
+                    duplicate = True
+        if duplicate:
+            discard_list.append(item)
+        else:
+            new_master_list.append(item)
+    return new_master_list, discard_list
+
+
+def return_nondup_files(candidate_list):
+    master_list, discard_list = [], []
+    i = 0
+    for item in candidate_list:
+        if i == 0:
+            master_list.append(item)
+        else:
             duplicate = False
-            for master_item in prefix_file_list_master:
-                if duplicate is False:
-                    if filecmp.cmp(master_item, item):
-                        duplicate = True
+            for master_item in master_list:
+                if filecmp.cmp(item, master_item):
+                    duplicate = True
             if duplicate:
                 discard_list.append(item)
             else:
-                new_master_list.append(item)
-    return new_master_list, discard_list
+                master_list.append(item)
+        i += 1
+    return master_list, discard_list
 
 
 def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
@@ -292,9 +320,10 @@ def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
             with open(filepath_use, 'r') as in_file:
                 comment_file = csv.reader(in_file)
                 for row in comment_file:
-                    print(row)
-                    if row not in master_row_list:
-                        master_row_list.append(row)
+                    row2 = row[:2] + row[3:]
+                    print(row2)
+                    if row2 not in master_row_list:
+                        master_row_list.append(row2)
         outfilename = os.path.join(complete_comment_folder, '%s.csv' % prefix)
         with open(outfilename, 'w') as outfile:
             print(outfilename)
