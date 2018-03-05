@@ -55,9 +55,9 @@ class ArgumentContainer(object):
         self.comment_master_folder_name = 'master'
         self.comment_complete_folder_name = 'complete'
         self.iterate_over_days = '1'
-        #self.datestring_start = 'March-03-2018'
-        #self.datestring_end = 'March-05-2018'
-        self.days_look_back = 1
+        self.datestring_start = 'March-03-2018'
+        self.datestring_end = 'March-05-2018'
+        self.days_look_back = None
         self.days_look_forward = None
         self.client_id = '2do-OPn-K3ii3A'
         self.client_secret = 'pBqEsDdGCk-E_n55vkb0ITFzl1Y'
@@ -86,7 +86,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    prefix_list = get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit)
+    prefix_list = get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
