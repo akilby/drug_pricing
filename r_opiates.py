@@ -7,6 +7,7 @@ import argparse
 import filecmp
 import glob
 import shutil
+import collections
 from praw.models import MoreComments
 
 ###################################################################################################################################
@@ -66,7 +67,7 @@ class ArgumentContainer(object):
 
 
 if 'args' not in dir():
-    args = ArgumentContainer() 
+    args = ArgumentContainer()
 
 ###################################################################################################################################
 
@@ -93,7 +94,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    complete_comment_files(comment_master_folder, comment_complete_folder, sep='-') 
+    complete_comment_files(comment_master_folder, comment_complete_folder, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
@@ -255,7 +256,7 @@ def separate_unique_and_dup_files(master_subfolder, working_subfolder, duplicate
         for filename in discard_list:
             shutil.move(filename, duplicate_subfolder)
             move_to_dups += 1
-            print('%s moved to discard folder' % filename)    
+            print('%s moved to discard folder' % filename)
     print("moving complete")
     remaining_files = len(glob.glob(os.path.join(working_subfolder, '*')))
     print('Moved %s comment files to permanent archive; Moved %s comment files to duplicate archive' % (move_to_master_archive, remaining_files))
@@ -299,6 +300,13 @@ def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
             print(outfilename)
             writer = csv.writer(outfile)
             writer.writerows(master_row_list)
+
+
+def list_comment_threads_with_multiple_downloads(pathname):
+    files = glob.glob('%s*' % pathname)
+    stubs = [x.split('-')[0] for x in files]
+    return [item for item, count in collections.Counter(stubs).items() if count > 1]
+
 
 if __name__ == '__main__':
     main()
