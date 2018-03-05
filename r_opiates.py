@@ -55,9 +55,9 @@ class ArgumentContainer(object):
         self.comment_master_folder_name = 'master'
         self.comment_complete_folder_name = 'complete'
         self.iterate_over_days = '1'
-        self.datestring_start = 'March-03-2018'
-        self.datestring_end = 'March-05-2018'
-        self.days_look_back = None
+        #self.datestring_start = 'March-03-2018'
+        #self.datestring_end = 'March-05-2018'
+        self.days_look_back = 1
         self.days_look_forward = None
         self.client_id = '2do-OPn-K3ii3A'
         self.client_secret = 'pBqEsDdGCk-E_n55vkb0ITFzl1Y'
@@ -86,7 +86,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit)
+    prefix_list = get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit)
 
     print('---------------------------------------------------------------------------------')
 
@@ -94,7 +94,7 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
-    complete_comment_files(comment_master_folder, comment_complete_folder, sep='-')
+    complete_comment_files(comment_master_folder, comment_complete_folder, prefix_list, sep='-')
 
     print('---------------------------------------------------------------------------------')
 
@@ -193,7 +193,7 @@ def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thre
         return idlist, thread_filepath_csv
 
 
-def get_all_comments_from_idlist(r, idlist, comment_working_folder, subreddit):
+def get_all_comments_from_idlist(r, idlist, comment_working_folder, subreddit, sep='-'):
     """
     Takes a set of threads ids and pulls comments from a set of threads and places them into a csv file
     """
@@ -205,7 +205,7 @@ def get_all_comments_from_idlist(r, idlist, comment_working_folder, subreddit):
         scrape_time = int(time.mktime(datetime.datetime.now().timetuple()))
         submission = r.submission(id=submission_id_string)
         subreddit_submission = subreddit + '_' + str(submission)
-        filepath_csv = os.path.join(comment_working_folder, subreddit_submission + '-' + str(scrape_time) + '.csv')
+        filepath_csv = os.path.join(comment_working_folder, subreddit_submission + sep + str(scrape_time) + '.csv')
         check_for_more = 1
         while check_for_more is 1:
             num_mores = 0
@@ -222,6 +222,8 @@ def get_all_comments_from_idlist(r, idlist, comment_working_folder, subreddit):
             for comment in submission.comments.list():
                 a = (comment.id, submission.url, submission.num_comments, comment.parent_id, comment.body, comment.author, comment.created_utc)
                 writer.writerow(a)
+    full_file_list = glob.glob(os.path.join(comment_working_folder, '*'))
+    return list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
 
 
 def get_submission_idlist(thread_filepath_csv):
@@ -309,10 +311,11 @@ def return_nondup_files(candidate_list):
     return master_list, discard_list
 
 
-def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
+def complete_comment_files(master_subfolder, complete_comment_folder, prefix_list=None, sep='-'):
     '''compares multiple sets of master files'''
-    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
-    prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    if not prefix_list:
+        full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+        prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
     lenpref = len(prefix_list)
     i = 0
     for prefix in prefix_list:
