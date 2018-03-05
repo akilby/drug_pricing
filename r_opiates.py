@@ -93,6 +93,10 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
+    complete_comment_files(comment_master_folder, comment_complete_folder, sep='-') 
+
+    print('---------------------------------------------------------------------------------')
+
 ##################################################################################################################################
 
 
@@ -275,6 +279,26 @@ def uniquify_prefix(prefix, master_subfolder, working_subfolder):
                 new_master_list.append(item)
     return new_master_list, discard_list
 
+
+def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
+    '''compares multiple sets of master files'''
+    full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
+    prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    for prefix in prefix_list:
+        file_list = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
+        master_row_list = []
+        for filepath_use in file_list:
+            with open(filepath_use, 'r') as in_file:
+                comment_file = csv.reader(in_file)
+                for row in comment_file:
+                    print(row)
+                    if row not in master_row_list:
+                        master_row_list.append(row)
+        outfilename = os.path.join(complete_comment_folder, '%s.csv' % prefix)
+        with open(outfilename, 'w') as outfile:
+            print(outfilename)
+            writer = csv.writer(outfile)
+            writer.writerows(master_row_list)
 
 if __name__ == '__main__':
     main()
