@@ -4,10 +4,15 @@ import time
 import glob
 import os
 
+master_subfolder = "Users/jackiereimer/Dropbox/r_opiates/comments/master/"
+complete_comment_folder = "Users/jackiereimer/Dropbox/r_opiates/comments/complete/" 
 
 def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
     '''this is the most complete function'''
+    full_file_list = glob.glob(os.path.join(master_subfolder, '*')) 
+    print(full_file_list)
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    print(prefix_list)
     for prefix in prefix_list:
         file_list = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
         master_row_list = []
@@ -20,6 +25,7 @@ def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
                         master_row_list.append(row)
         outfilename = os.path.join(complete_comment_folder, '%s.csv' % prefix)
         with open(outfilename, 'w') as outfile:
+            print(outfilename)
             writer = csv.writer(outfile)
             writer.writerows(master_row_list)
             
