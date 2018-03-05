@@ -313,7 +313,10 @@ def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
     '''compares multiple sets of master files'''
     full_file_list = glob.glob(os.path.join(master_subfolder, '*'))
     prefix_list = list(set([x.split(sep)[0].split('/')[-1] for x in full_file_list]))
+    lenpref = len(prefix_list)
+    i = 0
     for prefix in prefix_list:
+        i += 1
         file_list = glob.glob(os.path.join(master_subfolder, '%s*' % prefix))
         master_row_list = []
         for filepath_use in file_list:
@@ -321,9 +324,10 @@ def complete_comment_files(master_subfolder, complete_comment_folder, sep='-'):
                 comment_file = csv.reader(in_file)
                 for row in comment_file:
                     row2 = row[:2] + row[3:]
-                    print(row2)
+                    # print(row2)
                     if row2 not in master_row_list:
                         master_row_list.append(row2)
+        print('completed %s out of %s prefixes' % (i, lenpref))
         outfilename = os.path.join(complete_comment_folder, '%s.csv' % prefix)
         with open(outfilename, 'w') as outfile:
             print(outfilename)
