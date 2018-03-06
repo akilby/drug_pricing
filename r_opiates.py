@@ -164,8 +164,9 @@ def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thre
     outputs an idlist and a thread filepath
     """
     ids = []
+    scrape_time = int(time.mktime(datetime.datetime.now().timetuple()))
     iterate_over = 86400 * int(iterate_over_days)
-    thread_filepath_csv = os.path.join(thread_folder, "r_" + subreddit + "_" + str(start_time) + "_" + str(end_time) + ".csv")
+    thread_filepath_csv = os.path.join(thread_folder, "r_" + subreddit + "_" + str(start_time) + "_" + str(end_time) + '_' + '@' + '_' + str(scrape_time) + ".csv")
     print('Writing thread headers to file: %s' % thread_filepath_csv)
     i = 0
     with open(thread_filepath_csv, 'w') as f:
