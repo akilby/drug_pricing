@@ -11,7 +11,10 @@ tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 adwords_filepath, all_comments_filepath = assign_location_dirs()
 locations = make_locations_list_from_adwords(adwords_filepath)
+meth_words, sub_words, nalt_words, narc_words = make_mat_list()
 total_comment_list = all_comment_text(all_comments_filepath)
+
+
 
 def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working_folder_name, comment_master_folder_name, comment_duplicate_folder_name, comment_complete_folder_name, subreddit, file_folder=None):
     """
@@ -80,7 +83,7 @@ def make_mat_list():
     return meth_words, sub_words, nalt_words, narc_words
 
 
-all_comments_filepath = '/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518914343 copy.csv'
+all_comments_filepath = '/Users/jackiereimer/Documents/duplicates/opiates_7tww8l-1517606138.csv'
 
 def all_comment_text(all_comments_filepath):
     total_comment = []
@@ -112,22 +115,61 @@ def identify_location_sentences(all_comments_filepath, total_comment_list, locat
 
 
 
-def identify_mat_sentences(all_comments_filepath, total_comment_list, mat_type):
-    with open()
+def identify_key_word_comments(all_comments_filepath, total_comment_list, list):
+	''' looks for terms within a set across all comments within a given filepath'''
+    target_comments = []
+    with open(all_comments_filepath, 'r') as read_file:
+    	reader = csv.reader(read_file)
+    	for comment in reader:
 
 
 
 def identify_location_sentences(all_comments_filepath, total_comment_list, locations):
-    for comment in total_comment_list:
+    unique_location_comments = []
+    for location in locations:
         location_comment = [comment for comment in total_comment_list if location in comment]
         if location_comment not in unique_location_comments:
             unique_location_comments.append(location_comment)
-        print('added %s' % location_comment)
+        print('location: %s; location comment %s' % (location, location_comment))
     outfilename = '/Users/jackiereimer/Desktop/test2/test.csv'
     with open(outfilename, 'w') as outfile:
          print(outfilename)
          writer = csv.writer(outfile)
          writer.writerows(unique_location_comments)
+
+
+
+
+
+for locations in locations:
+    location_comment = [comment for comment in total_comment_list if location in comment]
+    if location_comment == '':
+        pass
+    else:
+        print(location, location_comment)
+
+
+
+
+def mat_fdist(all_comments_filepath, mat_words)
+    stop_words = set(stopwords.words("english"))
+    for comment in total_comment_list:
+    	fdist = FreqDist(w for w in all_words_set if not w in mat_words or stop_words)
+    print(fdist)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     location_mention = []
     for comment in total_comment_list:
@@ -163,18 +205,22 @@ def identify_mat_sentences(total_comment_list, mat_terms):
     print(filttered_word_list)
 
 
-def remove_stopwords(all_comments_filepath, mat_type)
+def remove_stopwords(all_comments_filepath):
     stop_words = set(stopwords.words("english"))
-    total_sentences = sent_tokenize(total_comment_list)
-    all_words = []
-    for sentence in total_sentences:
-        sent_words = word_tokenize(sentence)
-        relevant_words = [w for w in sent_words if not w in stop_words]
-        all_words.append(relevant_words)
+    for comment in total_comment_list:
+        total_sentences = sent_tokenize(total_comment_list)
+        all_words = []
+        for sentence in total_sentences:
+            sent_words = word_tokenize(sentence)
+            relevant_words = [w for w in sent_words if not w in stop_words]
+            all_words.append(relevant_words)
     all_words_set = set(all_words)
+    print(all_words_set)
 
 def mat_fdist(all_words_set, mat_words)
-    fdist = FreqDist(w for w in all_words_set if not w in mat_words)
+    stop_words = set(stopwords.words("english"))
+    for comment in total_comment_list:
+    	fdist = FreqDist(w for w in all_words_set if not w in mat_words)
     print(fdist)
 
 
