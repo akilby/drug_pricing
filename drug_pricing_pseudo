@@ -9,16 +9,44 @@ import itertools
 
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
+
+'''Required for Each Analysis'''
+
+# Establishes filepaths to relevant lists and data
 adwords_filepath, all_comments_filepath = assign_location_dirs()
+
+# Establishes list of locations
 locations = make_locations_list_from_adwords(adwords_filepath)
+
+# Establishes lists of terms related to different treatments
 meth_words, sub_words, nalt_words, narc_words = make_mat_list()
+
+# Takes all comments excel and creates list of tokenized lists
 total_comment_list = all_comment_text(all_comments_filepath)
-raw_narc_comments = identify_location_sentences(all_comments_filepath, total_comment_list, narc_words)
+
+
+#Naltrexone Frequency Distribution: all comments at once
+raw_narc_comments = identify_keyword_comments(total_comment_list, narc_words)
 flat_narc_comments = make_flat_comment_list(raw_narc_comments)
-near_clean_narc_comments = remove_stopwords(flat_keyword_comments)
+near_clean_narc_comments = remove_stopwords(flat_narc_comments)
 clean_narc_comments = remove_mat_words(near_clean_narc_comments, narc_words)
+fifty_most_common(clean_narc_comments, freq='50')
 
 
+def freq_dist(total_comment_list, mat_words, freq='50'):
+    raw_meth_comments = identify_keyword_comments(all_comments_filepath, total_comment_list, meth_words)
+    flat_meth_comments = make_flat_comment_list(raw_meth_comments)
+    near_clean_meth_comments = remove_stopwords(flat_meth_comments)
+    clean_meth_comments = remove_mat_words(near_clean_meth_comments, narc_words)
+    final_freq_dist(clean_meth_comments, freq)
+
+
+#
+raw_meth_comments = identify_keyword_comments(all_comments_filepath, total_comment_list, meth_words)
+flat_meth_comments = make_flat_comment_list(raw_meth_comments)
+near_clean_meth_comments = remove_stopwords(flat_meth_comments)
+clean_meth_comments = remove_mat_words(near_clean_meth_comments, narc_words)
+fifty_most_common(clean_meth_comments)
 
 
 narc_sentences = identify_location_sentences(all_comments_filepath, total_comment_list, narc_words)
@@ -134,7 +162,7 @@ def all_comment_text(all_comments_filepath):
 
 
 ### THIS IS VERSION 1 ####
-def identify_keyword_sentences(all_comments_filepath, total_comment_list, locations):
+def identify_keyword_sentences(total_comment_list, locations):
     with open(all_comments_filepath, 'r') as read_file:
         reader = csv.reader(read_file)
         unique_location_comments = []
@@ -196,30 +224,10 @@ def make_flat_comment_list(raw_keyword_comments):
     return flat_list
 
 
-
-
-    outfilename = '/Users/jackiereimer/Desktop/test2/test.csv'
-
-
-relevant_words = []
-for review in raw_narc_comments:
-    rw=[]
-    for word in review:
-        if word not in stop_words:
-            rw.append(word)
-        relevant_words.append(rw)
-
-
-
-    total_sentence_list.append(total_sentences)
-    print(filttered_word_list)
-
-
-
 def remove_stopwords(flat_keyword_comments):
     stop_words = set(stopwords.words("english"))
     non_stopwords = []
-    for item in flat_keyword_list:
+    for item in flat_keyword_comments:
         nsw=[]
         for word in item:
             if word.lower() not in stop_words:
@@ -228,16 +236,16 @@ def remove_stopwords(flat_keyword_comments):
     return non_stopwords
 
 
-def remove_stopwords(raw_keyword_comments):
-    stop_words = set(stopwords.words("english"))
-    non_stopwords = []
-    for comment in raw_keyword_comments:
-        nsw = []
-        for word in comment:
-            filtered_sentence = word.apply(lambda x : [w for w in x if w.lower() not in stop_words])
-            nsw.append(filtered_sentence)
-        non_stopwords.append(nsw)
-    return non_stopwords    
+#def remove_stopwords(raw_keyword_comments):
+#    stop_words = set(stopwords.words("english"))
+#    non_stopwords = []
+#    for comment in raw_keyword_comments:
+#        nsw = []
+#        for word in comment:
+#            filtered_sentence = word.apply(lambda x : [w for w in x if w.lower() not in stop_words])
+#            nsw.append(filtered_sentence)
+#        non_stopwords.append(nsw)
+#    return non_stopwords    
 
 
 
@@ -254,21 +262,19 @@ def remove_mat_words(non_stopwords, mat_words):
     return relevant_words
 
 
-def fifty_most_common(clean_narc_comments):
+def final_freq_dist(clean_keyword_comments, freq):
     final_list = []
-    for comment in relevant_words:
+    for comment in clean_keyword_comments:
         fl = []
         for word in comment:
             fl.append(word)
         final_list.append(fl)
     fdist = FreqDist(flat_list)
-    return fdist.most_common(50)
+    print(fdist.most_common(freq))
 
 
-    relevant_words = [word for word in str1 if not word in stop_words]
-        all_words.append(relevant_words)
-    all_words_set = set(all_words)
-    return all_words_set
+
+
 
 def mat_fdist(all_words_set, mat_words)
     stop_words = set(stopwords.words("english"))
@@ -276,10 +282,16 @@ def mat_fdist(all_words_set, mat_words)
     	fdist = FreqDist(w for w in all_words_set if not w in mat_words)
     print(fdist)
 
-for comment in narc_comments:
+meth_words = ['methadone', 'mmt']
+sub_words = ['suboxone', 'sub', 'suboxone', 'buprenex', 'butrans', 'probuphine', 'belbuca', 'bupe']
+nalt_words = ['naltrexone' 'reviva', 'vivitrol', 'uldn']
+narc_words = ['naloxone, narcan']
 
 
-
+#    relevant_words = [word for word in str1 if not word in stop_words]
+#        all_words.append(relevant_words)
+#    all_words_set = set(all_words)
+#    return all_words_set
 
 #def find_locations(file, locations)
 #    location_sentences = []
@@ -336,37 +348,50 @@ narc_words = ['naloxone, narcan']
 #    location_comments = [comment for comment in total_sentences if locations_mentioned in sent]
 #    return location_sentences
 
-
-
-
-fdist = FreqDist(w for w in all_words_set if not w in mat_words or stop_words)
-
-
-
-from nltk import FreqDist
-import re
-
-raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
-fdist = nltk.FreqDist(wd.lower() for wd in raw if )
-
-
-
-f = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv')
-for line in f:
-    print(line.strip())
-
-raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
-type(raw)
-
-
-tokens = word_tokenize(raw)
-type(tokens)
-
-words = [w.lower() for w in tokens]
-type(words)
-
-vocab = sorted(set(words))
-type(vocab)
-
-
-
+#relevant_words = []
+#for review in raw_narc_comments:
+#    rw=[]
+#    for word in review:
+#        if word not in stop_words:
+#            rw.append(word)
+#        relevant_words.append(rw)
+#
+#
+#
+#    total_sentence_list.append(total_sentences)
+#    print(filttered_word_list)
+#
+#
+#
+#fdist = FreqDist(w for w in all_words_set if not w in mat_words or stop_words)
+#
+#
+#
+#from nltk import FreqDist
+#import re
+#
+#raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
+#fdist = nltk.FreqDist(wd.lower() for wd in raw if )
+#
+#
+#
+#f = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv')
+#for line in f:
+#    print(line.strip())
+#
+#raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
+#type(raw)
+#
+#
+#tokens = word_tokenize(raw)
+#type(tokens)
+#
+#words = [w.lower() for w in tokens]
+#type(words)
+#
+#vocab = sorted(set(words))
+#type(vocab)
+#
+#
+#
+#
