@@ -30,15 +30,13 @@ raw_narc_comments = identify_keyword_comments(total_comment_list, narc_words)
 flat_narc_comments = make_flat_comment_list(raw_narc_comments)
 near_clean_narc_comments = remove_stopwords(raw_narc_comments)
 clean_narc_comments = remove_mat_words(near_clean_narc_comments, narc_words)
-final_most_common(near_clean_narc_comments, freq='50')
+final_most_common(near_clean_narc_comments, 50)
 
 
-def freq_dist(total_comment_list, mat_words, freq='50'):
-    raw_meth_comments = identify_keyword_comments(all_comments_filepath, total_comment_list, meth_words)
-    flat_meth_comments = make_flat_comment_list(raw_meth_comments)
-    near_clean_meth_comments = remove_stopwords(flat_meth_comments)
-    clean_meth_comments = remove_mat_words(near_clean_meth_comments, narc_words)
-    final_freq_dist(clean_meth_comments, freq)
+def freq_dist(total_comment_list, mat_words, 500):
+    raw_keyword_comments = identify_keyword_comments(total_comment_list, mat_words)
+    near_clean_mat_comments = remove_stopwords(raw_keyword_comments)
+    final_most_common(near_clean_mat_comments, freq)
 
 
 #
@@ -107,7 +105,7 @@ def make_mat_list(mat_filepath):
     meth_words = [x[0] for x in mat]
     sub_words = [x[1] for x in mat]
     nalt_words = [x[2] for x in mat]
-    narc_words = [x[3] for x in mat]
+    narc_words = [x[3] for x in mat]    
     return meth_words, sub_words, nalt_words, narc_words
 
 def all_comment_text(all_comments_filepath):
@@ -121,46 +119,46 @@ def all_comment_text(all_comments_filepath):
 
 
 
-'''VERSION 1 of 3 DOES NOT WORK''' 
-def identify_keyword_sentences(total_comment_list, locations):
-    with open(all_comments_filepath, 'r') as read_file:
-        reader = csv.reader(read_file)
-        unique_location_comments = []
-        for comment in reader:
-            location_comment = [word_tokenize(comment) for comment in total_comment_list if location in comment]
-            location_comment2 = location_comment[:2] + location_comment[3:]
-            if location_comment2 not in unique_location_comments:
-                unique_location_comments.append(location_comment)
-            print('added %s' % location_comment)
-    outfilename = '/Users/jackiereimer/Desktop/test2/test_narc.txt'
-    with open(outfilename, 'w') as outfile:
-        print(outfilename)
-        writer = csv.writer(outfile)
-        writer.writerows(unique_location_comments)
+#''VERSION 1 of 3 DOES NOT WORK''' 
+#ef identify_keyword_sentences(total_comment_list, locations):
+#   with open(all_comments_filepath, 'r') as read_file:
+#       reader = csv.reader(read_file)
+#       unique_location_comments = []
+#       for comment in reader:
+#           location_comment = [word_tokenize(comment) for comment in total_comment_list if location in comment]
+#           location_comment2 = location_comment[:2] + location_comment[3:]
+#           if location_comment2 not in unique_location_comments:
+#               unique_location_comments.append(location_comment)
+#           print('added %s' % location_comment)
+#   outfilename = '/Users/jackiereimer/Desktop/test2/test_narc.txt'
+#   with open(outfilename, 'w') as outfile:
+#       print(outfilename)
+#       writer = csv.writer(outfile)
+#       writer.writerows(unique_location_comments)
 
 
-'''VERSION 2 of 3 DOES NOT WORK'''
-def identify_keyword_comments(all_comments_filepath, total_comment_list):
-    ''' looks for terms within a set across all comments within a given filepath'''
-    narc_word = 'narcan'
-    narc_word2 = 'naloxone'
-    with open(all_comments_filepath, 'r') as read_file:
-        reader = csv.reader(read_file)
-        unique_keyterm_comments = []
-        for comment in reader:
-            keyterm_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word in comment]
-            if keyterm_comment not in unique_keyterm_comments:
-                unique_keyterm_comments.append(keyterm_comment)
-                print('*' * 30)
-                print('added %s' % narc_word)
-                print('*' * 30)
-            keyterm2_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word2 in comment]
-            if keyterm2_comment not in unique_keyterm_comments:
-                unique_keyterm_comments.append(keyterm2_comment)
-                print('*' * 30)
-                print('added %s' % narc_word2)
-                print('*' * 30)
-    return unique_keyterm_comments
+#''VERSION 2 of 3 DOES NOT WORK'''
+#ef identify_keyword_comments(all_comments_filepath, total_comment_list):
+#   ''' looks for terms within a set across all comments within a given filepath'''
+#   narc_word = 'narcan'
+#   narc_word2 = 'naloxone'
+#   with open(all_comments_filepath, 'r') as read_file:
+#       reader = csv.reader(read_file)
+#       unique_keyterm_comments = []
+#       for comment in reader:
+#           keyterm_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word in comment]
+#           if keyterm_comment not in unique_keyterm_comments:
+#               unique_keyterm_comments.append(keyterm_comment)
+#               print('*' * 30)
+#               print('added %s' % narc_word)
+#               print('*' * 30)
+#           keyterm2_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word2 in comment]
+#           if keyterm2_comment not in unique_keyterm_comments:
+#               unique_keyterm_comments.append(keyterm2_comment)
+#               print('*' * 30)
+#               print('added %s' % narc_word2)
+#               print('*' * 30)
+#   return unique_keyterm_comments
 
 
 
@@ -194,28 +192,28 @@ def remove_stopwords(raw_keyword_comments):
     return non_stopwords
 
 
-        clean_comment = [word for word in raw_keyword_comments if word not in stop_words in comment]
-
-        nsw = []
-        for word in item:
-            if word.lower() not in stop_words:
-                nsw.append(word)
-            non_stopwords.append(nsw)
-    return non_stopwords
-
-
-        non_stopword = [word.lower() for word in raw_keyword_comments if not stop_words.lower() in word]
-        non_stopwords = non_stopwords + non_stopword
-    non_stopwords = list(set(non_stopwords))
-    return non_stopwords
-
-    for item in flat_keyword_comments:
-        nsw=[]
-        for word in item:
-            if word.lower() not in stop_words:
-                nsw.append(word)
-            non_stopwords.append(nsw)
-    return non_stopwords
+#        clean_comment = [word for word in raw_keyword_comments if word not in stop_words in comment]
+#
+#        nsw = []
+#        for word in item:
+#            if word.lower() not in stop_words:
+#                nsw.append(word)
+#            non_stopwords.append(nsw)
+#    return non_stopwords
+#
+#
+#        non_stopword = [word.lower() for word in raw_keyword_comments if not stop_words.lower() in word]
+#        non_stopwords = non_stopwords + non_stopword
+#    non_stopwords = list(set(non_stopwords))
+#    return non_stopwords
+#
+#    for item in flat_keyword_comments:
+#        nsw=[]
+#        for word in item:
+#            if word.lower() not in stop_words:
+#                nsw.append(word)
+#            non_stopwords.append(nsw)
+#    return non_stopwords
 
 
 #def remove_stopwords(raw_keyword_comments):
@@ -241,8 +239,8 @@ def remove_mat_words(non_stopwords, mat_words):
     return relevant_words
 
 
-def final_most_common(clean_keyword_words, freq='50'):
-    fdist = FreqDist(clean_keyword_words)
+def final_most_common(non_stopwords, freq):
+    fdist = FreqDist(non_stopwords)
     print(fdist.most_common(freq))
 
 
