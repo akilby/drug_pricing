@@ -1,5 +1,7 @@
-test_locations = ['turin', 'milano']
-test_comments = ['This is a comment about milan.', 'This is a comment about turin.', 'This is a comment about manufacturing.']
+import re
+
+test_locations = ['Turin', 'Milan']
+test_comments = ['Questo é un commento su Milano ', 'This is a comment about turin.', 'This is a comment about manufacturing.']
 
 
 '''This works given the sample above and is robust to the 'turin' problem'''
