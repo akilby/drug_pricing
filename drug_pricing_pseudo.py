@@ -6,54 +6,54 @@ from nltk import FreqDist
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 import itertools
+#bad_char_list = ['(', ')']
 
-tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+##################################################################################################################################
 
-
-
-
-'''The following functions are required for each use'''
-
-# Establishes filepaths to relevant lists and data
 adwords_filepath, mat_filepath, all_comments_filepath = assign_location_dirs()
-
-# Establishes list of locations
 locations = make_locations_list_from_adwords(adwords_filepath)
-
-# Takes all comments excel and creates list of tokenized lists
 total_comment_list = all_comment_text(all_comments_filepath)
+location_comments = find_keyword_comments(total_comment_list,locations)
 
 
-******************************************************************************************************************************
+meth_words, sub_words, nalt_words, narc_words = make_mat_list(mat_filepath)
+nalt_comments = find_keyword_comments(total_comment_list,nalt_words)
 
-'''The following Functions establish a set of all comments and a set of all locations'''
+
+##################################################################################################################################
 
 def assign_location_dirs():
-    """
-    Assigns working directories according to which computer being run on
-    """
-
     if os.getcwd().split('/')[2] == 'akilby':
-        adwords_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/locations/AdWords.csv'
+        adwords_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
         all_comments_filepath = '/Users/akilby/Dropbox/Research/Data/drug_pricing_data/opiates/comments/complete/all_comments.csv'
     else:
-        adwords_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/locations/Adwords.csv'
+        adwords_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
         all_comments_filepath = '/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/complete/all_comments.csv'
     return adwords_filepath, mat_filepath, all_comments_filepath
 
 
 def make_locations_list_from_adwords(adwords_filepath):
-    with open(adwords_filepath, 'r') as in_file:
+    with open(adwords_filepath, encoding='utf8', errors='replace') as in_file:
         location_file = csv.reader(in_file)
         locations = list(location_file)
-    locations = [x[:5] for x in locations]
-    locations = [x[1:] + x[2].split(',') for x in locations]
+    locations = [x[:4] for x in locations]
     locations = list(itertools.chain.from_iterable(locations))
-    locations = list(set(locations))
     return locations
 
+
+#locations = list(set(locations))
+
+def make_mat_list(mat_filepath):
+    with open(mat_filepath, 'r') as in_file:
+        mat_file = csv.reader(in_file)
+        mat = list(mat_file)
+    meth_words = [x[0] for x in mat]
+    sub_words = [x[1] for x in mat]
+    nalt_words = [x[2] for x in mat]
+    narc_words = [x[3] for x in mat]
+    return meth_words, sub_words, nalt_words, narc_words
 
 
 def all_comment_text(all_comments_filepath):
@@ -65,95 +65,36 @@ def all_comment_text(all_comments_filepath):
     total_comment_list = list(set(total_comment))
     return total_comment_list
 
-
-def find_location_comments(total_comment_list,locations):
-'''This function is meant to return a list of all locations mentioned and their locaation within the total_comment_list'''    
-    location_comments = []
-    for comment, location in [(comment,location) for comment in total_comment_list for location in locations]:
-        word = re.compile(r'\b%s\b' % location, re.I)
-        y = word.search(comment)
-        print(y)
-        if y != None:
-            location_comments.append(y)
-    print(location_comments)
+def find_keyword_comments(test_comments,test_keywords):
+    keywords = '|'.join(test_keywords)
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
+    newlist = filter(word.match, test_comments)
+    final = list(newlist)
+    return final
 
 
 
-'''
-[comment for comment in total_comment_list if 'narcan' in comment]
-li1 = [comment for comment in total_comment_list if 'turin'.lower() in comment.lower()]
-li2 = [comment for comment in li1 if "utring".lower() in [x.lower() for x in word_tokenize(comment)]]
-'''
 
-*******************************************************************************************************************************
-'''Related to MAT Frequency Distributions'''
 
-# Establishes lists of terms related to different treatments
-meth_words, sub_words, nalt_words, narc_words, all_words = make_mat_list(mat_filepath)
+
+
+
+
 
 
 def freq_dist(total_comment_list, mat_words, freq):
-    raw_keyword_comments = identify_keyword_comments(total_comment_list, mat_words)
+    raw_keyword_comments = find_keyword_comments(total_comment_list, mat_words)
     near_clean_mat_comments = remove_stopwords(raw_keyword_comments)
     final_most_common(near_clean_mat_comments, freq)
-
-
-
-raw_meth_comments = identify_keyword_comments(all_comments_filepath, total_comment_list, meth_words)
-flat_meth_comments = make_flat_comment_list(raw_meth_comments)
-near_clean_meth_comments = remove_stopwords(flat_meth_comments)
-clean_meth_comments = remove_mat_words(near_clean_meth_comments, narc_words)
-fifty_most_common(clean_meth_comments)
-
-
-narc_sentences = identify_location_sentences(all_comments_filepath, total_comment_list, narc_words)
-
-meth_words = ['methadone', 'mmt']
-sub_words = ['suboxone', 'sub', 'suboxone', 'buprenex', 'butrans', 'probuphine', 'belbuca', 'bupe']
-nalt_words = ['naltrexone' 'reviva', 'vivitrol', 'uldn']
-narc_words = ['naloxone, narcan']
-
-******************************************************************************************************************************
-
-
-'''The following functions are related to MAT Frequency Distributions'''
-
-
-
-def identify_keyword_comments(total_comment_list, keywords):
-    keyword_comments = []
-    for keyword in keywords:
-        keyword_comment = [comment for comment in total_comment_list if keyword.lower() in comment]
-        keyword_comments = keyword_comments + keyword_comment
-        print('*' * 50)
-        print('added %s' % len(keyword_comments))
-        print('*' * 50)
-    unique_keyword_comments = list(set(keyword_comments))
-    return unique_keyword_comments
-
-
-def make_mat_list(mat_filepath):
-    with open(mat_filepath, 'r') as in_file:
-        mat_file = csv.reader(in_file)
-        mat = list(mat_file)
-    meth_words = [x[0] for x in mat]
-    sub_words = [x[1] for x in mat]
-    nalt_words = [x[2] for x in mat]
-    narc_words = [x[3] for x in mat]
-    all_words = [x[4] for x in mat]
-    return meth_words, sub_words, nalt_words, narc_words, all_words
-
 
 def remove_stopwords(raw_keyword_comments):
     stop_words = stopwords.words("english")
     non_stopwords = []
     for comment in raw_keyword_comments:
         for word in word_tokenize(comment):
-            print(word)
             if word not in stop_words:
                 non_stopwords.append(word)
     return non_stopwords
-
 
 def remove_mat_words(non_stopwords, mat_words):
     mat_words = set(mat_words)
@@ -174,6 +115,37 @@ def final_most_common(non_stopwords, freq):
             rw.append(word)
     fdist = FreqDist(rw)
     print(fdist.most_common(freq))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #''VERSION 1 of 3 DOES NOT WORK''' 
@@ -445,5 +417,11 @@ def final_most_common(non_stopwords, freq):
 #            nsw.append(filtered_sentence)
 #        non_stopwords.append(nsw)
 #    return non_stopwords  
-#
+##    locations = [x[1:] + x[2].split(',') for x in locations]
+#    locations = list(itertools.chain.from_iterable(locations))
+ #   locations = list(set(locations))
+#    for bad_char in bad_char_list:
+#        locations = [x.replace(bad_char, '') for x in locations]
+#    locations = [x for x in locations if x!='']
+#    return locations
 #
