@@ -6,15 +6,18 @@ from nltk import FreqDist
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 import itertools
-#bad_char_list = ['(', ')']
+
+from fuzzywuzzy import process
+
+
 
 ##################################################################################################################################
 
 adwords_filepath, mat_filepath, all_comments_filepath = assign_location_dirs()
-locations = make_locations_list_from_adwords(adwords_filepath)
+locations, state_init = make_locations_list_from_adwords(adwords_filepath)
 total_comment_list = all_comment_text(all_comments_filepath)
-location_comments = find_keyword_comments(total_comment_list,locations)
-
+location_comments = find_keyword_comments(total_comment_list,locations, state_init)
+positives = 
 
 meth_words, sub_words, nalt_words, narc_words = make_mat_list(mat_filepath)
 nalt_comments = find_keyword_comments(total_comment_list,nalt_words)
@@ -26,7 +29,7 @@ def assign_location_dirs():
     if os.getcwd().split('/')[2] == 'akilby':
         adwords_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
-        all_comments_filepath = '/Users/akilby/Dropbox/Research/Data/drug_pricing_data/opiates/comments/complete/all_comments.csv'
+        all_comments_filepath = '/Users/akilby/Dropbox/drug_pricing_data/opiates/comments/complete/all_comments.csv'
     else:
         adwords_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
@@ -38,9 +41,11 @@ def make_locations_list_from_adwords(adwords_filepath):
     with open(adwords_filepath, encoding='utf8', errors='replace') as in_file:
         location_file = csv.reader(in_file)
         locations = list(location_file)
-    locations = [x[:4] for x in locations]
+    state_init = [x[3] for x in locations]
+    state_init = list(state_init)
+    locations = [x[:2] for x in locations]
     locations = list(itertools.chain.from_iterable(locations))
-    return locations
+    return locations, state_init
 
 
 #locations = list(set(locations))
@@ -72,7 +77,65 @@ def find_keyword_comments(test_comments,test_keywords):
     final = list(newlist)
     return final
 
+def find_keyword_comments(test_comments,test_keywords, test_keywords1):
+    keywords = '|'.join(test_keywords)
+    keywords1 = '|'.join(test_keywords1)
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
+    word1 = re.compile(r"^.*\b({})\b.*$".format(keywords1))
+    newlist = filter(word.match, test_comments)
+    newlist1 = filter(word1.match, test_comments)
+    final = list(newlist) + list(newlist1)
+    return final
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def print_pos(location_comments):
+    for c in location_comments:
+        print(c, sep='\n')
+
+def print_neg(total_comment_list, location_comments):
+    for c in total_comment_list:
+        if c not in location_comments:
+            print(c, sep='\n')
+
+
+def get_matches(test_comments, test_keywords, limit=3):
+    keywords = '|'.join(test_keywords)
+    word = re.compile(r"^.*\b({})\b.*$".format(test_keywords), re.I)
+    final = []
+    for comment in test_comments:
+        results = process.extractBests(comment, locations, score_cutoff=85)
+        final.append(results)
+    final_list = list(final)
+    return final_list
+
+
+
+
+def find_keyword_comments(test_comments, test_keywords):
+    return [[x, y] for x in test_keywords for y in test_comments if re.search(r'\b{}\b'.format(x.lower()), y.lower())]
+
+
+def find_keyword_comments(test_comments,test_keywords):
+   return [(word, [c for c in test_comments if re.findall(r'\b{}\b'.format(word), c, flags=re.I)]) for word in test_keywords]
+
+test_keywords = ['Turin', 'Milan']
+test_comments = ['This is a sent about turin.', 'This is a sent about manufacturing.', 'This is a sent about Milano.']
+print(find_keyword_comments(list_of_sents, list_of_words))
 
 
 
@@ -88,7 +151,9 @@ def freq_dist(total_comment_list, mat_words, freq):
     final_most_common(near_clean_mat_comments, freq)
 
 def remove_stopwords(raw_keyword_comments):
-    stop_words = stopwords.words("english")
+    stop_set = set(stopwords.words("english"))
+    more_stops = ["i'm", "he's", "it's", "we're", "they're", "i've", "we've", "they've", "i'd", "he'd", "she'd", "we'd", "they'd", "i'll", "he'll", "she'll", "we'll", "they'll", "can't", "cannot", "let's", "that's", "who's", "what's", "here's", "there's", "when's", "where's", "why's", "how's", "daren't", "needn't", "oughtn't", "mightn't"]
+    stop_set.union(more_stops)
     non_stopwords = []
     for comment in raw_keyword_comments:
         for word in word_tokenize(comment):
@@ -115,7 +180,6 @@ def final_most_common(non_stopwords, freq):
             rw.append(word)
     fdist = FreqDist(rw)
     print(fdist.most_common(freq))
-
 
 
 

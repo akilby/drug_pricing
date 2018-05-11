@@ -37,6 +37,8 @@ parser.add_argument("--client_secret", default='pBqEsDdGCk-E_n55vkb0ITFzl1Y')
 parser.add_argument("--password", default='~KilbyAssignment')
 parser.add_argument("--username", default='jrreimer')
 parser.add_argument("--file_folder", default=None)
+parser.add_argument("--look_back", default=1000)
+
 
 args = parser.parse_args()
 
@@ -64,7 +66,7 @@ class ArgumentContainer(object):
         self.password = '~KilbyAssignment'
         self.username = 'jrreimer'
         self.file_folder = None
-
+        self.look_back = 1000
 
 if 'args' not in dir():
     args = ArgumentContainer()
@@ -76,16 +78,16 @@ def main():
 
     print('---------------------------------------------------------------------------------')
 
+    r = make_praw_agent(args)
+
+    print('---------------------------------------------------------------------------------')
+
     start_time, end_time = generate_time_bands(args.datestring_start, args.datestring_end, args.days_look_back, args.days_look_forward)
     thread_folder, comment_folder, comment_working_folder, comment_master_folder, comment_duplicate_folder, comment_complete_folder = assign_working_dirs(args.thread_folder_name, args.comment_folder_name, args.comment_working_folder_name, args.comment_master_folder_name, args.comment_duplicate_folder_name, args.comment_complete_folder_name, args.subreddit, args.file_folder)
 
     print('---------------------------------------------------------------------------------')
 
-    r = make_praw_agent(args)
-    idlist, thread_filepath_csv = scrape_subreddit(r, args.iterate_over_days, start_time, end_time, args.subreddit, thread_folder)
-
-    print('---------------------------------------------------------------------------------')
-
+    idlist, thread_filepath_csv = scrape_subreddit(r, args.iterate_over_days, start_time, end_time, args.subreddit, thread_folder, 1000)
     prefix_list = get_all_comments_from_idlist(r, idlist, comment_working_folder, args.subreddit, sep='-')
 
     print('---------------------------------------------------------------------------------')
@@ -158,7 +160,7 @@ def make_praw_agent(args):
     return r
 
 
-def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thread_folder):
+def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thread_folder, look_back=None):
     """
     scrape_subreddit pulls all top level threads between a given time frame
     outputs an idlist and a thread filepath
@@ -171,24 +173,20 @@ def scrape_subreddit(r, iterate_over_days, start_time, end_time, subreddit, thre
     i = 0
     with open(thread_filepath_csv, 'w') as f:
         writer = csv.writer(f)
-        for iteration in range(start_time, end_time, iterate_over):
-            i1 = iteration
-            i2 = iteration + iterate_over
-            timestampstring = "timestamp:" + str(i1) + ".." + str(i2)
-            j = 0
-            for submission in r.subreddit(subreddit).search(timestampstring, sort="new", syntax="cloudsearch", limit=None):
-                id = submission.id
-                ids.append(id)
-                a = (id, submission.url, submission.num_comments, submission.shortlink, submission.author, submission.title, submission.selftext, submission.created_utc)
-                writer.writerow(a)
-                i = i + 1
-                j = j + 1
-                if j > 500:
-                    f.close()
-                    os.remove(thread_filepath_csv)
-                    raise Exception("Submissions greater than 500.")
-            time.sleep(2)
-            print('%s threads from %s to %s' % (j, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(i1)), time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(i2))))
+        j = 0
+        for submission in r.subreddit(subreddit).new(limit=1000):
+            id = submission.id
+            ids.append(id)
+            a = (id, submission.url, submission.num_comments, submission.shortlink, submission.author, submission.title, submission.selftext, submission.created_utc)
+            writer.writerow(a)
+            i = i + 1
+            j = j + 1
+            if j > 5000:
+                f.close()
+                os.remove(thread_filepath_csv)
+                raise Exception("Submissions greater than 5000.")
+        time.sleep(2)
+        print('%s threads from %s to %s' % (j, start_time, end_time))
         print('Total thread headers captured: %s' % i)
         idlist = list(set(ids))
         return idlist, thread_filepath_csv
@@ -344,6 +342,43 @@ def list_comment_threads_with_multiple_downloads(pathname):
     stubs = [x.split('-')[0] for x in files]
     return [item for item, count in collections.Counter(stubs).items() if count > 1]
 
+def all_submissions(thread_folder):
+    row_list = []
+    for dumpname in thread_folder:
+        filepath_use = thread_folder + dumpname
+        if not dumpname.startswith('.'):
+            with open(filepath_use, 'r') as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    a = tuple(row)
+                    row_list.append(a)
+    row_list = list(set(row_list))
+    with open(thread_folder + 'all_dumps.csv', 'w') as f:
+        writer = csv.writer(f)
+        for row in row_list:
+            a = list(row)
+            writer.writerow(a)
+
+def all_comments():
+    row_list = []
+    for commentname in os.listdir("/Users/jackiereimer/Dropbox/r_opiates Data/comments/"):
+#       thread_details = [commentname.partition("_")[0], commentname.partition("_")[2].partition(".")[0]]
+        filepath_use = "/Users/jackiereimer/Dropbox/r_opiates Data/comments/" + commentname
+        if not commentname.startswith('.'):
+            with open(filepath_use, 'r') as f:
+                reader = csv.reader(f)
+                for row in reader:
+#                   b = thread_details + row
+#                   a = tuple(b)
+                    a = tuple(row)
+                    row_list.append(a)
+    row_list = list(set(row_list))
+    #print row_list
+    with open("/Users/jackiereimer/Dropbox/r_opiates Data/comments/all_comments.csv", 'w') as f:
+        writer = csv.writer(f)
+        for row in row_list:
+            a = list(row)
+            writer.writerow(a)
 
 if __name__ == '__main__':
     main()
