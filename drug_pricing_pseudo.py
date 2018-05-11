@@ -13,11 +13,12 @@ from fuzzywuzzy import process
 
 ##################################################################################################################################
 
-adwords_filepath, mat_filepath, all_comments_filepath = assign_location_dirs()
+adwords_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath = assign_location_dirs()
 locations, state_init = make_locations_list_from_adwords(adwords_filepath)
-total_comment_list = all_comment_text(all_comments_filepath)
-location_comments = find_keyword_comments(total_comment_list,locations, state_init)
-positives = 
+total_posts = all_text(all_comments_filepath, all_dumps_filepath)
+location_posts = find_keyword_comments(total_posts,locations, state_init)
+positives = print_pos(location_comments)
+negatives = print_neg(total_comment_list, location_comments)
 
 meth_words, sub_words, nalt_words, narc_words = make_mat_list(mat_filepath)
 nalt_comments = find_keyword_comments(total_comment_list,nalt_words)
@@ -30,11 +31,13 @@ def assign_location_dirs():
         adwords_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
         all_comments_filepath = '/Users/akilby/Dropbox/drug_pricing_data/opiates/comments/complete/all_comments.csv'
+        all_dumps_filepath = '/Users/akilby/Dropbox/drug_pricing_data/opiates/threads/all_dumps.csv'
     else:
         adwords_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/locations/Locations.csv'
         mat_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/mat_words/mat_words.csv'
         all_comments_filepath = '/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/complete/all_comments.csv'
-    return adwords_filepath, mat_filepath, all_comments_filepath
+        all_dumps_filepath = '/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/all_dumps.csv'
+    return adwords_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath
 
 
 def make_locations_list_from_adwords(adwords_filepath):
@@ -60,22 +63,20 @@ def make_mat_list(mat_filepath):
     narc_words = [x[3] for x in mat]
     return meth_words, sub_words, nalt_words, narc_words
 
-
-def all_comment_text(all_comments_filepath):
-    total_comment = []
+def all_text(all_dumps_filepath, all_comments_filepath):
+    total_text = []
     with open(all_comments_filepath, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
-            total_comment.append(row[3])
-    total_comment_list = list(set(total_comment))
+            total_text.append(row[3])
+    with open(all_dumps_filepath, 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            total_text.append(row[6])
+            total_text.append(row[5])
+    total_comment_list = list(set(total_text))
     return total_comment_list
 
-def find_keyword_comments(test_comments,test_keywords):
-    keywords = '|'.join(test_keywords)
-    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
-    newlist = filter(word.match, test_comments)
-    final = list(newlist)
-    return final
 
 def find_keyword_comments(test_comments,test_keywords, test_keywords1):
     keywords = '|'.join(test_keywords)
@@ -88,21 +89,6 @@ def find_keyword_comments(test_comments,test_keywords, test_keywords1):
     return final
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def print_pos(location_comments):
     for c in location_comments:
         print(c, sep='\n')
@@ -111,6 +97,14 @@ def print_neg(total_comment_list, location_comments):
     for c in total_comment_list:
         if c not in location_comments:
             print(c, sep='\n')
+
+
+
+
+
+
+
+
 
 
 def get_matches(test_comments, test_keywords, limit=3):
@@ -212,46 +206,6 @@ def final_most_common(non_stopwords, freq):
 
 
 
-#''VERSION 1 of 3 DOES NOT WORK''' 
-#ef identify_keyword_sentences(total_comment_list, locations):
-#   with open(all_comments_filepath, 'r') as read_file:
-#       reader = csv.reader(read_file)
-#       unique_location_comments = []
-#       for comment in reader:
-#           location_comment = [word_tokenize(comment) for comment in total_comment_list if location in comment]
-#           location_comment2 = location_comment[:2] + location_comment[3:]
-#           if location_comment2 not in unique_location_comments:
-#               unique_location_comments.append(location_comment)
-#           print('added %s' % location_comment)
-#   outfilename = '/Users/jackiereimer/Desktop/test2/test_narc.txt'
-#   with open(outfilename, 'w') as outfile:
-#       print(outfilename)
-#       writer = csv.writer(outfile)
-#       writer.writerows(unique_location_comments)
-
-
-#''VERSION 2 of 3 DOES NOT WORK'''
-#ef identify_keyword_comments(all_comments_filepath, total_comment_list):
-#   ''' looks for terms within a set across all comments within a given filepath'''
-#   narc_word = 'narcan'
-#   narc_word2 = 'naloxone'
-#   with open(all_comments_filepath, 'r') as read_file:
-#       reader = csv.reader(read_file)
-#       unique_keyterm_comments = []
-#       for comment in reader:
-#           keyterm_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word in comment]
-#           if keyterm_comment not in unique_keyterm_comments:
-#               unique_keyterm_comments.append(keyterm_comment)
-#               print('*' * 30)
-#               print('added %s' % narc_word)
-#               print('*' * 30)
-#           keyterm2_comment = [word_tokenize(comment) for comment in total_comment_list if narc_word2 in comment]
-#           if keyterm2_comment not in unique_keyterm_comments:
-#               unique_keyterm_comments.append(keyterm2_comment)
-#               print('*' * 30)
-#               print('added %s' % narc_word2)
-#               print('*' * 30)
-#   return unique_keyterm_comments
 
 
 #def make_flat_comment_list(raw_keyword_comments):
@@ -265,54 +219,6 @@ def final_most_common(non_stopwords, freq):
 #        all_words.append(relevant_words)
 #    all_words_set = set(all_words)
 #    return all_words_set
-
-#def find_locations(file, locations)
-#    location_sentences = []
-#    related_sentences = []
-#    post_sentence_list = sent_tokenize(complete_file)
-#        for sentence in post_sentence_list:
-#            comment_word_list = word_tokenize(sentence) 
-#            if location in comment_word_list:
-#                return sentence
-#                location_sentences.append(sentence)
-#                try:
-#                    return post_sentence_list[sentence-1]
-#                    related_sentences.appen(sentence-1)
-#                except IndexError as e:
-#                    print('Top level post')
-#                    pass
-#                try:
-#                    return post_sentence_list[sentence+1]
-#                except IndexError as e:
-#                    print('Last comment in post')
-#                    pass
-#
-
-#def make_mat_list():
-#    meth_words = ['methadone', 'mmt']
-#    sub_words = ['suboxone', 'sub', 'suboxone', 'buprenex', 'butrans', 'probuphine', 'belbuca', 'bupe']
-#    nalt_words = ['naltrexone' 'reviva', 'vivitrol', 'uldn']
-#    narc_words = ['naloxone', 'narcan']
-#    meth_words = [x.split(',') for x in meth_words]
-#    sub_words = [x.split(',') for x in sub_words]
-#    nalt_words = [x.split(',') for x in nalt_words]
-#    narc_words = [x.split(',') for x in narc_words]
-#    meth_words = list(itertools.chain.from_iterable(meth_words))
-#    sub_words = list(itertools.chain.from_iterable(sub_words))
-#    nalt_words = list(itertools.chain.from_iterable(nalt_words))
-#    narc_words = list(itertools.chain.from_iterable(narc_words))
-#    meth_words = list(set(meth_words))
-#    sub_words = list(set(sub_words))
-#    nalt_words = list(set(nalt_words))
-#    narc_words = list(set(narc_words))
-#    return meth_words, sub_words, nalt_words, narc_words
-
-
-        #if keyword_comment not in unique_keyword_comments:
-        #    unique_keyword_comments.append(keyword_comment)
-        #    print('*' * 50)
-        #    print('added %s' % keyword)
-        #    print('*' * 50)
 
 
 
@@ -360,31 +266,6 @@ def final_most_common(non_stopwords, freq):
 #fdist = FreqDist(w for w in all_words_set if not w in mat_words or stop_words)
 #
 #
-#
-#from nltk import FreqDist
-#import re
-#
-#raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
-#fdist = nltk.FreqDist(wd.lower() for wd in raw if )
-#
-#
-#
-#f = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv')
-#for line in f:
-#    print(line.strip())
-#
-#raw = open('/Users/jackiereimer/Desktop/test2/opiates_7x1k1c-1518663169 copy.csv').read()
-#type(raw)
-#
-#
-#tokens = word_tokenize(raw)
-#type(tokens)
-#
-#words = [w.lower() for w in tokens]
-#type(words)
-#
-#vocab = sorted(set(words))
-#type(vocab)
 #
 #
 #def find_location_comments(test_comments, test_locations):
@@ -469,23 +350,3 @@ def final_most_common(non_stopwords, freq):
 #                nsw.append(word)
 #            non_stopwords.append(nsw)
 #    return non_stopwords
-
-
-#def remove_stopwords(raw_keyword_comments):
-#    stop_words = set(stopwords.words("english"))
-#    non_stopwords = []
-#    for comment in raw_keyword_comments:
-#        nsw = []
-#        for word in comment:
-#            filtered_sentence = word.apply(lambda x : [w for w in x if w.lower() not in stop_words])
-#            nsw.append(filtered_sentence)
-#        non_stopwords.append(nsw)
-#    return non_stopwords  
-##    locations = [x[1:] + x[2].split(',') for x in locations]
-#    locations = list(itertools.chain.from_iterable(locations))
- #   locations = list(set(locations))
-#    for bad_char in bad_char_list:
-#        locations = [x.replace(bad_char, '') for x in locations]
-#    locations = [x for x in locations if x!='']
-#    return locations
-#
