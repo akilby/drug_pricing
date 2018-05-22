@@ -18,7 +18,7 @@ parser.add_argument("--subreddit", default='opiates', help="what subreddit to sc
 parser.add_argument("--complete_threads_file", default='threads/all_dumps.csv')
 parser.add_argument("--complete_comments_file", default='comments/complete/all_comments.csv')
 parser.add_argument("--locations_file", default='locations/Locations.csv')
-parser.add_argument("--mat_file", default='mat_words/mat_words.csv')
+parser.add_argument("--mat_file", default='keywords_all/keywords_all.csv')
 parser.add_argument("--unit_file", default='references/quantity_list')
 parser.add_argument("--file_folder", default=None)
 
@@ -34,7 +34,7 @@ class ArgumentContainer(object):
         self.complete_threads_file = "threads/all_dumps.csv"
         self.complete_comments_file = "comments/complete/all_comments.csv"
         self.locations_file = "locations/Locations.csv"
-        self.mat_file = "mat_words/mat_words.csv"
+        self.mat_file = "keywords_all/keywords_all.csv"
         self.unit_file = "references/quantity_list.csv"
         self.file_folder = None
 
@@ -42,33 +42,35 @@ if 'args' not in dir():
     args = ArgumentContainer()
 
 ##################################################################################################################################
-
+#  Functions included within main() ought to be run every time that the data needs to be worked with
 def main():
 
     print('-' * 100)
     
     locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath = assign_location_dirs(subreddit, complete_threads_file, complete_comments_file, locations_file, mat_file, unit_file, file_folder=None)
-    locations, state_init = make_locations_list_from_file(locations_filepath)
-    meth_words, sub_words, nalt_words, narc_words, mat_words = make_mat_list(mat_filepath)
-    units = make_unit_list(unit_filepath)
-    
+    locations, state_init = generates_two_lists_of_keywords_from_csv(locations_filepath)
+    meth_words, sub_words, nalt_words, narc_words, mat_words = generates_five_lists_of_keywords_from_csv(mat_filepath)
+    units = single_list_of_keywords_from_csv(unit_filepath)
+
     print('-' * 100)
-    
-    total_posts = all_text(subreddit, all_dumps_filepath, all_comments_filepath)
-    
+
+    total_posts = list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath)
+
     print('-' * 100)
-    
-    location_posts = find_keyword_comments(total_posts, locations, state_init)
-    price_posts = find_price_posts(location_posts)
-    
-    print('-' * 1000)
-    narc_comments = find_keyword_comments(total_comment_list,narc_words)
+
+
+********************
+'''These functions are tailored to the drug pricing project'''
+location_posts, tuples_with_location_posts = filter_posts_for_keywords_from_lists(total_posts, locations, state_init)
+unit_posts, tuples_with_unit_posts = list_of_keywords_posts(total_posts, units)
+price_posts = filter_posts_for_price_mentions_from_list(location_posts)
+narc_comments = filter_posts_for_keywords_from_lists(total_comment_list,keywords4)
 
 ##################################################################################################################################
 
 def assign_location_dirs(subreddit, complete_threads_file, complete_comments_file, locations_file, mat_file, unit_file, file_folder=None):
     """
-    assigns directories according to computer program is being run on
+    assigns directories according to computer program being run on
     """
     if file_folder:
         use_path = os.path.join(file_folder, subreddit)
@@ -92,9 +94,9 @@ def assign_location_dirs(subreddit, complete_threads_file, complete_comments_fil
     return locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath
 
 
-def make_locations_list_from_file(locations_filepath):
+def generates_two_lists_of_keywords_from_csv(locations_filepath):
     """
-    Reads a file containing lists of case sensitive and non-case sensitive strings
+    Reads a file containing lists of strings, outputs two lists of strings
     """
     with open(locations_filepath, encoding='utf8', errors='replace') as in_file:
         location_file = csv.reader(in_file)
@@ -106,30 +108,30 @@ def make_locations_list_from_file(locations_filepath):
     print('Keyword lists complete')
     return locations, state_init
 
-def make_mat_list(mat_filepath):
+def generates_five_lists_of_keywords_from_csv(mat_filepath):
     """
-    Reads a file containing lists of searchable strings
+    Reads a file containing lists of searchable strings outputs four unique lists and one total list
     """
     with open(mat_filepath, 'r') as in_file:
         mat_file = csv.reader(in_file)
         mat = list(mat_file)
-    meth_words = [x[0] for x in mat]
-    sub_words = [x[1] for x in mat]
-    nalt_words = [x[2] for x in mat]
-    narc_words = [x[3] for x in mat]
-    mat_words = [x[:3] for x in mat]
-    mat_words = [item for sublist in mat_words for item in sublist]
-    print('Methadone Words: %s' % meth_words)
-    print('Suboxone Words: %s' % sub_words)
-    print('Naltrexone Words: %s' % nalt_words)
-    print('Naloxone Words: %s' % narc_words)
-    print('All MAT Words: %s' % mat_words)
-    return meth_words, sub_words, nalt_words, narc_words, mat_words
+    keywords1 = [x[0] for x in mat]
+    keywords2 = [x[1] for x in mat]
+    keywords3 = [x[2] for x in mat]
+    keywords4 = [x[3] for x in mat]
+    keywords_all = [x[:3] for x in mat]
+    keywords_all = [item for sublist in keywords_all for item in sublist]
+    print('Methadone Words: %s' % keywords1)
+    print('Suboxone Words: %s' % keywords2)
+    print('Naltrexone Words: %s' % keywords3)
+    print('Naloxone Words: %s' % keywords4)
+    print('All MAT Words: %s' % keywords_all)
+    return keywords1, keywords2, keywords3, keywords4, keywords_all
 
 
-def make_unit_list(unit_filepath):
+def single_list_of_keywords_from_csv(unit_filepath):
     """
-    Reads a file containing lists of searchable strings
+    Reads a file containing lists of strings outputs one list of strings
     """
     with open(unit_filepath, 'r') as in_file:
         unit_file = csv.reader(in_file)
@@ -138,10 +140,10 @@ def make_unit_list(unit_filepath):
     print('Unit list formed')
     return units
 
-def all_text(subreddit, all_dumps_filepath, all_comments_filepath):
+def list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath):
     """
     Reads files containing all comments and threads from subreddit 
-    generates combined list of strings
+    outputs single list of strings
     """
     total_text = []
     with open(all_comments_filepath, 'r') as f:
@@ -157,9 +159,10 @@ def all_text(subreddit, all_dumps_filepath, all_comments_filepath):
     print('All r/%s/ text aggregated' % subreddit)
     return total_posts
 
-def find_keyword_comments(test_comments,keywords_a, keywords_b):
+def filter_posts_for_keywords_from_lists(test_comments,keywords_a, keywords_b):
     """
-    List of strings that contain keywords (both case sensitive and not) within list of strings
+    Filters list of strings that contain string from at least one of two lists of keywords
+    keywords_a is not case sensitive, keywords_b is case sensitive
     """
     keywords = '|'.join(keywords_a)
     keywords1 = '|'.join(keywords_b)
@@ -169,9 +172,18 @@ def find_keyword_comments(test_comments,keywords_a, keywords_b):
     newlist1 = filter(word1.match, test_comments)
     final = list(newlist) + list(newlist1)
     print('%s posts found' % len(final))
-    return final
+    tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
+    return final, tuples_with_keyword_post
 
-def find_price_posts(test_comments):
+def list_of_keywords_posts(test_comments,keywords_a):
+    keywords = '|'.join(keywords_a)
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
+    newlist = filter(word.match, test_comments)
+    final = list(newlist)
+    tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
+    return final, tuples_with_keyword_post
+
+def filter_posts_for_price_mentions_from_list(test_comments):
     """
     List of strings that contain a $, €, £ and numbers in currency format within a list of strings
     """
@@ -181,7 +193,7 @@ def find_price_posts(test_comments):
     print('%s price posts found' % len(final))
     return final
 
-def find_number_posts(test_comments):
+def filter_posts_for_number_mentions_from_list(test_comments):
     """
     List of strings that contain a numbers in currecny format within a list of strings 
     """
@@ -191,18 +203,39 @@ def find_number_posts(test_comments):
     print('%s numbered posts found' % len(final))
     return final
 
-def find_surrounding_words(test_comments):
-    """
-    Tuples of words and their frequency within a list of strings
-    """
-    flat_posts = ''.join(test_comments)
-    string1=flat_posts.split()
-    string2=[s for s in string1 if s.isalpha()]
-    final_list = [[x,string2.count(x)] for x in set(string2)]
-    final_list.sort(key=operator.itemgetter(1))
-    return final_list
 
-def find_surrounding_words(list_of_posts):
+def filter_posts_for_keywords_from_lists(list_of_strings,keywords_a):
+    """
+
+    """
+    list_of_tuples = []
+    for string in list_of_strings:
+        keywords = '|'.join(keywords_a)
+        keyword_rx = re.findall(r"^\b({})\b$".format(keywords), string, re.I)
+        price_rx = re.findall(r'^[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?$', string)
+        number_rx1 = re.findall(r'\b\d[.]\d{1,2}\b', string)
+        number_rx2 = re.findall(r'\s\d\s', string)
+    tuples_with_keyword_post = [(keyword_rx, price_rx, number_rx1, number_rx2)]
+
+
+
+def collects_keywords_prices_numbers_from_list_of_strings(tuples_with_keyword_posts):
+    """
+    Inputs tuple with the format ('keyword', 'comment with keyword') and generates a list of tuples with ('keyword', 'price', 'number') 
+        The first regex in line 1 catches currency mentions in either US or international format
+        The second regex in line 1 catches any mention of a number with whitespace on either side
+        Line 1 is a for loop by keyword and outputs: (keyword, filter_object(any digit or mention of price within all posts with keyword))
+        Line 2 turns the above filter object into a list of strings outputting: (keyword, 'digit', 'mention of price') 
+    Note: Final item should be a flat list
+    """
+    new_list = [(keyword, [re.findall(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$', post) for post in posts], [re.findall(r'\b\d[.]\d{1,2}\b', post) for post in posts]) for keyword, posts in tuples_with_keyword_posts]
+    near_final = [(keyword, [list(re.findall(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$', post) for post in posts)], [list(re.findall(r'\b\d[.]\d{1,2}\b', post) for post in posts)]) for keyword, posts in tuples_with_keyword_posts]
+    final = filter(None, near_final)
+    final = list(final)
+    return final
+
+
+def counts_frequencies_of_five_words_before_after_price_mentions_from_list(list_of_posts):
     """
     Tuples of words and their frequency within a list of strings
     """
@@ -218,40 +251,30 @@ def find_surrounding_words(list_of_posts):
     return final_list
 
 
-def location_quantity_price(strings, keywords):
-    grouped_strings = [(i, [b for b in strings if i in b]) for i in keywords]
-    new_groups = [(a, filter(lambda x:re.findall(r'\d', x),[re.findall(r'[\$\d\£,]+', c) for c in b][0])) for a, b in grouped_strings]
-    last_groups = [(a, list(filter(lambda x:re.findall(r'\d', x) and float(x) < 10 if x[0].isdigit() else True, b))) for a, b in new_groups]
-    return last_groups
-
-
 test_comments = ['This is a sentence about Turin with 5 and $10.00 in it.', ' 2.5 Milan is a city with £1,000 in it.', 'Nevada $1,100,000.']
 keywords = ['Turin', 'Milan' , 'Nevada']
 
 final_list = [('Turin', '$10.00', '5'), ('Milan', '£1,000', '2.5'), ('Nevada', '$1,100,000', '')]
 
 
-import re
-keywords = ['Turin', 'Milan' , 'Nevada']
-strings = ['This is a sentence about Turin with 5 and $10.00 in it.', '2.5 Milan is a city with £1,000 in it.', 'Nevada and $1,100,000. and 10.09']
-grouped_strings = [(i, [b for b in strings if i in b]) for i in keywords]
-new_groups = [(a, filter(lambda x:re.findall('\d', x),[re.findall('[\$\d\.£,]+', c) for c in b][0])) for a, b in grouped_strings]
-last_groups = [(a, list(filter(lambda x:re.findall('\d', x) and float(x) < 10 if x[0].isdigit() else True, b))) for a, b in new_groups]
-
-
-
 
 ##################################################################################################################################
+'''FUNCTIONS RELATED TO MAT PROJECT'''
 
-
-def freq_dist(total_comment_list, mat_words, freq):
-    raw_keyword_comments = find_keyword_comments1(total_comment_list, mat_words)
-    near_clean_mat_comments = stem_stop(raw_keyword_comments)
+def clean_and_generate_freq_distribution(total_posts, mat_words, freq):
+    raw_keyword_comments = list_of_keywords_posts(total_posts, mat_words)
+    near_clean_mat_comments = remove_stop_words_stem_remaining(raw_keyword_comments)
     clean_mat_comments = remove_mat_words(near_clean_mat_comments, mat_words)
     final_most_common(near_clean_mat_comments, freq)
 
+def list_of_keywords_posts(test_comments,keywords_a):
+    keywords = '|'.join(keywords_a)
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
+    newlist = filter(word.match, test_comments)
+    final = list(newlist)
+    return final
 
-def stem_stop(raw_keyword_comments):
+def remove_stop_words_stem_remaining(raw_keyword_comments):
     stop_set1 = list(stopwords.words("english"))
     porter = nltk.PorterStemmer()
     more_stops = ["i'm", "he's", "it's", "we're", "they're", "i've", "we've", "they've", "i'd", "he'd", "she'd", "we'd", "they'd", "i'll", "he'll", "she'll", "we'll", "they'll", "can't", "cannot", "let's", "that's", "who's", "what's", "here's", "there's", "when's", "where's", "why's", "how's", "daren't", "needn't", "oughtn't", "mightn't", '.', 'I', ',', "n't", ')', "'ve", '(', '...', 'It', "'re"]
@@ -266,7 +289,7 @@ def stem_stop(raw_keyword_comments):
 def remove_mat_words(non_stopwords, keywords_a):
     relevant_words = []
     for word in non_stopwords:
-        if word.lower() not in mat_words:
+        if word.lower() not in keywords_a:
             relevant_words.append(word)
     return relevant_words
 
@@ -278,18 +301,18 @@ def final_most_common(non_stopwords, freq):
     fdist = FreqDist(rw)
     print(fdist.most_common(freq))
 
-def find_keyword_comments1(test_comments,keywords_a):
-    keywords = '|'.join(keywords_a)
-    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
-    newlist = filter(word.match, test_comments)
-    final = list(newlist)
-    return final
 
-def nearestlist('string, flat_list', range(as in 5 for 5 on either side), freq):
-    flat_price_posts = ''.join(price_posts)
 
-    flat_price_posts = [item for sublist in price for item in sublist]
-    return 20,000
+#def counts_frequencies_of_words_before_after_price_mentions_from_list(test_comments):
+#    """
+#    Tuples of words and their frequency within a list of strings
+#    """
+#    flat_posts = ''.join(test_comments)
+#    string1=flat_posts.split()
+#    string2=[s for s in string1 if s.isalpha()]
+#    final_list = [[x,string2.count(x)] for x in set(string2)]
+#    final_list.sort(key=operator.itemgetter(1))
+#    return final_list
 
 
 #def print_pos(location_comments):
