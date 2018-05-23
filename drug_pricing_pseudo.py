@@ -34,7 +34,7 @@ class ArgumentContainer(object):
         self.complete_threads_file = "threads/all_dumps.csv"
         self.complete_comments_file = "comments/complete/all_comments.csv"
         self.locations_file = "locations/Locations.csv"
-        self.mat_file = "keywords_all/keywords_all.csv"
+        self.mat_file = "mat_words/mat_words.csv"
         self.unit_file = "references/quantity_list.csv"
         self.file_folder = None
 
@@ -64,7 +64,7 @@ def main():
 location_posts, tuples_with_location_posts = filter_posts_for_keywords_from_lists(total_posts, locations, state_init)
 unit_posts, tuples_with_unit_posts = list_of_keywords_posts(total_posts, units)
 price_posts = filter_posts_for_price_mentions_from_list(location_posts)
-narc_comments = filter_posts_for_keywords_from_lists(total_comment_list,keywords4)
+narc_comments = filter_posts_for_keywords_from_lists1(total_comment_list,keywords4)
 
 ##################################################################################################################################
 
@@ -204,7 +204,7 @@ def filter_posts_for_number_mentions_from_list(test_comments):
     return final
 
 
-def filter_posts_for_keywords_from_lists(list_of_strings,keywords_a):
+def filter_posts_for_keywords_from_lists1(list_of_strings,keywords_a):
     """
 
     """
@@ -222,16 +222,16 @@ def filter_posts_for_keywords_from_lists(list_of_strings,keywords_a):
 def collects_keywords_prices_numbers_from_list_of_strings(tuples_with_keyword_posts):
     """
     Inputs tuple with the format ('keyword', 'comment with keyword') and generates a list of tuples with ('keyword', 'price', 'number') 
-        The first regex in line 1 catches currency mentions in either US or international format
-        The second regex in line 1 catches any mention of a number with whitespace on either side
+        The first regex catches currency mentions in either US or international format
+        The second regex catches any mention of a number with whitespace on either side
         Line 1 is a for loop by keyword and outputs: (keyword, filter_object(any digit or mention of price within all posts with keyword))
-        Line 2 turns the above filter object into a list of strings outputting: (keyword, 'digit', 'mention of price') 
+        Line 2 turns the above filter object into a list of filtered strings outputting only the tuple of interest: (keyword, 'digit', 'mention of price') 
     Note: Final item should be a flat list
     """
-    new_list = [(keyword, [re.findall(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$', post) for post in posts], [re.findall(r'\b\d[.]\d{1,2}\b', post) for post in posts]) for keyword, posts in tuples_with_keyword_posts]
-    near_final = [(keyword, [list(re.findall(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$', post) for post in posts)], [list(re.findall(r'\b\d[.]\d{1,2}\b', post) for post in posts)]) for keyword, posts in tuples_with_keyword_posts]
-    final = filter(None, near_final)
-    final = list(final)
+    price_re = re.compile(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$')
+    number_re = re.compile(r'\b\d[.]\d{1,2}\b')
+    new_list = [(keyword, [re.findall(price_re, post) for post in posts], [re.findall(number_re, post) for post in posts]) for keyword, posts in tuples_with_keyword_posts]
+    final = [(keyword, list(filter(lambda x:re.findall(r'\d', x), currencies)), list(filter(lambda y:re.findall(r'\d', y), posts))) for keyword, currencies, posts in new_list]
     return final
 
 
@@ -302,6 +302,17 @@ def final_most_common(non_stopwords, freq):
     print(fdist.most_common(freq))
 
 
+
+#final = [(keyword, list(filter(lambda x:re.findall(r'\d', x) and float(x) if x.isdigit() else True, currencies)), list(filter(lambda y:re.findall(r'\d', y) and float(y) if y.isdigit() else True, posts))) for keyword, currencies, posts in new_list]
+#
+#final = [(keyword, [list(filter(lambda x:re.findall(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$', currency), currencies))], [list(filter(lambda x:re.findall(r'\b\d[.]\d{1,2}\b', x), posts))]) for keyword, posts in tuples_with_keyword_posts]
+#
+#
+#def sort_key(d):
+#  return (bool(re.findall(r'^\$[\d\.]+|\£[\d\.]+|\€[\d\.]+', d[0])), float(d[0][1:]) if not d[0][0].isdigit() else float(d[0])) if len(d) else (False, 0)
+#
+#beginning = [('keyword1', [], [], ['$5'], ['This has $6.50'], ['this has 4']), ('keyword2', [] ,[] ,[] ,[], [],['5.5'])]
+#new_results = [(a, *sorted([re.findall(r'^\$[\d\.]+|\£[\d\.]+|\€[\d\.]+|[\d\.]+', i[0]) for i in b if i], key=sort_key)) for a, *b in map(lambda x:filter(None, x), beginning)]
 
 #def counts_frequencies_of_words_before_after_price_mentions_from_list(test_comments):
 #    """
