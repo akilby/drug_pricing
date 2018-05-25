@@ -342,16 +342,16 @@ def list_comment_threads_with_multiple_downloads(pathname):
     stubs = [x.split('-')[0] for x in files]
     return [item for item, count in collections.Counter(stubs).items() if count > 1]
 
-def all_submissions():
+def all_submissions(thread_folder):
     row_list = []
-    for dumpname in os.listdir("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/"):
-        filepath_use = "/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/" + dumpname
-        if not dumpname.startswith('.'):
-            with open(filepath_use, 'r') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    a = tuple(row)
-                    row_list.append(a)
+    full_file_list = glob.glob(os.path.join(thread_folder, '*'))
+    for file in full_file_list:    
+        with open(file, 'r') as f:
+            print(file)
+            reader = csv.reader(f)
+            for row in reader:
+                a = tuple(row)
+                row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
     with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/all_dumps.csv", 'w') as f:
@@ -360,19 +360,16 @@ def all_submissions():
             a = list(row)
             writer.writerow(a)
 
-def all_comments():
+def all_comments(comment_complete_folder):
     row_list = []
-    for commentname in os.listdir("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/"):
-#       thread_details = [commentname.partition("_")[0], commentname.partition("_")[2].partition(".")[0]]
-        filepath_use = "/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/" + commentname
-        if not commentname.startswith('.'):
-            with open(filepath_use, 'r') as f:
-                reader = csv.reader(f)
-                for row in reader:
-#                   b = thread_details + row
-#                   a = tuple(b)
-                    a = tuple(row)
-                    row_list.append(a)
+    full_comment_list = glob.glob(os.path.join(comment_complete_folder, '*'))
+    for file in full_comment_list:
+        with open(file, 'r') as f:
+            print(file)
+            reader = csv.reader(f)
+            for row in reader:
+                a = tuple(row)
+                row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
     with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/all_comments.csv", 'w') as f:
