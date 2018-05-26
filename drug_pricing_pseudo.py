@@ -261,10 +261,19 @@ final_list = [('Turin', '$10.00', '5'), ('Milan', '£1,000', '2.5'), ('Nevada', 
 ##################################################################################################################################
 '''FUNCTIONS RELATED TO MAT PROJECT'''
 
-def clean_and_generate_freq_distribution(total_posts, mat_words, freq):
+freq_dist_filepath = '/Users/jackiereimer/Dropbox/Drug Pricing Project/mat_words/'
+
+def clean_and_generate_freq_distribution(total_posts, mat_words, freq, freq_dist_filepath):
     raw_keyword_comments = list_of_keywords_posts(total_posts, mat_words)
     near_clean_mat_comments = remove_stop_words_stem_remaining(raw_keyword_comments)
     clean_mat_comments = remove_mat_words(near_clean_mat_comments, mat_words)
+    most_common_terms = final_most_common(clean_mat_comments, freq)
+    filepath_use = os.path.join(freq_dist_filepath, mat_words[0] + '.csv')
+    with open(filepath_use, 'w') as f:
+        writer = csv.writer(f)
+        for item in most_common_terms:
+            writer.writerows(item)
+
     final_most_common(near_clean_mat_comments, freq)
 
 def list_of_keywords_posts(test_comments,keywords_a):
@@ -295,13 +304,19 @@ def remove_mat_words(non_stopwords, keywords_a):
 
 def final_most_common(non_stopwords, freq):
     rw = []
+    rw_list = []
     for comment in non_stopwords:
         for word in word_tokenize(comment):
             rw.append(word)
     fdist = FreqDist(rw)
-    print(fdist.most_common(freq))
+    rw_list.append(fdist.most_common(freq))
+    return rw_list
 
-
+def write_to_txt(list_of_posts):
+    filepath_use = '/Users/jackiereimer/Desktop/%s.txt', % list_of_posts
+    with open(list_of_posts, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(list_of_posts)
 
 #final = [(keyword, list(filter(lambda x:re.findall(r'\d', x) and float(x) if x.isdigit() else True, currencies)), list(filter(lambda y:re.findall(r'\d', y) and float(y) if y.isdigit() else True, posts))) for keyword, currencies, posts in new_list]
 #
