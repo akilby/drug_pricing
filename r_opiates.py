@@ -354,7 +354,7 @@ def all_submissions(thread_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/all_dumps.csv", 'w') as f:
+    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/threads/all_dumps.txt", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
@@ -372,7 +372,24 @@ def all_comments(comment_complete_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/all_comments.csv", 'w') as f:
+    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/all_comments.txt", 'w') as f:
+        writer = csv.writer(f)
+        for row in row_list:
+            a = list(row)
+            writer.writerow(a)
+
+def all_comments(comment_complete_folder):
+    row_list = []
+    full_comment_list = glob.glob(os.path.join(comment_complete_folder, '*'))
+    for file in full_comment_list:
+        with open(file, 'r') as f:
+            print(file)
+            reader = csv.reader(f)
+            all_comments = list(reader)
+            comments = [x[3] for x in all_comments]
+        comments = list(comments)
+        row_list.append(comments)
+    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/all_comments.txt", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
