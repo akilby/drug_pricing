@@ -175,7 +175,7 @@ def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b
 
 regexp = r"^.*\b({})\b.*$"
 
-def filter_strings_with_keywords(list_of_strings, regexp, search_for, case_sensitive=False, search_for_chunksize=25):
+def filter_strings_with_keywords(list_of_strings, regexp, search_for, sep='|', case_sensitive=False, search_for_chunksize=25):
     """
     Filters list of strings that contain string from at least one of two lists of keywords
     """
@@ -193,7 +193,7 @@ def filter_strings_with_keywords(list_of_strings, regexp, search_for, case_sensi
         i += 1
         print('Chunk %s out of %s' % (i, total_chunks))
         print('Time elapsed:', datetime.datetime.now() - dt_start)
-        keywords_grep = '|'.join(chunk)
+        keywords_grep = sep.join(chunk)
         word = re.compile(regexp.format(keywords_grep), flags=flag)
         newlist = filter(word.match, list_of_strings)
         filtered_with_matches = {y: set([x for x in search_for if re.compile(regexp.format(x), flags=flag).search(y)]) for y in newlist}
