@@ -5,10 +5,22 @@ import nltk
 import argparse
 import itertools
 import glob
+import datetime
 from nltk import FreqDist
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
+
+
+##################################################################################################################################
+
+# AEK notes:
+# From running through hits, seems we should ignore ME and OR - much more likely to be words used with
+# emphasis rather than Maine and Oregon
+# State abbreviation list appears to contain duplicates, as does locations
+# DC, the District?
+
+##################################################################################################################################
 
 
 ##################################################################################################################################
@@ -75,7 +87,7 @@ def main():
 location_posts, tuples_with_location_posts = filter_posts_for_keywords_from_lists(total_posts, locations, state_init)
 unit_posts, tuples_with_unit_posts = list_of_keywords_posts(total_posts, units)
 price_posts = filter_posts_for_price_mentions_from_list(location_posts)
-narc_comments = filter_posts_for_keywords_from_lists1(total_comment_list,keywords4)
+narc_comments = filter_posts_for_keywords_from_lists1(total_comment_list, keywords4)
 
 ##################################################################################################################################
 
@@ -158,6 +170,35 @@ def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b
     print('%s posts found' % len(final))
     tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
     return final, tuples_with_keyword_post
+
+
+
+def filter_strings_with_keywords(list_of_strings, list_of_keywords, case_sensitive=False):
+    """
+    Filters list of strings that contain string from at least one of two lists of keywords
+    """
+    print('Number of strings searched: %s' % len(list_of_strings))
+    print('Number of keywords searching for: %s' % len(list_of_keywords))
+    dt_start = datetime.datetime.now()
+    print('Starting time:', dt_start)
+    keywords_grep = '|'.join(list_of_keywords)
+    if not case_sensitive:
+        flag = re.I
+    else:
+        flag = False
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords_grep), flags=flag)
+    newlist = filter(word.match, list_of_strings)
+    final = list(newlist)
+    print('%s posts found' % len(final))
+    filtered_with_matches = [(y, [x for x in list_of_keywords if re.compile(r"^.*\b({})\b.*$".format(x), flags=flag).search(y)]) for y in final]
+    dt_end = datetime.datetime.now()
+    print('Ending time:', dt_end)
+    print(dt_end - dt_start)
+    processing_details = (dt_end - dt_start, len(list_of_strings), len(list_of_keywords))
+    return filtered_with_matches, processing_details
+
+
+
 
 
 def list_of_keywords_posts(list_of_strings, keywords_a):
