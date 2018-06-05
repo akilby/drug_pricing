@@ -4,10 +4,12 @@ import os
 import nltk
 import argparse
 import itertools
+import glob
 from nltk import FreqDist
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
+
 
 ##################################################################################################################################
 # Argument routine 1
@@ -25,6 +27,7 @@ parser.add_argument("--file_folder", default=None)
 
 args = parser.parse_args()
 
+
 ##################################################################################################################################
 
 # Argument routine 2 - can alter the below and copy-paste into terminal python for real-time work
@@ -35,28 +38,34 @@ class ArgumentContainer(object):
         self.keyterm_folder = "keyterm_lists"
         self.complete_threads_file = "threads/all_dumps.csv"
         self.complete_comments_file = "comments/complete/all_comments.csv"
-        self.location_folder = "location/"
-        self.mat_folder = "mat/"
-        self.unit_folder = "unit/"
+        self.location_folder = "location"
+        self.mat_folder = "mat"
+        self.unit_folder = "unit"
         self.file_folder = None
+
 
 if 'args' not in dir():
     args = ArgumentContainer()
 
 ##################################################################################################################################
 #  Functions included within main() ought to be run every time that the data needs to be worked with
+
+
 def main():
 
     print('-' * 100)
-    
-    locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath = assign_location_dirs(data_folder, complete_threads_file, complete_comments_file, location_folder, mat_folder, unit_folder, file_folder=None)
+
+    locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath = assign_location_dirs(args.data_folder, args.complete_threads_file, args.complete_comments_file, args.location_folder, args.mat_folder, args.unit_folder, args.file_folder)
     locations, state_init = generates_non_case_sensitive_list_of_keyterms(locations_filepath)
     meth_words, sub_words, nalt_words, narc_words = generates_non_case_sensitive_list_of_keyterms(mat_filepath)
     units = generates_non_case_sensitive_list_of_keyterms(unit_filepath)
 
+# glob all keylists
+# just pass name of keylist file
+
     print('-' * 100)
 
-    total_posts = list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath)
+    total_posts = list_of_posts_from_csv(args.data_folder, all_dumps_filepath, all_comments_filepath)
 
     print('-' * 100)
 
@@ -70,13 +79,14 @@ narc_comments = filter_posts_for_keywords_from_lists1(total_comment_list,keyword
 
 ##################################################################################################################################
 
+
 def assign_location_dirs(data_folder, complete_threads_file, complete_comments_file, location_folder, mat_folder, unit_folder, file_folder=None):
     """
     assigns directories according to computer program being run on
     """
     if file_folder:
         use_path = os.path.join(file_folder, data_folder)
-    else:   
+    else:
         if os.getcwd().split('/')[2] == 'akilby':
             keywords_folder_filepath = '/Users/akilby/Dropbox/Drug Pricing Project/keyterm_lists'
             subreddit_filepath = '/Users/akilby/Dropbox/drug_pricing_data/%s/' % data_folder
@@ -111,9 +121,10 @@ def generates_non_case_sensitive_list_of_keyterms(keyword_filepath):
         list_of_keyword_lists.append(keyword_list)
     return list_of_keyword_lists
 
+
 def list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath):
     """
-    Reads files containing all comments and threads from subreddit 
+    Reads files containing all comments and threads from subreddit
     outputs single list of strings
     SEPERATE INTO TWO FUNCTIONS THAT PROCESS COMMENTS AND THREADS INDEPENDENTLY
     """
@@ -131,6 +142,7 @@ def list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath)
     print('All r/%s/ text aggregated' % subreddit)
     return total_posts
 
+
 def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b):
     """
     Filters list of strings that contain string from at least one of two lists of keywords
@@ -147,6 +159,7 @@ def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b
     tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
     return final, tuples_with_keyword_post
 
+
 def list_of_keywords_posts(list_of_strings, keywords_a):
     keywords = '|'.join(keywords_a)
     word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
@@ -154,6 +167,7 @@ def list_of_keywords_posts(list_of_strings, keywords_a):
     final = list(newlist)
     tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
     return final, tuples_with_keyword_post
+
 
 def filter_posts_for_price_mentions_from_list(list_of_strings):
     """
@@ -165,9 +179,10 @@ def filter_posts_for_price_mentions_from_list(list_of_strings):
     print('%s price posts found' % len(final))
     return final
 
+
 def filter_posts_for_number_mentions_from_list(list_of_strings):
     """
-    List of strings that contain a numbers in currecny format within a list of strings 
+    List of strings that contain a numbers in currecny format within a list of strings
     """
     word = re.compile(r'^.*\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$')
     newlist = filter(word.match, list_of_strings)
@@ -190,14 +205,13 @@ def filter_posts_for_keywords_from_lists1(list_of_strings, keywords_a):
     tuples_with_keyword_post = [(keyword_rx, price_rx, number_rx1, number_rx2)]
 
 
-
 def collects_keywords_prices_numbers_from_list_of_strings(tuples_with_keyword_posts):
     """
-    Inputs tuple with the format ('keyword', 'comment with keyword') and generates a list of tuples with ('keyword', 'price', 'number') 
+    Inputs tuple with the format ('keyword', 'comment with keyword') and generates a list of tuples with ('keyword', 'price', 'number')
         The first regex catches currency mentions in either US or international format
         The second regex catches any mention of a number with whitespace on either side
         Line 1 is a for loop by keyword and outputs: (keyword, filter_object(any digit or mention of price within all posts with keyword))
-        Line 2 turns the above filter object into a list of filtered strings outputting only the tuple of interest: (keyword, 'digit', 'mention of price') 
+        Line 2 turns the above filter object into a list of filtered strings outputting only the tuple of interest: (keyword, 'digit', 'mention of price')
     Note: Final item should be a flat list
     """
     price_re = re.compile(r'^.*[\$\£\€]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?.*$')
@@ -214,7 +228,7 @@ def counts_frequencies_of_five_words_before_after_price_mentions_from_list(list_
     stop_words = list(stopwords.words("english"))
     rx = re.compile(r'(?:\w+\W+){5}[\$\£\€]\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?(?:\w+\W+){5}', re.I)
     new_list_of_posts = filter(rx.match, list_of_posts)
-    final_list_of_words = list(new_list_of_posts) 
+    final_list_of_words = list(new_list_of_posts)
     flat_posts = ''.join(final_list_of_words)
     string1 = flat_posts.split()
     string2 =[s for s in string1 if s.isalpha() not in stop_words]
