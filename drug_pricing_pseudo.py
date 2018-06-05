@@ -19,6 +19,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # emphasis rather than Maine and Oregon
 # State abbreviation list appears to contain duplicates, as does locations
 # DC, the District?
+# Chula vista
 
 ##################################################################################################################################
 
@@ -32,7 +33,7 @@ parser.add_argument("--data_folder", default='opiates', help="what folder of tex
 parser.add_argument("--keyterm_folder", default='keyterm_lists', help="folder with csvs of keyterms")
 parser.add_argument("--complete_threads_file", default='threads/all_dumps.csv')
 parser.add_argument("--complete_comments_file", default='comments/complete/all_comments.csv')
-parser.add_argument("--location_folder", default='locations/Locations.csv')
+parser.add_argument("--location_folder", default='location/Locations.csv')
 parser.add_argument("--mat_folder", default='keywords_all/keywords_all.csv')
 parser.add_argument("--unit_folder", default='references/quantity_list')
 parser.add_argument("--file_folder", default=None)
@@ -129,7 +130,7 @@ def generates_non_case_sensitive_list_of_keyterms(keyword_filepath):
         with open(file, encoding='utf8', errors='replace') as in_file:
             keyword_file = csv.reader(in_file)
             keywords = list(keyword_file)
-        keyword_list = [x[0] for x in keywords]
+        keyword_list = list(set([x[0] for x in keywords]))
         list_of_keyword_lists.append(keyword_list)
     return list_of_keyword_lists
 
@@ -172,30 +173,56 @@ def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b
     return final, tuples_with_keyword_post
 
 
+regexp = r"^.*\b({})\b.*$"
 
-def filter_strings_with_keywords(list_of_strings, list_of_keywords, case_sensitive=False):
+def filter_strings_with_keywords(list_of_strings, regexp, search_for, case_sensitive=False, search_for_chunksize=25):
     """
     Filters list of strings that contain string from at least one of two lists of keywords
     """
     print('Number of strings searched: %s' % len(list_of_strings))
-    print('Number of keywords searching for: %s' % len(list_of_keywords))
+    print('Number of keywords searching for: %s' % len(search_for))
     dt_start = datetime.datetime.now()
     print('Starting time:', dt_start)
-    keywords_grep = '|'.join(list_of_keywords)
     if not case_sensitive:
         flag = re.I
     else:
         flag = False
-    word = re.compile(r"^.*\b({})\b.*$".format(keywords_grep), flags=flag)
-    newlist = filter(word.match, list_of_strings)
-    final = list(newlist)
-    print('%s posts found' % len(final))
-    filtered_with_matches = [(y, [x for x in list_of_keywords if re.compile(r"^.*\b({})\b.*$".format(x), flags=flag).search(y)]) for y in final]
+    return_dict = {}
+    i, total_chunks = 0, len([x for x in chunks(search_for, search_for_chunksize)])
+    for chunk in chunks(search_for, search_for_chunksize):
+        i += 1
+        print('Chunk %s out of %s' % (i, total_chunks))
+        print('Time elapsed:', datetime.datetime.now() - dt_start)
+        keywords_grep = '|'.join(chunk)
+        word = re.compile(regexp.format(keywords_grep), flags=flag)
+        newlist = filter(word.match, list_of_strings)
+        filtered_with_matches = {y: set([x for x in search_for if re.compile(regexp.format(x), flags=flag).search(y)]) for y in newlist}
+        return_dict = dict_update_append(return_dict, filtered_with_matches)
+    print('%s posts found' % len(return_dict))
+    print('Number of keywords found in strings:', len(set.union(*return_dict.values())))
     dt_end = datetime.datetime.now()
     print('Ending time:', dt_end)
-    print(dt_end - dt_start)
-    processing_details = (dt_end - dt_start, len(list_of_strings), len(list_of_keywords))
-    return filtered_with_matches, processing_details
+    print('Time elapsed:', dt_end - dt_start)
+    processing_details = (dt_end - dt_start, len(list_of_strings), len(search_for))
+    return return_dict, processing_details
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def dict_update_append(dict1, dict2):
+    return_dict = {}
+    '''Updates a dictionary where the values are sets and need to be combined '''
+    return_dict1 = {k: dict1[k] for k in dict1.keys() - dict2.keys()}
+    return_dict2 = {k: dict2[k] for k in dict2.keys() - dict1.keys()}
+    return_dict3 = {k: dict1[k] | dict2[k] for k in dict1.keys() & dict2.keys()}
+    return_dict = {**return_dict, **return_dict1}
+    return_dict = {**return_dict, **return_dict2}
+    return_dict = {**return_dict, **return_dict3}
+    return return_dict
 
 
 
