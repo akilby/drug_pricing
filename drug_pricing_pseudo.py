@@ -7,7 +7,7 @@ import itertools
 import glob
 import datetime
 from nltk import FreqDist
-from collections import Counter
+from collections import Counter, defaultdict
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 
@@ -17,9 +17,14 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 # AEK notes:
 # COMPLETE - From running through hits, seems we should ignore ME and OR - much more likely to be words used with
 # COMPLETE - emphasis rather than Maine and Oregon
-# JR_SEEN, OUTSTANDING - State abbreviation list appears to contain duplicates, as does locations
-# JR_SEEN, OUTSTANDING - DC, the District?
-# JR_SEEN, OUTSTANDING - Chula vista
+# COMPLETE - State abbreviation list appears to contain duplicates, as does locations
+# COMPLETE - DC, the District?
+# COMPLETE - Chula vista
+
+#JRR notes:
+# OUTSTANDING - Currency keyword list can't be read from csv
+# OUTSTANDING - Dict concantonator innapropriately tokenizes comment strings
+
 
 ##################################################################################################################################
 
@@ -69,6 +74,8 @@ if 'args' not in dir():
 def main():
 
     print('-' * 100)
+    print('ASSIGNING DIRECTORIES AND KEYWORD LISTS')
+    print('-' * 100)
 
     locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath, currency_filepath = assign_location_dirs(args.data_folder, args.complete_threads_file, args.complete_comments_file, args.location_folder, args.mat_folder, args.unit_folder, args.currency_folder, args.file_folder)
     locations, state_init = generates_non_case_sensitive_list_of_keyterms(locations_filepath)
@@ -80,16 +87,23 @@ def main():
 # just pass name of keylist file
 
     print('-' * 100)
+    print('PREPARING %s DATA' % data_folder)
+    print('-' * 100)
 
     total_thread_tuples, total_threads = list_of_threads_from_csv(args.data_folder, all_dumps_filepath)
     total_comment_tuples, total_comments = list_of_comments_from_csv(args.data_folder, all_comments_filepath)
-
+    total_posts = total_threads + total_comments
+    total_post_dict = match_comment_and_thread_data(total_comment_tuples, total_thread_tuples)
+    print('-' * 100)
     print('-' * 100)
 
 
 ********************
-'''These functions are tailored to the drug pricing project'''
 
+file_folder = '/Users/jackiereimer/Desktop'
+write_dict_to_csv(total_post_dict)
+
+keyword_re = r"^.*\b({})\b.*$"
 price_re = r'^.*[{}]\s?\d{{1,3}}(?:[.,]\d{{3}})*(?:[.,]\d{{1,2}})?.*$'
 currencies = ['$', '£', '€']
 
@@ -146,9 +160,9 @@ def generates_non_case_sensitive_list_of_keyterms(keyword_filepath):
         list_of_keyword_lists.append(keyword_list)
     return list_of_keyword_lists
 
-def list_of_comments_from_csv(subreddit, all_comments_filepath):
+def list_of_comments_from_csv(data_folder, all_comments_filepath):
     """
-    Reads files containing all comments from subreddit
+    Reads files containing all comments from data_folder
     outputs list of tuples with strings
     """
     total_text = []
@@ -160,12 +174,12 @@ def list_of_comments_from_csv(subreddit, all_comments_filepath):
             total_text.append(row[3])
     total_post_tuples = list(set(total_text_tuple))
     total_posts = list(set(total_text)) 
-    print('All r/%s/ comments aggregated' % subreddit)
+    print('All r/%s/ comments aggregated' % data_folder)
     return total_post_tuples, total_posts
 
-def list_of_threads_from_csv(subreddit, all_dumps_filepath):
+def list_of_threads_from_csv(data_folder, all_dumps_filepath):
     """
-    Reads file containing all threads from subreddit
+    Reads file containing all threads from data_folder
     outputs list of tuples with four strings
     """
     total_text_tuple = []
@@ -178,44 +192,8 @@ def list_of_threads_from_csv(subreddit, all_dumps_filepath):
             total_text.append(row[6])
     total_post_tuples = list(set(total_text_tuple))
     total_posts = list(set(total_text))
-    print('All r/%s/ threads aggregated' % subreddit)
+    print('All r/%s/ threads aggregated' % data_folder)
     return total_post_tuples, total_posts
-
-def match_comment_and_thread_data(total_thread_tuples, total_comment_tuples):
-    i = 0
-    out_thread_tuples = [(b, c, d, e) for a, b, c, d, e in total_thread_tuples]
-    print('Out Thread Tuples Done')
-    final_list = [x + y for x in out_thread_tuples for y in total_comment_tuples if x[0] == y[0]]
-    return final_list
-
-def match_comment_and_thread_data(tuple1, tuple2):
-    i = 0
-    out_thread_dict = dict([(b, (c, d, e)) for a, b, c, d, e in tuple2])
-    final_list = [x + out_thread_dict.get(x[0],out_thread_dict.get(x[1])) for x in tuple1]
-    return final_list
- 
-
-def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b):
-    """
-    Filters list of strings that contain string from at least one of two lists of keywords
-    keywords_a is not case sensitive, keywords_b is case sensitive
-    """
-    keywords = '|'.join(keywords_a)
-    keywords1 = '|'.join(keywords_b)
-    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
-    word1 = re.compile(r"^.*\b({})\b.*$".format(keywords1))
-    newlist = filter(word.match, list_of_strings)
-    newlist1 = filter(word1.match, list_of_strings)
-    final = list(newlist) + list(newlist1)
-    print('%s posts found' % len(final))
-    tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
-    return final, tuples_with_keyword_post
-
-
-keyword_re = r"^.*\b({})\b.*$"
-price_re = r'^.*[{}]\s?\d{{1,3}}(?:[.,]\d{{3}})*(?:[.,]\d{{1,2}})?.*$'
-currencies = ['$', '£', '€']
-price_re = price_re.format(currencies)
 
 def filter_strings_with_keywords(list_of_strings, regexp, search_for, sep='|', case_sensitive=False, search_for_chunksize=25):
     """
@@ -265,12 +243,39 @@ def dict_update_append(dict1, dict2):
     return_dict = {**return_dict, **return_dict3}
     return return_dict
 
+def match_comment_and_thread_data(tuple_list1, tuple_list2):
+    '''
+    Functional Mostly effective (tokenizes comments by character)
+    '''
+    dict3 = defaultdict(list)
+    dt_start = datetime.datetime.now()
+    dict1 = dict([(b, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
+    print('(%s) first dictionary generated' % (datetime.datetime.now() - dt_start))
+    dict2 = dict([(a, b) for a,b in tuple_list1])
+    print('(%s) second dictionary generated' % (datetime.datetime.now() - dt_start))
+    dict3 = defaultdict(list)
+    for key in set().union(dict1, dict2):
+        for dic in [dict1, dict2]:
+            if key in dic:
+                dict3[key] += dic[key]
+    return dict3
 
 
+file_folder = '/Users/jackiereimer/Desktop'
+def write_dict_to_csv(file_folder, dict1):
+    filepath_use = os.path.join(file_folder,'post_dictionary.csv')
+    print(filepath_use)
+    with open(filepath_use, 'w') as f:
+        w = csv.writer(f)
+        for key, value in dict1.items():
+            w.writerow([key] + value)
 
-
-
-
+    full_post_tuples = []
+    for x in tuple1:
+        if x[0] in out_thread_dict.get[0]:
+            combined_tuple = [x + out_thread_dict.get(x[1])]
+            full_post_tuples.append(combined_tuple)
+    return final_list
 
 
 
@@ -419,6 +424,36 @@ def write_to_txt(list_of_posts):
         writer = csv.writer(f)
         writer.writerow(list_of_posts)
 
+def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b):
+    """
+    Filters list of strings that contain string from at least one of two lists of keywords
+    keywords_a is not case sensitive, keywords_b is case sensitive
+    """
+    keywords = '|'.join(keywords_a)
+    keywords1 = '|'.join(keywords_b)
+    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
+    word1 = re.compile(r"^.*\b({})\b.*$".format(keywords1))
+    newlist = filter(word.match, list_of_strings)
+    newlist1 = filter(word1.match, list_of_strings)
+    final = list(newlist) + list(newlist1)
+    print('%s posts found' % len(final))
+    tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
+    return final, tuples_with_keyword_post
+
+def match_comment_and_thread_data(tuple_list1, tuple_list2):
+    '''
+    Functional Inneffective
+    '''
+    dt_start = datetime.datetime.now()
+    dict1 = dict([(b, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
+    print('(%s) first dictionary generated' % (datetime.datetime.now() - dt_start))
+    dict2 = dict([(a, b) for a,b in tuple_list1])
+    print('(%s) second dictionary generated' % (datetime.datetime.now() - dt_start))
+    dict3 = {}
+    for key in set().union(dict1, dict2):
+        if key in dict1: dict3.setdefault(key, []).extend(dict1[key])
+        if key in dict2: dict3.setdefault(key, []).extend(dict2[key])
+    return dict3
 
 #final = [(keyword, list(filter(lambda x:re.findall(r'\d', x) and float(x) if x.isdigit() else True, currencies)), list(filter(lambda y:re.findall(r'\d', y) and float(y) if y.isdigit() else True, posts))) for keyword, currencies, posts in new_list]
 #
