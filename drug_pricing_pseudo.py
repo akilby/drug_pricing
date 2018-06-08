@@ -15,11 +15,11 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 ##################################################################################################################################
 
 # AEK notes:
-# From running through hits, seems we should ignore ME and OR - much more likely to be words used with
-# emphasis rather than Maine and Oregon
-# State abbreviation list appears to contain duplicates, as does locations
-# DC, the District?
-# Chula vista
+# COMPLETE - From running through hits, seems we should ignore ME and OR - much more likely to be words used with
+# COMPLETE - emphasis rather than Maine and Oregon
+# JR_SEEN, OUTSTANDING - State abbreviation list appears to contain duplicates, as does locations
+# JR_SEEN, OUTSTANDING - DC, the District?
+# JR_SEEN, OUTSTANDING - Chula vista
 
 ##################################################################################################################################
 
@@ -33,9 +33,10 @@ parser.add_argument("--data_folder", default='opiates', help="what folder of tex
 parser.add_argument("--keyterm_folder", default='keyterm_lists', help="folder with csvs of keyterms")
 parser.add_argument("--complete_threads_file", default='threads/all_dumps.csv')
 parser.add_argument("--complete_comments_file", default='comments/complete/all_comments.csv')
-parser.add_argument("--location_folder", default='location/Locations.csv')
-parser.add_argument("--mat_folder", default='keywords_all/keywords_all.csv')
-parser.add_argument("--unit_folder", default='references/quantity_list')
+parser.add_argument("--location_folder", default='location')
+parser.add_argument("--mat_folder", default='mat')
+parser.add_argument("--unit_folder", default='unit')
+parser.add_argument("--currency_folder", default='currency')
 parser.add_argument("--file_folder", default=None)
 
 args = parser.parse_args()
@@ -54,6 +55,7 @@ class ArgumentContainer(object):
         self.location_folder = "location"
         self.mat_folder = "mat"
         self.unit_folder = "unit"
+        self.currency_folder = "currency"
         self.file_folder = None
 
 
@@ -68,23 +70,31 @@ def main():
 
     print('-' * 100)
 
-    locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath = assign_location_dirs(args.data_folder, args.complete_threads_file, args.complete_comments_file, args.location_folder, args.mat_folder, args.unit_folder, args.file_folder)
+    locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath, currency_filepath = assign_location_dirs(args.data_folder, args.complete_threads_file, args.complete_comments_file, args.location_folder, args.mat_folder, args.unit_folder, args.currency_folder, args.file_folder)
     locations, state_init = generates_non_case_sensitive_list_of_keyterms(locations_filepath)
     meth_words, sub_words, nalt_words, narc_words = generates_non_case_sensitive_list_of_keyterms(mat_filepath)
-    units = generates_non_case_sensitive_list_of_keyterms(unit_filepath)
+    currencies = generates_non_case_sensitive_list_of_keyterms(currency_filepath)[0]
+    units = generates_non_case_sensitive_list_of_keyterms(unit_filepath)[0]
 
 # glob all keylists
 # just pass name of keylist file
 
     print('-' * 100)
 
-    total_posts = list_of_posts_from_csv(args.data_folder, all_dumps_filepath, all_comments_filepath)
+    total_thread_tuples, total_threads = list_of_threads_from_csv(args.data_folder, all_dumps_filepath)
+    total_comment_tuples, total_comments = list_of_comments_from_csv(args.data_folder, all_comments_filepath)
 
     print('-' * 100)
 
 
 ********************
 '''These functions are tailored to the drug pricing project'''
+
+price_re = r'^.*[{}]\s?\d{{1,3}}(?:[.,]\d{{3}})*(?:[.,]\d{{1,2}})?.*$'
+currencies = ['$', '£', '€']
+
+price_dict, processing_details = filter_strings_with_keywords(total_comments, price_re, currencies, sep='', case_sensitive=False, search_for_chunksize=25)
+location_dict, processing_details = filter_strings_with_keywords(total_comments, general_re, locations, sep='|', case_sensitive=True, search_for_chunksize=25)
 location_posts, tuples_with_location_posts = filter_posts_for_keywords_from_lists(total_posts, locations, state_init)
 unit_posts, tuples_with_unit_posts = list_of_keywords_posts(total_posts, units)
 price_posts = filter_posts_for_price_mentions_from_list(location_posts)
@@ -93,7 +103,7 @@ narc_comments = filter_posts_for_keywords_from_lists1(total_comment_list, keywor
 ##################################################################################################################################
 
 
-def assign_location_dirs(data_folder, complete_threads_file, complete_comments_file, location_folder, mat_folder, unit_folder, file_folder=None):
+def assign_location_dirs(data_folder, complete_threads_file, complete_comments_file, location_folder, mat_folder, unit_folder, currency_folder, file_folder=None):
     """
     assigns directories according to computer program being run on
     """
@@ -109,6 +119,7 @@ def assign_location_dirs(data_folder, complete_threads_file, complete_comments_f
     mat_filepath = os.path.join(keywords_folder_filepath, mat_folder)
     locations_filepath = os.path.join(keywords_folder_filepath, location_folder)
     unit_filepath = os.path.join(keywords_folder_filepath, unit_folder)
+    currency_filepath = os.path.join(keywords_folder_filepath, currency_folder)
     all_comments_filepath = os.path.join(subreddit_filepath, complete_comments_file)
     all_dumps_filepath = os.path.join(subreddit_filepath, complete_threads_file)
     print('All thread file: %s' % all_dumps_filepath)
@@ -116,7 +127,8 @@ def assign_location_dirs(data_folder, complete_threads_file, complete_comments_f
     print('Locations file: %s' % locations_filepath)
     print('MAT file: %s' % mat_filepath)
     print('Unit file: %s' % unit_filepath)
-    return locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath
+    print('Currency file: %s' % currency_filepath)
+    return locations_filepath, mat_filepath, all_comments_filepath, all_dumps_filepath, unit_filepath, currency_filepath
 
 
 def generates_non_case_sensitive_list_of_keyterms(keyword_filepath):
@@ -134,27 +146,54 @@ def generates_non_case_sensitive_list_of_keyterms(keyword_filepath):
         list_of_keyword_lists.append(keyword_list)
     return list_of_keyword_lists
 
-
-def list_of_posts_from_csv(subreddit, all_dumps_filepath, all_comments_filepath):
+def list_of_comments_from_csv(subreddit, all_comments_filepath):
     """
-    Reads files containing all comments and threads from subreddit
-    outputs single list of strings
-    SEPERATE INTO TWO FUNCTIONS THAT PROCESS COMMENTS AND THREADS INDEPENDENTLY
+    Reads files containing all comments from subreddit
+    outputs list of tuples with strings
     """
     total_text = []
+    total_text_tuple = []
     with open(all_comments_filepath, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
+            total_text_tuple.append((row[1], row[3]))
             total_text.append(row[3])
+    total_post_tuples = list(set(total_text_tuple))
+    total_posts = list(set(total_text)) 
+    print('All r/%s/ comments aggregated' % subreddit)
+    return total_post_tuples, total_posts
+
+def list_of_threads_from_csv(subreddit, all_dumps_filepath):
+    """
+    Reads file containing all threads from subreddit
+    outputs list of tuples with four strings
+    """
+    total_text_tuple = []
+    total_text = []
     with open(all_dumps_filepath, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
+            total_text_tuple.append((row[0], row[1], row[2], row[5], row[6]))
             total_text.append(row[5])
             total_text.append(row[6])
+    total_post_tuples = list(set(total_text_tuple))
     total_posts = list(set(total_text))
-    print('All r/%s/ text aggregated' % subreddit)
-    return total_posts
+    print('All r/%s/ threads aggregated' % subreddit)
+    return total_post_tuples, total_posts
 
+def match_comment_and_thread_data(total_thread_tuples, total_comment_tuples):
+    i = 0
+    out_thread_tuples = [(b, c, d, e) for a, b, c, d, e in total_thread_tuples]
+    print('Out Thread Tuples Done')
+    final_list = [x + y for x in out_thread_tuples for y in total_comment_tuples if x[0] == y[0]]
+    return final_list
+
+def match_comment_and_thread_data(tuple1, tuple2):
+    i = 0
+    out_thread_dict = dict([(b, (c, d, e)) for a, b, c, d, e in tuple2])
+    final_list = [x + out_thread_dict.get(x[0],out_thread_dict.get(x[1])) for x in tuple1]
+    return final_list
+ 
 
 def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b):
     """
@@ -173,7 +212,10 @@ def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b
     return final, tuples_with_keyword_post
 
 
-regexp = r"^.*\b({})\b.*$"
+keyword_re = r"^.*\b({})\b.*$"
+price_re = r'^.*[{}]\s?\d{{1,3}}(?:[.,]\d{{3}})*(?:[.,]\d{{1,2}})?.*$'
+currencies = ['$', '£', '€']
+price_re = price_re.format(currencies)
 
 def filter_strings_with_keywords(list_of_strings, regexp, search_for, sep='|', case_sensitive=False, search_for_chunksize=25):
     """
@@ -193,8 +235,8 @@ def filter_strings_with_keywords(list_of_strings, regexp, search_for, sep='|', c
         i += 1
         print('Chunk %s out of %s' % (i, total_chunks))
         print('Time elapsed:', datetime.datetime.now() - dt_start)
-        keywords_grep = sep.join(chunk)
-        word = re.compile(regexp.format(keywords_grep), flags=flag)
+        formatted_regexp = regexp.format(sep.join(chunk))
+        word = re.compile(formatted_regexp, flags=flag)
         newlist = filter(word.match, list_of_strings)
         filtered_with_matches = {y: set([x for x in search_for if re.compile(regexp.format(x), flags=flag).search(y)]) for y in newlist}
         return_dict = dict_update_append(return_dict, filtered_with_matches)
@@ -212,7 +254,6 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
-
 def dict_update_append(dict1, dict2):
     return_dict = {}
     '''Updates a dictionary where the values are sets and need to be combined '''
@@ -223,6 +264,12 @@ def dict_update_append(dict1, dict2):
     return_dict = {**return_dict, **return_dict2}
     return_dict = {**return_dict, **return_dict3}
     return return_dict
+
+
+
+
+
+
 
 
 
@@ -371,6 +418,7 @@ def write_to_txt(list_of_posts):
     with open(list_of_posts, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(list_of_posts)
+
 
 #final = [(keyword, list(filter(lambda x:re.findall(r'\d', x) and float(x) if x.isdigit() else True, currencies)), list(filter(lambda y:re.findall(r'\d', y) and float(y) if y.isdigit() else True, posts))) for keyword, currencies, posts in new_list]
 #
