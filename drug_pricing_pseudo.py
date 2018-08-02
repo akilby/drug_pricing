@@ -43,8 +43,8 @@ from itertools import chain
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_folder", default='opiates', help="what folder of text csvs are being analyzed (default is opiates)")
 parser.add_argument("--keyterm_folder", default='keyterm_lists', help="folder with csvs of keyterms")
-parser.add_argument("--complete_threads_file", default='threads/all_dumps.csv')
-parser.add_argument("--complete_comments_file", default='comments/complete/all_comments.csv')
+parser.add_argument("--complete_threads_file", default='use_data/all_dumps.csv')
+parser.add_argument("--complete_comments_file", default='use_data/all_comments.csv')
 parser.add_argument("--stop_words", default='stop_words')
 parser.add_argument("--location_folder", default='location')
 parser.add_argument("--mat_folder", default='mat')
@@ -64,8 +64,8 @@ class ArgumentContainer(object):
     def __init__(self):
         self.data_folder = "opiates"
         self.keyterm_folder = "keyterm_lists"
-        self.complete_threads_file = "threads/all_dumps.csv"
-        self.complete_comments_file = "comments/complete/all_comments.csv"
+        self.complete_threads_file = "use_data/all_dumps.csv"
+        self.complete_comments_file = "use_data/all_comments.csv"
         self.stop_words = "stop_words"
         self.location_folder = "location"
         self.mat_folder = "mat"
@@ -127,6 +127,16 @@ def main():
     state_init_dict = readDict('_state_init_dict')
     unit_dict = readDict('_unit_dict')
 
+    #
+    writeDict(location_dict, '_location_dict')
+    writeDict(price_dict, '_price_dict')
+    writeDict(state_init_dict, '_state_init_dict')
+    writeDict(unit_dict, '_unit_dict')
+    writeDict(narc_dict, '_narc_dict')
+    writeDict(meth_dict, '_meth_dict')
+    writeDict(nalt_dict, '_nalt_dict')
+    writeDict(sub_dict, '_sub_dict')
+
     print('-' * 100)
     print('MERGE AND EXPORT KEYWORD DICTIONARIES')
     print('-' * 100)
@@ -139,7 +149,7 @@ def main():
     print('-' * 100)
 
     surrounding_dollar_frequency = surrounding_word_counter(location_dict, surrounding_dollar_re, more_stops)
-    surrounding_word_frequency = surrounding_word_counter_robu(location_dict, currencies, 5, 5, sep='|', case_sensitive=False)
+    surrounding_word_frequency = surrounding_word_counter_robust(location_dict, currencies, 5, 5, sep='|', case_sensitive=False)
     write_list_of_tuples_to_csv(args.data_folder, args.currency_folder, surrounding_dollar_frequency, output_filepath)
 
     print('-' * 100)
@@ -151,18 +161,31 @@ def main():
     nalt_dict, processing_details = filter_strings_with_keywords(total_posts, general_re, nalt_words, sep='|', case_sensitive=False, search_for_chunksize=25)
     sub_dict, processing_details = filter_strings_with_keywords(total_posts, general_re, sub_words, sep='|', case_sensitive=False, search_for_chunksize=25)
 
-    print('-' * 100)
-    print('WORK IN PROGRESS')
-    print('-' * 100)
+    narc_dict = readDict('_narc_dict')
+    meth_dict = readDict('_meth_dict')
+    sub_dict = readDict('_sub_dict')
+    nalt_dict = readDict('_nalt_dict')
 
 
-    total_post_dict = match_comment_and_thread_data(total_comment_tuples, total_thread_tuples)
+    matched_posts = match_comment_and_thread_data(total_comment_tuples, total_thread_tuples)
+    writeDict(matched_posts, '_opiates_matched_posts')
+    readDict('_opiates_matched_posts')
+    list_of_posts = combine_dict_values(matched_posts)
+    clean_post_data_list = flatten_list_values(lists_of_posts)
+    narc_dict, processing_details = filter_strings_with_keywords(clean_post_data_list, general_re, narc_words, sep='|', case_sensitive=False, search_for_chunksize=25)
+    meth_dict, processing_details = filter_strings_with_keywords(clean_post_data_list, general_re, meth_words, sep='|', case_sensitive=False, search_for_chunksize=25)
+    nalt_dict, processing_details = filter_strings_with_keywords(clean_post_data_list, general_re, nalt_words, sep='|', case_sensitive=False, search_for_chunksize=25)
+    sub_dict, processing_details = filter_strings_with_keywords(clean_post_data_list, general_re, sub_words, sep='|', case_sensitive=False, search_for_chunksize=25)
+    write_list_of_lists_to_csv(output_filepath, please)
+
+
+
+
     write_word_freq_to_csv(args.data_folder, args.currency_folder, price_dict, more_stops, output_filepath, freq=10000)
-
-
     location_posts, tuples_with_location_posts = filter_posts_for_keywords_from_lists(total_posts, locations, state_init)
     unit_dict, processing_details = filter_strings_with_keywords(total_posts, general_re, units, sep='|', case_sensitive=False, search_for_chunksize=25)
     filtered_unit_dict = filter_dict_values_for_keyword_and_number(unit_dict, general_re, unit_digit_re, locations)
+
 
 ##################################################################################################################################
 # ASSIGNING DIRECTORIES AND KEYWORD LISTS
@@ -433,11 +456,36 @@ def surrounding_word_counter(dict1, regexp, more_stops):
     out_words = remove_stops_from_list_of_tuples(sorted_words, more_stops)
     return out_words
 
+
+def surrounding_word_counter_robust(dict1, search_for, before_digit, after_digit, sep='|', case_sensitive=False):
+    if not case_sensitive:
+        flags=re.I
+    else:
+        flags=False
+    list_of_strings = convert_dict_keys_to_list(dict1)
+    flat_strings = ''.join(list_of_strings)
+    keyword_grep = sep.join(search_for)
+    regexp = r'(?P<before>(?:\w+\W+){})[{}]\d+(?:\.\d+)?(?P<after>(?:\W+\w+){})'
+    formatted_regexp = regexp.format({before_digit}, keyword_grep, {after_digit})
+    word = re.compile(formatted_regexp, flags=flags)
+    words = [Counter(m.group('before').split() + m.group('after').split()) for m in word.finditer(flat_strings)]
+    summed_words = sum(words, Counter())
+    sorted_words = summed_words.most_common()
+    return sorted_words
+
+
 def convert_dict_keys_to_list(dict1):
-    values = []
+    keys = []
     for item in list(dict1.keys()):
+        keys.append(item)
+    return keys
+
+def convert_dict_values_to_list(dict1):
+    values = []
+    for item in list(dict1.values()):
         values.append(item)
     return values
+
 
 def remove_stops_from_list_of_tuples(list_of_tuples ,more_stops):
     stop_set1 = list(stopwords.words("english"))
@@ -457,29 +505,6 @@ def write_list_of_tuples_to_csv(data_folder, keyword_folder, list_of_tuples, out
 
 
 '''
-WORK IN PROGRESS
-'''
-def surrounding_word_counter_robust(dict1, search_for, before_digit, after_digit, sep='|', case_sensitive=False):
-    if not case_sensitive:
-        flags=re.I
-    else:
-        flags=False
-    list_of_strings = convert_dict_keys_to_list(dict1)
-    flat_strings = ''.join(list_of_strings)
-    keyword_grep = sep.join(search_for)
-    regexp = r'(?P<before>(?:\w+\W+){})[{}]\d+(?:\.\d+)?(?P<after>(?:\W+\w+){})'
-    formatted_regexp = regexp.format({before_digit}, keyword_grep, {after_digit})
-    word = re.compile(formatted_regexp, flags=flag)
-    words = [Counter(m.group('before').split() + m.group('after').split()) for m in word.finditer(flat_strings)]
-    summed_words = sum(words, Counter())
-    sorted_words = summed_words.most_common()
-    return sorted_words
-'''
-END WORK IN PRORGRESS
-'''
-
-
-'''
 REGULAR EXPRESSION EXAMPLE
 '''
 regexp = r'(?P<before>(?:\w+\W+){5})\$\d+(?:\.\d+)?(?P<after>(?:\W+\w+){5})'
@@ -492,6 +517,18 @@ print(sorted_words)
 '''
 END EXAMPLE
 '''
+regexp = r'(?P<before>(?:\w+\W+){})[{}]\d+(?:\.\d+)?(?P<after>(?:\W+\w+){})'
+keyword_grep = ''.join(currencies)
+formatted_regexp = regexp.format({5}, keyword_grep, {5})
+rx = re.compile(regexp)
+sentence = 'I have a sentence with $10.00 within it and this sentence is done. Here is another mention of $500 with no words after and there are more words.'
+words = [Counter(m.group('before').split() + m.group('after').split()) for m in rx.finditer(sentence)]
+summed_words = sum(words, Counter())
+sorted_words = summed_words.most_common()
+print(sorted_words)
+
+
+
 
 ##################################################################################################################################
 def counts_frequencies_of_five_words_before_after_price_mentions_from_list(dict1, regexp, search_for, more_stops, sep='|', case_sensitive=False):
@@ -530,7 +567,7 @@ def counts_frequencies_of_five_words_before_after_price_mentions_from_list(dict1
 ##################################################################################################################################
 regexp = r'(?P<before>(?:\w+\W+){5})\$\d+(?:\.\d+)?(?P<after>(?:\W+\w+){5})'
 please1 = my_counter(location_dict, regexp)
-please = my_counter_robust(location_dict, currencies, 5, 5, sep='', case_sensitive=False)
+surrounding_word_frequency = surrounding_word_counter_robust(location_dict, currencies, 5, 5, sep='', case_sensitive=False)
 
 
 def write_word_freq_to_csv(data_folder, keyword_folder, dict1, more_stops, output_filepath, freq=10000):
@@ -639,13 +676,19 @@ def preprocess_list_of_strings_for_nlp(list_of_strings, more_stops, freq=10000):
 
 
 
+dict1 = convert_dict_keys_to_list(sub_dict)
+filepath_use = os.path.join(output_filepath, '_total_threads.csv') 
+with open(filepath_use, 'w') as f:
+    writer = csv.writer(f)
+    for item in total_threads:
+        new_item = [item]
+        writer.writerow(new_item)
 
 
-
-
-
-
-
+value = [post for post in total_posts if meth_words not in word_tokenize(post)]
+value1 = [post for post in value if narc_words not in word_tokenize(post)]
+value2 = [post for post in value1 if sub_words not in word_tokenize(post)]
+value3 = [post for post in value2 if nalt_words not in word_tokenize(post)]
 
 
 
@@ -717,70 +760,195 @@ def write_to_txt(list_of_posts):
         writer = csv.writer(f)
         writer.writerow(list_of_posts)
 
-def filter_posts_for_keywords_from_lists(list_of_strings, keywords_a, keywords_b):
-    """
-    Filters list of strings that contain string from at least one of two lists of keywords
-    keywords_a is not case sensitive, keywords_b is case sensitive
-    """
-    keywords = '|'.join(keywords_a)
-    keywords1 = '|'.join(keywords_b)
-    word = re.compile(r"^.*\b({})\b.*$".format(keywords), re.I)
-    word1 = re.compile(r"^.*\b({})\b.*$".format(keywords1))
-    newlist = filter(word.match, list_of_strings)
-    newlist1 = filter(word1.match, list_of_strings)
-    final = list(newlist) + list(newlist1)
-    print('%s posts found' % len(final))
-    tuples_with_keyword_post = [(i, [b for b in final if i in b]) for i in keywords_a]
-    return final, tuples_with_keyword_post
 
-def match_comment_and_thread_data(tuple_list1, tuple_list2):
+
+
+
+
+
+
+
+
+
+
+
+
+
+def match_comment_and_thread_data(tuple_list1, tuple_list2, sep='/'):
     '''
-    Functional Inneffective
     '''
+    dict3 = defaultdict(list)
     dt_start = datetime.datetime.now()
-    dict1 = dict([(b, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
+    dict1 = dict([(a, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
     print('(%s) first dictionary generated' % (datetime.datetime.now() - dt_start))
-    dict2 = dict([(a, b) for a,b in tuple_list1])
+    not_words = ['https:']
+    dict_refine = [(a.split('/'), b) for a,b in tuple_list1]
+    dict_refine1 = [([word for word in words if len(word) == 6], key) for (words, key) in dict_refine]
+    dict_refine2 = [([word for word in words if word not in not_words], key) for (words, key) in dict_refine1]
+    dict_refine3 = [(''.join(a), b) for (a, b) in dict_refine2]
+    dict2 = dict([(a, b) for a,b in dict_refine3])
     print('(%s) second dictionary generated' % (datetime.datetime.now() - dt_start))
-    dict3 = {}
-    for key in set().union(dict1, dict2):
-        if key in dict1: dict3.setdefault(key, []).extend(dict1[key])
-        if key in dict2: dict3.setdefault(key, []).extend(dict2[key])
+    for k, v in chain(dict1.items(), dict2.items()):
+        dict3[k].append(v)
     return dict3
 
-def match_comment_and_thread_data(tuple_list1, tuple_list2):
-    '''
-    Functional Mostly effective (tokenizes comments by character)
-    '''
-    dict3 = defaultdict(list)
-    dt_start = datetime.datetime.now()
-    dict1 = dict([(b, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
-    print('(%s) first dictionary generated' % (datetime.datetime.now() - dt_start))
-    dict2 = dict([(a, b) for a,b in tuple_list1])
-    print('(%s) second dictionary generated' % (datetime.datetime.now() - dt_start))
-    dict3 = defaultdict(list)
-    for key in set().union(dict1, dict2):
-        for dic in [dict1, dict2]:
-            if key in dic:
-                dict3[key] += dic[key]
-    return dict1, dict2, dict3
+
+def combine_dict_values(dict1):
+    list_of_values = convert_dict_values_to_list(dict1)
+    b = []
+    i = 0
+    for x in list_of_values:
+        i += 1
+        value = unpack(x)
+        b.append(value)
+        print(i, len(list_of_values))
+    return b
+
+def int_if_possible(val):
+    try:
+        return int(val)
+    except ValueError:
+        return val
+
+def unpack(l):
+    ret = [*l[0], *l[1:]]
+    try:
+    ret[0], ret[1] = int_if_possible(ret[1]), ret[0]
+    return ret
 
 
-file_folder = '/Users/jackiereimer/Desktop'
-def write_dict_to_csv(file_folder, dict1):
-    filepath_use = os.path.join(file_folder,'post_dictionary.csv')
+
+def trans(lst):
+    ret = [int(lst[0][1]), lst[0][0], lst[0][2], lst[0][3]]
+    if len(lst) == 2:
+        ret.append(lst[1])
+    return ret
+
+def flatten_list_values(list_of_strings):
+    list_of_merged_lists = []
+    for x in list_of_strings:
+        x[2:] = [''.join(x[2:])]
+        list_of_merged_lists.append(x)
+    return list_of_merged_lists
+
+
+def write_list_of_lists_to_csv(file_folder, list_of_lists):
+    filepath_use = os.path.join(file_folder, 'opiates_paired_comments_posts.csv')
+    print(filepath_use)
+    with open(filepath_use, 'w') as f:
+        w = csv.writer(f)
+        for x in list_of_lists:
+            w.writerow(x)
+
+
+
+
+
+def write_dict_to_csv(output_filepath, dict1):
+    filepath_use = os.path.join(output_filepath,'post_dictionary.csv')
     print(filepath_use)
     with open(filepath_use, 'w') as f:
         w = csv.writer(f)
         for key, value in dict1.items():
             w.writerow([key] + value)
 
-    full_post_tuples = []
-    for x in tuple1:
-        if x[0] in out_thread_dict.get[0]:
-            combined_tuple = [x + out_thread_dict.get(x[1])]
-            full_post_tuples.append(combined_tuple)
-    return final_list
+def filter_lists_with_keyword_strings(list_of_lists, regexp, search_for, sep='|', case_sensitive=False):
+    final_list_of_lists = []
+    for x in list_of_lists:
+        for a, b, c in x:
+            final_item = [a, b, filter_strings_with_keywords(c, regexp, search_for, sep='|', case_sensitive=False, search_for_chunksize=25)]
+
+
+
+def filter_strings_with_keywords(list_of_strings, regexp, search_for, sep='|', case_sensitive=False, search_for_chunksize=25):
+    """
+    Filters list of strings that contain string from at least one of two lists of keywords
+    """
+    print('Number of strings searched: %s' % len(list_of_strings))
+    print('Number of keywords searching for: %s' % len(search_for))
+    dt_start = datetime.datetime.now()
+    print('Starting time:', dt_start)
+    if not case_sensitive:
+        flag = re.I
+    else:
+        flag = False
+    return_dict = {}
+    i, total_chunks = 0, len([x for x in chunks(search_for, search_for_chunksize)])
+    for chunk in chunks(search_for, search_for_chunksize):
+        i += 1
+        print('Chunk %s out of %s' % (i, total_chunks))
+        print('Time elapsed:', datetime.datetime.now() - dt_start)
+        keywords_grep = sep.join(chunk)
+        word = re.compile(regexp.format(keywords_grep), flags=flag)
+        newlist = filter(word.match, list_of_strings)
+        filtered_with_matches = {y: set([x for x in search_for if re.compile(regexp.format(x), flags=flag).search(y)]) for y in newlist}
+        return_dict = dict_update_append(return_dict, filtered_with_matches)
+    print('%s posts found' % len(return_dict))
+    print('Number of keywords found in strings:', len(set.union(*return_dict.values())))
+    dt_end = datetime.datetime.now()
+    print('Ending time:', dt_end)
+    print('Time elapsed:', dt_end - dt_start)
+    processing_details = (dt_end - dt_start, len(list_of_strings), len(search_for))
+    return return_dict, processing_details
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def get_submission_idlist(thread_filepath_csv):
+    """
+    """
+    ids = []
+    with open(thread_filepath_csv, 'r') as fp:
+        reader = csv.reader(fp)
+        for row in reader:
+            ids.append(row[0])
+    idlist = list(set(ids))
+    return idlist
+
+prefix_list = list(set([x.split(sep)[0].split('.')[-1] for x in full_file_list]))
+def separate_unique_and_dup_files(complete_subfolder, working_subfolder, duplicate_subfolder, sep='-'):
+    """Separates comment files that are complete duplicates, and puts them in a dups folder which can later be purged"""
+    full_file_list = glob.glob(os.path.join(complete_subfolder, '*'))
+    prefix_list = set([x.split(sep)[0].split('_')[-1] for x in full_file_list])
+    for file in full_file_list:
+        with open(file, 'w') as f:
+
+    for 
+
+
+
+    dict3 = defaultdict(list)
+    dt_start = datetime.datetime.now()
+    dict1 = dict([(b, (a, c, d, e)) for a, b, c, d, e in tuple_list2])
+    print('(%s) first dictionary generated' % (datetime.datetime.now() - dt_start))
+    dict2 = dict([(a, b) for a,b in tuple_list1])
+    print('(%s) second dictionary generated' % (datetime.datetime.now() - dt_start))
+    for k, v in chain(dict1.items(), dict2.items()):
+        dict3[k].append(v)
+    return dict3
+
+
+
+
+
+
+
+
+
+
+
+
 
 #def sort_key(d):
 #  return (bool(re.findall(r'^\$[\d\.]+|\£[\d\.]+|\€[\d\.]+', d[0])), float(d[0][1:]) if not d[0][0].isdigit() else float(d[0])) if len(d) else (False, 0)
