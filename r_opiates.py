@@ -359,7 +359,7 @@ def all_submissions(thread_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/output/threads/all_dumps.csv", 'w') as f:
+    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/use_data/threads/all_dumps.csv", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
@@ -377,7 +377,7 @@ def all_comments(comment_complete_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/output/comments/all_comments.csv", 'w') as f:
+    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/use_data/comments/all_comments.csv", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
