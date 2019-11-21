@@ -8,7 +8,18 @@ import filecmp
 import glob
 import shutil
 import collections
+from dotenv import load_dotenv
 from praw.models import MoreComments
+
+# load local environment variables
+env_path = "./.env"
+load_dotenv(dotenv_path=env_path)
+
+# define constants
+DATE_START = 'October-01-2019'
+DATE_END = 'October-02-2019'
+PROJ_ROOT = os.path.dirname(os.path.realpath(__file__))
+DATA_ROOT = os.getenv("DATA_ROOT")
 
 ###################################################################################################################################
 
@@ -32,10 +43,10 @@ parser.add_argument("--datestring_start", default=None, help="starting date stri
 parser.add_argument("--datestring_end", default=None, help="ending date string in correct format (example: January-19-2018). Default will be set to right now.")
 parser.add_argument("--days_look_back", default='7')
 parser.add_argument("--days_look_forward", default='0')
-parser.add_argument("--client_id", default='2do-OPn-K3ii3A')
-parser.add_argument("--client_secret", default='pBqEsDdGCk-E_n55vkb0ITFzl1Y')
-parser.add_argument("--password", default='~KilbyAssignment')
-parser.add_argument("--username", default='jrreimer')
+parser.add_argument("--client_id", default=os.getenv("RCLIENT_ID"))
+parser.add_argument("--client_secret", default=os.getenv("RSECRET_KEY"))
+parser.add_argument("--password", default=os.getenv("RPASSWORD"))
+parser.add_argument("--username", default=os.getenv("RUSERNAME"))
 parser.add_argument("--file_folder", default=None)
 parser.add_argument("--look_back", default=1000)
 
@@ -57,14 +68,14 @@ class ArgumentContainer(object):
         self.comment_master_folder_name = 'master'
         self.comment_complete_folder_name = 'complete'
         self.iterate_over_days = '1'
-        self.datestring_start = 'March-03-2018'
-        self.datestring_end = 'March-05-2018'
+        self.datestring_start = DATE_START
+        self.datestring_end = DATE_END
         self.days_look_back = None
         self.days_look_forward = None
-        self.client_id = '2do-OPn-K3ii3A'
-        self.client_secret = 'pBqEsDdGCk-E_n55vkb0ITFzl1Y'
-        self.password = '~KilbyAssignment'
-        self.username = 'jrreimer'
+        self.client_id = os.getenv("RCLIENT_ID")
+        self.client_secret = os.getenv("RSECRET_KEY")
+        self.password = os.getenv("RPASSWORD")
+        self.username = os.getenv("RUSERNAME")
         self.file_folder = None
         self.look_back = 1000
 
@@ -135,11 +146,7 @@ def assign_working_dirs(thread_folder_name, comment_folder_name, comment_working
     """
     if file_folder:
         use_path = os.path.join(file_folder, subreddit)
-    else:
-        if os.getcwd().split('/')[2] == 'akilby':
-            use_path = "/Users/akilby/Dropbox/Research/Data/drug_pricing_data/%s/" % subreddit
-        else:
-            use_path = "/Users/jackiereimer/Dropbox/drug_pricing_data/%s/" % subreddit
+    use_path = DATA_ROOT + "/" + subreddit + "/"
     thread_folder = os.path.join(use_path, thread_folder_name)
     comment_folder = os.path.join(use_path, comment_folder_name)
     comment_working_folder = os.path.join(comment_folder, comment_working_folder_name)
@@ -359,7 +366,8 @@ def all_submissions(thread_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/use_data/threads/all_dumps.csv", 'w') as f:
+    # TODO: replace this fp
+    with open(DATA_ROOT + "/opiates/use_data/threads/all_dumps.csv", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
@@ -377,7 +385,8 @@ def all_comments(comment_complete_folder):
                 row_list.append(a)
     row_list = list(set(row_list))
     #print row_list
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/use_data/comments/all_comments.csv", 'w') as f:
+    # TODO: replace this fp
+    with open(DATA_ROOT + "/opiates/use_data/comments/all_comments.csv", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
@@ -394,7 +403,8 @@ def all_comments(comment_complete_folder):
             comments = [x[3] for x in all_comments]
         comments = list(comments)
         row_list.append(comments)
-    with open("/Users/jackiereimer/Dropbox/drug_pricing_data/opiates/comments/all_comments.txt", 'w') as f:
+    # TODO: replace this fp
+    with open(DATA_ROOT + "/opiates/comments/all_comments.txt", 'w') as f:
         writer = csv.writer(f)
         for row in row_list:
             a = list(row)
