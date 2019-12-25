@@ -1,0 +1,1 @@
+"""Stores project constants."""
