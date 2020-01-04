@@ -1,24 +1,6 @@
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Jupyter Notebook
+# jupyter
 .ipynb_checkpoints
+notebooks/
 
 # environments
 .env
@@ -27,6 +9,7 @@ wheels/
 # caches
 .mypy_cache/
 .pytest_cache/
+__pycache__/
 
 # other
 .vscode/

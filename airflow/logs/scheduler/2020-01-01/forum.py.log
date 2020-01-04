@@ -1,0 +1,275 @@
+[2020-01-01 01:00:00,758] {scheduler_job.py:153} INFO - Started process (PID=91726) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:05,443] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:05,557] {logging_mixin.py:112} INFO - [2020-01-01 07:00:05,538] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:06,628] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:06,670] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 21605.912 seconds
+[2020-01-01 07:00:06,881] {scheduler_job.py:153} INFO - Started process (PID=91750) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,259] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:07,261] {logging_mixin.py:112} INFO - [2020-01-01 07:00:07,260] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,421] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,661] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.780 seconds
+[2020-01-01 07:00:07,763] {scheduler_job.py:153} INFO - Started process (PID=91761) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,770] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:07,771] {logging_mixin.py:112} INFO - [2020-01-01 07:00:07,771] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,873] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,908] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.146 seconds
+[2020-01-01 07:00:07,969] {scheduler_job.py:153} INFO - Started process (PID=91764) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:07,976] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:07,977] {logging_mixin.py:112} INFO - [2020-01-01 07:00:07,977] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,068] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,090] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.121 seconds
+[2020-01-01 07:00:08,174] {scheduler_job.py:153} INFO - Started process (PID=91766) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,182] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:08,183] {logging_mixin.py:112} INFO - [2020-01-01 07:00:08,183] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,268] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,290] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.116 seconds
+[2020-01-01 07:00:08,381] {scheduler_job.py:153} INFO - Started process (PID=91769) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,391] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:08,393] {logging_mixin.py:112} INFO - [2020-01-01 07:00:08,392] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,501] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,523] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.142 seconds
+[2020-01-01 07:00:08,585] {scheduler_job.py:153} INFO - Started process (PID=91771) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,592] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:08,593] {logging_mixin.py:112} INFO - [2020-01-01 07:00:08,592] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,684] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,700] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.116 seconds
+[2020-01-01 07:00:08,794] {scheduler_job.py:153} INFO - Started process (PID=91775) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,802] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:08,804] {logging_mixin.py:112} INFO - [2020-01-01 07:00:08,803] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,896] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:08,914] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.119 seconds
+[2020-01-01 07:00:09,007] {scheduler_job.py:153} INFO - Started process (PID=91777) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,015] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:09,016] {logging_mixin.py:112} INFO - [2020-01-01 07:00:09,016] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,124] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,139] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.132 seconds
+[2020-01-01 07:00:09,206] {scheduler_job.py:153} INFO - Started process (PID=91780) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,214] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:09,215] {logging_mixin.py:112} INFO - [2020-01-01 07:00:09,214] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,299] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,314] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 07:00:09,414] {scheduler_job.py:153} INFO - Started process (PID=91782) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,420] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:09,421] {logging_mixin.py:112} INFO - [2020-01-01 07:00:09,421] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,509] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,526] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.112 seconds
+[2020-01-01 07:00:09,617] {scheduler_job.py:153} INFO - Started process (PID=91784) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,625] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:09,626] {logging_mixin.py:112} INFO - [2020-01-01 07:00:09,625] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,713] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,730] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.113 seconds
+[2020-01-01 07:00:09,822] {scheduler_job.py:153} INFO - Started process (PID=91786) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,829] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:09,830] {logging_mixin.py:112} INFO - [2020-01-01 07:00:09,830] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,915] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:09,929] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 07:00:10,027] {scheduler_job.py:153} INFO - Started process (PID=91788) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,034] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:10,035] {logging_mixin.py:112} INFO - [2020-01-01 07:00:10,035] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,122] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,136] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.109 seconds
+[2020-01-01 07:00:10,234] {scheduler_job.py:153} INFO - Started process (PID=91793) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,243] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:10,244] {logging_mixin.py:112} INFO - [2020-01-01 07:00:10,243] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,324] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,339] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.105 seconds
+[2020-01-01 07:00:10,441] {scheduler_job.py:153} INFO - Started process (PID=91799) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,448] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:10,449] {logging_mixin.py:112} INFO - [2020-01-01 07:00:10,448] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,543] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,559] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.118 seconds
+[2020-01-01 07:00:10,647] {scheduler_job.py:153} INFO - Started process (PID=91802) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,654] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:10,655] {logging_mixin.py:112} INFO - [2020-01-01 07:00:10,655] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,741] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,756] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.109 seconds
+[2020-01-01 07:00:10,854] {scheduler_job.py:153} INFO - Started process (PID=91804) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,861] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:10,862] {logging_mixin.py:112} INFO - [2020-01-01 07:00:10,862] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,940] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:10,955] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.101 seconds
+[2020-01-01 07:00:11,059] {scheduler_job.py:153} INFO - Started process (PID=91806) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,072] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:11,073] {logging_mixin.py:112} INFO - [2020-01-01 07:00:11,073] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,158] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,177] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.118 seconds
+[2020-01-01 07:00:11,268] {scheduler_job.py:153} INFO - Started process (PID=91808) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,275] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:11,276] {logging_mixin.py:112} INFO - [2020-01-01 07:00:11,276] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,356] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,373] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.105 seconds
+[2020-01-01 07:00:11,476] {scheduler_job.py:153} INFO - Started process (PID=91810) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,483] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:11,484] {logging_mixin.py:112} INFO - [2020-01-01 07:00:11,484] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,563] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:11,579] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.103 seconds
+[2020-01-01 07:00:13,185] {scheduler_job.py:153} INFO - Started process (PID=91813) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:13,192] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:13,193] {logging_mixin.py:112} INFO - [2020-01-01 07:00:13,193] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:13,274] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:13,289] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.104 seconds
+[2020-01-01 07:00:15,193] {scheduler_job.py:153} INFO - Started process (PID=91829) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:15,201] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:15,202] {logging_mixin.py:112} INFO - [2020-01-01 07:00:15,201] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:15,286] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:15,301] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.108 seconds
+[2020-01-01 07:00:17,208] {scheduler_job.py:153} INFO - Started process (PID=91838) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:17,270] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:17,272] {logging_mixin.py:112} INFO - [2020-01-01 07:00:17,271] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:17,357] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:17,371] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.163 seconds
+[2020-01-01 07:00:17,909] {scheduler_job.py:153} INFO - Started process (PID=91855) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:17,916] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:17,917] {logging_mixin.py:112} INFO - [2020-01-01 07:00:17,916] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:18,006] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:18,024] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.115 seconds
+[2020-01-01 07:00:19,917] {scheduler_job.py:153} INFO - Started process (PID=91857) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:19,923] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:19,924] {logging_mixin.py:112} INFO - [2020-01-01 07:00:19,924] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:20,012] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:20,027] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.111 seconds
+[2020-01-01 07:00:21,927] {scheduler_job.py:153} INFO - Started process (PID=91859) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:21,933] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:21,934] {logging_mixin.py:112} INFO - [2020-01-01 07:00:21,934] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:22,020] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:22,034] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 07:00:23,938] {scheduler_job.py:153} INFO - Started process (PID=91861) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:23,943] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:23,945] {logging_mixin.py:112} INFO - [2020-01-01 07:00:23,944] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:24,032] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:24,049] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.112 seconds
+[2020-01-01 07:00:25,954] {scheduler_job.py:153} INFO - Started process (PID=91864) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:25,960] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:25,961] {logging_mixin.py:112} INFO - [2020-01-01 07:00:25,960] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:26,045] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:26,061] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 07:00:27,976] {scheduler_job.py:153} INFO - Started process (PID=91866) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:27,981] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:27,982] {logging_mixin.py:112} INFO - [2020-01-01 07:00:27,982] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:28,062] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:28,077] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.101 seconds
+[2020-01-01 07:00:29,979] {scheduler_job.py:153} INFO - Started process (PID=91868) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:29,985] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:29,986] {logging_mixin.py:112} INFO - [2020-01-01 07:00:29,986] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:30,074] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:30,090] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.111 seconds
+[2020-01-01 07:00:31,988] {scheduler_job.py:153} INFO - Started process (PID=91873) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:31,994] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:31,995] {logging_mixin.py:112} INFO - [2020-01-01 07:00:31,995] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:32,075] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:32,093] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.104 seconds
+[2020-01-01 07:00:34,000] {scheduler_job.py:153} INFO - Started process (PID=91875) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:34,006] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:34,007] {logging_mixin.py:112} INFO - [2020-01-01 07:00:34,007] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:34,091] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:34,107] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 07:00:36,393] {scheduler_job.py:153} INFO - Started process (PID=91877) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:41,407] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:41,408] {logging_mixin.py:112} INFO - [2020-01-01 07:00:41,408] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:41,488] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:41,502] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.108 seconds
+[2020-01-01 07:00:41,606] {scheduler_job.py:153} INFO - Started process (PID=91880) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:46,620] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:46,621] {logging_mixin.py:112} INFO - [2020-01-01 07:00:46,621] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:46,703] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:46,718] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.112 seconds
+[2020-01-01 07:00:46,820] {scheduler_job.py:153} INFO - Started process (PID=91883) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:51,827] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 07:00:51,828] {logging_mixin.py:112} INFO - [2020-01-01 07:00:51,828] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 07:00:51,908] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:00,250] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 39553.429 seconds
+[2020-01-01 18:00:00,338] {scheduler_job.py:153} INFO - Started process (PID=91890) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:01,840] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:01,841] {logging_mixin.py:112} INFO - [2020-01-01 18:00:01,841] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:01,925] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:01,951] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 1.613 seconds
+[2020-01-01 18:00:02,058] {scheduler_job.py:153} INFO - Started process (PID=91901) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,063] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:02,064] {logging_mixin.py:112} INFO - [2020-01-01 18:00:02,064] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,148] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,163] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.105 seconds
+[2020-01-01 18:00:02,267] {scheduler_job.py:153} INFO - Started process (PID=91904) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,273] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:02,274] {logging_mixin.py:112} INFO - [2020-01-01 18:00:02,273] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,358] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,375] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.108 seconds
+[2020-01-01 18:00:02,476] {scheduler_job.py:153} INFO - Started process (PID=91906) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,481] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:02,482] {logging_mixin.py:112} INFO - [2020-01-01 18:00:02,481] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,572] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,590] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.114 seconds
+[2020-01-01 18:00:02,684] {scheduler_job.py:153} INFO - Started process (PID=91909) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,689] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:02,690] {logging_mixin.py:112} INFO - [2020-01-01 18:00:02,690] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,775] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,790] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.106 seconds
+[2020-01-01 18:00:02,891] {scheduler_job.py:153} INFO - Started process (PID=91912) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,897] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:02,898] {logging_mixin.py:112} INFO - [2020-01-01 18:00:02,897] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,981] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:02,998] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.106 seconds
+[2020-01-01 18:00:03,100] {scheduler_job.py:153} INFO - Started process (PID=91914) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:03,106] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:03,107] {logging_mixin.py:112} INFO - [2020-01-01 18:00:03,106] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:03,189] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:03,204] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.104 seconds
+[2020-01-01 18:00:04,034] {scheduler_job.py:153} INFO - Started process (PID=91916) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:04,040] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:04,041] {logging_mixin.py:112} INFO - [2020-01-01 18:00:04,040] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:04,124] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:04,139] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.106 seconds
+[2020-01-01 18:00:06,050] {scheduler_job.py:153} INFO - Started process (PID=91920) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:06,055] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:06,056] {logging_mixin.py:112} INFO - [2020-01-01 18:00:06,056] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:06,141] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:06,156] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.107 seconds
+[2020-01-01 18:00:08,067] {scheduler_job.py:153} INFO - Started process (PID=91923) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:08,073] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:08,074] {logging_mixin.py:112} INFO - [2020-01-01 18:00:08,074] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:08,156] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:08,171] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.103 seconds
+[2020-01-01 18:00:10,070] {scheduler_job.py:153} INFO - Started process (PID=91926) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:10,076] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:10,077] {logging_mixin.py:112} INFO - [2020-01-01 18:00:10,077] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:10,157] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:10,172] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.102 seconds
+[2020-01-01 18:00:12,088] {scheduler_job.py:153} INFO - Started process (PID=91928) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:12,094] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:12,095] {logging_mixin.py:112} INFO - [2020-01-01 18:00:12,094] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:12,178] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:12,193] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.105 seconds
+[2020-01-01 18:00:14,092] {scheduler_job.py:153} INFO - Started process (PID=91931) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:14,097] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:14,098] {logging_mixin.py:112} INFO - [2020-01-01 18:00:14,098] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:14,178] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:14,194] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 0.102 seconds
+[2020-01-01 18:00:16,103] {scheduler_job.py:153} INFO - Started process (PID=91933) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:21,108] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:21,109] {logging_mixin.py:112} INFO - [2020-01-01 18:00:21,109] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:21,194] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:21,211] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.108 seconds
+[2020-01-01 18:00:21,292] {scheduler_job.py:153} INFO - Started process (PID=91937) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:26,304] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:26,305] {logging_mixin.py:112} INFO - [2020-01-01 18:00:26,305] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:26,391] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:26,406] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.115 seconds
+[2020-01-01 18:00:26,496] {scheduler_job.py:153} INFO - Started process (PID=91940) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:31,509] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:31,510] {logging_mixin.py:112} INFO - [2020-01-01 18:00:31,510] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:31,591] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:31,606] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.110 seconds
+[2020-01-01 18:00:31,695] {scheduler_job.py:153} INFO - Started process (PID=91944) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:36,711] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:36,712] {logging_mixin.py:112} INFO - [2020-01-01 18:00:36,711] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:36,792] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:36,807] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.112 seconds
+[2020-01-01 18:00:36,883] {scheduler_job.py:153} INFO - Started process (PID=91947) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:41,895] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 18:00:41,896] {logging_mixin.py:112} INFO - [2020-01-01 18:00:41,896] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:41,975] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 18:00:41,990] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 5.107 seconds
+[2020-01-01 18:00:42,078] {scheduler_job.py:153} INFO - Started process (PID=91950) to work on /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 19:00:01,111] {scheduler_job.py:1528} INFO - Processing file /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py for tasks to queue
+[2020-01-01 19:00:01,113] {logging_mixin.py:112} INFO - [2020-01-01 19:00:01,112] {dagbag.py:92} INFO - Filling up the DagBag from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 19:00:01,196] {scheduler_job.py:1540} INFO - DAG(s) dict_keys(['praw']) retrieved from /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py
+[2020-01-01 19:00:01,210] {scheduler_job.py:161} INFO - Processing /Users/cccdenhart/Documents/work/kilby_ra/drug_pricing/airflow/dags/forum.py took 3559.133 seconds
