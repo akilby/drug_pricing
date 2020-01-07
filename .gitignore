@@ -11,5 +11,8 @@ notebooks/
 .pytest_cache/
 __pycache__/
 
+# data
+sample_data/
+
 # other
 .vscode/
