@@ -4,6 +4,7 @@
 # environments
 .env
 .venv/
+venv/
 
 # caches
 .mypy_cache/
@@ -12,6 +13,7 @@ __pycache__/
 
 # data
 sample_data/
+.metals/
 
 # other
 .vscode/
