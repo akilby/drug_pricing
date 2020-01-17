@@ -1,22 +1,23 @@
 """Defines tasks to add data to a MongoDB client."""
-
 import json
+import os
 
 import luigi
 from luigi import Task
 
-from drug_pricing import MONGO_COLL
+from drug_pricing import COLL
 
-from .files import ParseFiles
-from .praw import ParsePraw
+from .read_data import ParseFiles, ParsePraw
 
 
 class PrawToMongo(Task):
     """Define a task that adds data loaded from praw to a mongo collection."""
 
+    # assign the data to run this task
     dates = luigi.DateIntervalParameter()
 
-    collection = MONGO_COLL
+    # assign the mongo collection to add data to
+    collection = COLL
 
     def requires(self) -> Task:
         """Return the praw parsing dependency of this task."""
@@ -24,9 +25,16 @@ class PrawToMongo(Task):
 
     def run(self) -> None:
         """Add data from praw parsing to the this mongo collection."""
-        infile = self.input().open("r")
-        posts = json.load(infile)["posts"]
+        # load data
+        data_fn = self.input()
+        posts = json.load(data_fn.open("r"))["posts"]
+
+        # add data to mongo
+        # TODO: prevent duplicate ids from being added
         self.collection.insert_many(posts)
+
+        # remove the cached data file
+        os.remove(data_fn)
 
 
 class FilesToMongo(PrawToMongo):

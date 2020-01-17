@@ -3,6 +3,7 @@
 import os
 from datetime import datetime
 
+import pymongo
 from dotenv import load_dotenv
 from praw import Reddit
 
@@ -23,6 +24,16 @@ CONN = Reddit(client_id=os.getenv("RCLIENT_ID"),
 # define subreddit
 SUBR_NAME = "opiates"
 SUBR = CONN.subreddit(SUBR_NAME)
+SUB_LIMIT = 1000
+
+# define mongo connection
+MONGO = pymongo.MongoClient('localhost', os.getenv("PORT"))
+DB = MONGO[os.getenv("DB_NAME")]
+COLL = DB[os.getenv("COLL_NAME")]
+
+# define hardcoded comment and submission file locations
+SUB_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/threads"
+COMM_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/comments/complete"
 
 
 def utc_to_dt(utc: float) -> datetime:
