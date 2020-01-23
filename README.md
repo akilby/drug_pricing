@@ -6,7 +6,7 @@ This project attempts to extract street opiate pricing and location data from on
 ### 1. Environment variables
 This project utilizes the python "dotenv" package to read secret information as environment variables.
 
-For security reasons, the file containing these environment is not tracked on git.  In order to make the git version of the project functional:
+For security reasons, the file containing these environment variables is not tracked on git.  In order to make the git version of the project functional:
 
 A. Create a file named `.env` in the project root
 B. Store the following variables in there with your own credentials/info
