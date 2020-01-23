@@ -9,7 +9,7 @@ from praw.models import Comment, Submission, Subreddit
 from praw.models.comment_forest import CommentForest
 from praw.models.listing.generator import ListingGenerator
 
-from drug_pricing import CONN, utc_to_dt
+from constants import CONN, utc_to_dt
 
 from .post import Post
 

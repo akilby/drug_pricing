@@ -5,7 +5,7 @@ import os
 import luigi
 from luigi import Task
 
-from drug_pricing import COLL
+from constants import COLL
 
 from .read_data import ParseFiles, ParsePraw
 

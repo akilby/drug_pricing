@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 from praw.models import Comment, Submission
 
-from drug_pricing import utc_to_dt
+from constants import utc_to_dt
 
 
 class Post():

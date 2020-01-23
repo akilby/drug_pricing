@@ -8,7 +8,7 @@ import luigi
 from luigi import LocalTarget, Task
 from luigi.target import Target
 
-from drug_pricing import COMM_DIR, PROJ_DIR, SUB_DIR, SUB_LIMIT, SUBR
+from constants import COMM_DIR, PROJ_DIR, SUB_DIR, SUB_LIMIT, SUBR
 from utils.functions import extract_posts, read_all_files
 from utils.post import Post
 
