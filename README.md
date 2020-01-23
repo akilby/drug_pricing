@@ -31,7 +31,7 @@ Then, run `pip install -r requirements.txt`.
 
 `notebooks/` contains exploratory code in Jupyter Notebooks
 
-`tasks/` contains files that define Luigi tasks for the data pipeline
+`tasks/` contains files that define [Luigi](https://luigi.readthedocs.io/en/stable/) tasks for the data pipeline
 - `mongo.py` contains tasks that import data to a mongo database
 - `read_data.py` contains tasks that parse data from Reddit and files
 
