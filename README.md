@@ -41,7 +41,7 @@ Then, run `pip install -r requirements.txt`.
 
 ## Testing
 
-To run project tests, run `python -m unittest`
+To execute project tests, run `python -m unittest`
 
 **Note:** tests involving loading data from files will not run using code from git because sample data is not committed.
 In order to get these to run, create and populate the following two directories with appropriate sample data:
