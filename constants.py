@@ -31,9 +31,10 @@ MONGO = pymongo.MongoClient('localhost', int(os.getenv("PORT")))
 DB = MONGO[os.getenv("DB_NAME")]
 COLL = DB[os.getenv("COLL_NAME")]
 
-# define hardcoded comment and submission file locations
+# define hardcoded file locations on the HPC cluster
 SUB_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/threads"
 COMM_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/comments/complete"
+OUT_JSON = "/work/akilby/drug_pricing_project/all_posts.json"
 
 
 def utc_to_dt(utc: float) -> datetime:

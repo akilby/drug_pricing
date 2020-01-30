@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Any, Dict, Optional, Union
 
+import prawcore
 from praw.models import Comment, Submission
 
 from constants import utc_to_dt
@@ -26,17 +27,26 @@ class Post():
                 "The given object is not a Submission or Comment.")
 
         # initialize attributes common between Submissions and Comments
-        self.author: str = subcomm.author
+        try:
+            self.author_id: str = subcomm.author.id
+        except (AttributeError, prawcore.exceptions.NotFound):
+            # if praw cannot find the author, assign the string 'none'
+            self.author_id = "none"
         self.time: datetime = utc_to_dt(subcomm.created_utc)
         self.pid: str = subcomm.id
         self.score: int = subcomm.score
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert the attributes of this object to a dictionary."""
+        """
+        Convert the attributes of this object to a dictionary.
+
+        Note: if a post does not have an Author, the string 'none' is substituted
+        for the author id.
+        """
         return {"text": self.text,
                 "parent_id": self.parent_id,
                 "is_sub": self.is_sub,
-                "author": self.author,
+                "author_id": self.author_id,
                 "time": self.time,
                 "pid": self.pid,
                 "score": self.score}

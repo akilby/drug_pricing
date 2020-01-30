@@ -4,12 +4,10 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List
 
-import luigi
+from constants import COMM_DIR, PROJ_DIR, SUB_DIR, SUB_LIMIT, SUBR
 from luigi import LocalTarget, Task
 from luigi.target import Target
-
-from constants import COMM_DIR, PROJ_DIR, SUB_DIR, SUB_LIMIT, SUBR
-from utils.functions import extract_posts, read_all_files
+from utils.functions import extract_files, extract_praw
 from utils.post import Post
 
 
@@ -17,7 +15,7 @@ class ParsePraw(Task):
     """Parses data from the Praw api."""
 
     # assign date to run
-    dates = luigi.DateIntervalParameter()
+    # dates = luigi.DateIntervalParameter()
     run_date: datetime = datetime.utcnow()
 
     # define the name of the data file to be cached
@@ -25,7 +23,7 @@ class ParsePraw(Task):
 
     def __retrieve_posts(self) -> List[Post]:
         """Retrieve posts from praw."""
-        return extract_posts(SUBR, self.run_date, SUB_LIMIT)
+        return extract_praw(SUBR, self.run_date, SUB_LIMIT)
 
     def output(self) -> Target:
         """Define the Target to be written to."""
@@ -57,10 +55,10 @@ class ParseFiles(ParsePraw):
         Note that this provides an abstraction layer by overriding the praw retrieve_posts method.
         """
         # retrieve submissions
-        subs: List[Post] = read_all_files(SUB_DIR, True)
+        subs: List[Post] = extract_files(SUB_DIR, True)
 
         # retrieve comments
-        comms: List[Post] = read_all_files(COMM_DIR, False)
+        comms: List[Post] = extract_files(COMM_DIR, False)
 
         # return combined submissions and comments
         return subs + comms

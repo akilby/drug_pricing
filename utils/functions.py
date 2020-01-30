@@ -3,7 +3,7 @@ import csv
 import functools as ft
 import os
 from datetime import datetime
-from typing import Iterable, List, Union
+from typing import List, Union
 
 from praw.models import Comment, Submission, Subreddit
 from praw.models.comment_forest import CommentForest
@@ -15,38 +15,29 @@ from .post import Post
 
 
 def parse_comment(comm: Comment, start_time: datetime) -> List[Post]:
-    """
-    Convert the given comment and all replies to a list of posts.
+    """Convert the given comment and all replies to a list of posts."""
+    # print current state to command line
+    print(
+        f"\tParsing comment {comm.id} from submission {comm.submission.id} .....")
 
-    Helper function for 'parse_comm_forest'.
-
-    :param comm: the comment to parse
-    :param start_time: the time that a comment must have been posted after
-
-    :returns: posts derived from the given comment and all replies
-    """
+    # convert the time format in Praw (utc) to a datetime object
     comm_time: datetime = utc_to_dt(comm.created_utc)
+
+    # if the comment was posted after the requested start time, parse it and subcomments
     if comm_time > start_time:
         return [Post(comm)] + parse_comm_forest(comm.replies, start_time)
-    return []  # return empty list if the given comment was posted too early
+
+    # return empty list if the given comment was posted too early
+    return []
 
 
 def parse_comm_forest(root: CommentForest, start_time: datetime) -> List[Post]:
-    """
-    Parse all comments from the given comment forest as Post objects.
-
-    Helper function for 'extract_subcomms'.
-
-    :param root: a praw CommentHelper instance
-    :param start_time: a datetime representing the time to start extracting comments
-
-    :returns: a list of all comments posted after the given time
-    """
-    root.replace_more()  # replace any comments stored as MoreComments
+    """Parse all comments from the given comment forest as Post objects."""
+    root.replace_more()  # replace any comments stored as a MoreComments object
     return ft.reduce(lambda acc, c: acc + parse_comment(c, start_time), root, [])
 
 
-def extract_posts(subr: Subreddit, start_time: datetime, limit: int) -> List[Post]:
+def extract_praw(subr: Subreddit, start_time: datetime, limit: int) -> List[Post]:
     """
     Extract all new submissions and comments in the subreddit after the given start time.
 
@@ -56,7 +47,10 @@ def extract_posts(subr: Subreddit, start_time: datetime, limit: int) -> List[Pos
 
     :returns: a list of all submissions/comments posted after the given time
     """
+    # retrieve submissions from Reddit via Praw
     lgen: ListingGenerator = subr.new(limit=limit)
+
+    # parse each submission and all of the comments per submission
     return ft.reduce(lambda acc, s: acc +
                      [Post(s)] +
                      parse_comm_forest(s.comments, start_time),
@@ -64,14 +58,7 @@ def extract_posts(subr: Subreddit, start_time: datetime, limit: int) -> List[Pos
 
 
 def read_line(line: List[str], is_sub: bool) -> Post:
-    """
-    Convert a line from a csv file to a Post object.
-
-    :param line: a line from a csv file
-    :param is_sub: if the given line is data for a submission (T) or comment (F)
-
-    :returns: a Post object derived from the data on the line
-    """
+    """Convert a line from a csv file to a Post object."""
     # select the proper id extractor method from the connection
     sb_getter = CONN.submission if is_sub else CONN.comment
 
@@ -83,33 +70,37 @@ def read_line(line: List[str], is_sub: bool) -> Post:
     return Post(subcomm)
 
 
-def read_file(reader: Iterable[List[str]], is_sub: bool) -> List[Post]:
-    """
-    Convert each line of a given file to a Post object.
+def read_file(path: str, is_sub: bool) -> List[Post]:
+    """Convert each line of a given file to a Post object."""
+    # get the filetype of the file for the given path
+    filename, filetype = os.path.splitext(path)
 
-    :param reader: a csv file reader object
-    :param is_sub: if the given file is data for a submission (T) or comment (F)
+    # if it is a csv file, parse data from it
+    if filetype == ".csv":
+        print(f"\tReading file: {filename} .....")
+        fobj = open(path)
+        reader = csv.reader(fobj)
+        posts = [read_line(row, is_sub) for row in reader]
+        fobj.close()
+        return posts
 
-    :returns: a list of Post objects derived from the data in the file
-    """
-    return [read_line(row, is_sub) for row in reader]
+    # otherwise, do not read and return an empty list
+    return []
 
 
-def read_all_files(root: str, is_sub: bool) -> List[Post]:
+def extract_files(root: str, is_sub: bool) -> List[Post]:
     """
     Read all files from the given directory and parse all lines into Post objects.
+
+    Note: only parses files from the first layer of the directory
 
     :param root: a filepath for the directory containing desired data
     :param is_sub: if the given files contain submission (T) or comment (F) data
 
     :returns: a list of Post objects derived from the files
     """
-    # read all files in the given directory into a list of csv reader objects
-    readers: List[csv.reader] = []
-    for filename in os.listdir(root):
-        fobj = open(os.path.join(root, filename))
-        readers.append(csv.reader(fobj))
-        fobj.close()
+    # generate a list of full filepaths to read from
+    paths = [os.path.join(root, fp) for fp in os.listdir(root)]
 
     # combine post objects extracted from each file to single list and return
-    return ft.reduce(lambda acc, f: acc + read_file(f, is_sub), readers, [])
+    return ft.reduce(lambda acc, fp: acc + read_file(fp, is_sub), paths, [])
