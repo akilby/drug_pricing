@@ -1,11 +1,13 @@
 """Defines a Post object."""
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TypeVar, Union
 
 import prawcore
 from praw.models import Comment, Submission
 
 from constants import utc_to_dt
+
+T = TypeVar('T')
 
 
 class Post():
@@ -28,10 +30,10 @@ class Post():
 
         # initialize attributes common between Submissions and Comments
         try:
-            self.author_id: str = subcomm.author.id
+            self.author: str = subcomm.author.name
         except (AttributeError, prawcore.exceptions.NotFound):
             # if praw cannot find the author, assign the string 'none'
-            self.author_id = "none"
+            self.author = "none"
         self.time: datetime = utc_to_dt(subcomm.created_utc)
         self.pid: str = subcomm.id
         self.score: int = subcomm.score
@@ -46,14 +48,14 @@ class Post():
         return {"text": self.text,
                 "parent_id": self.parent_id,
                 "is_sub": self.is_sub,
-                "author_id": self.author_id,
-                "time": self.time,
+                "author": self.author,
+                "time": str(self.time),
                 "pid": self.pid,
                 "score": self.score}
 
     def __eq__(self, obj: Any) -> bool:
         """Determine if the given object equals this object."""
-        return isinstance(obj, Post) and (obj.pid == self.pid) and (obj.is_sub == self.is_sub)
+        return isinstance(obj, Post) and (obj.pid == self.pid) and (obj.is_sub == self.is_sub) and (obj.text == self.text)
 
     def __ne__(self, obj: Any) -> bool:
         """Determine if the given object does not equal this object."""
@@ -61,5 +63,5 @@ class Post():
 
     def __hash__(self) -> int:
         """Establish a hash value for this object."""
-        comb_id = self.pid + ("T" if self.is_sub else "F")
+        comb_id = 100 * self.pid + 10 * hash(self.is_sub) + hash(self.text)
         return hash(comb_id)

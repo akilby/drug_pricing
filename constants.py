@@ -36,6 +36,12 @@ SUB_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/threads"
 COMM_DIR = "/work/akilby/drug_pricing_project/opiates/opiates/comments/complete"
 OUT_JSON = "/work/akilby/drug_pricing_project/all_posts.json"
 
+# hardcode column names for legacy comment and submission csv files
+SUB_COLNAMES = ["id", "url", "num_comments",
+                "shortlink", "author", "title", "text", "utc"]
+COMM_COLNAMES = ["id", "sub_url", "sub_num_comments",
+                 "parent_id", "text", "author", "utc"]
+
 
 def utc_to_dt(utc: float) -> datetime:
     """Convert a unix time to a python datetime."""

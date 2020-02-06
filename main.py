@@ -1,12 +1,15 @@
 """Allows command line execution of programs."""
 import argparse
 import json
+import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
-from constants import COLL, OUT_JSON, SUB_LIMIT, SUBR
-from utils.functions import extract_files, extract_praw
+from praw.models import Comment, Submission
+
+from constants import COLL, CONN, OUT_JSON, SUB_LIMIT, SUBR
+from utils.functions import extract_csv, extract_files, extract_praw
 from utils.post import Post
 
 
@@ -22,6 +25,9 @@ def gen_args(sub_labels: List[str],
     parser.add_argument("--posttype",
                         help=f"Enter if data to parse is submissions {sub_labels} or comments {comm_labels}",
                         type=str)
+    parser.add_argument("--enddate",
+                        help="Enter the end date for Praw scraping",
+                        type=str)
     parser.add_argument("--praw",
                         help="Enter the date to scrape Praw from in YYYY-MM-DD format.",
                         type=str)
@@ -36,6 +42,9 @@ def gen_args(sub_labels: List[str],
     parser.add_argument("--outpath",
                         help="Override the file location for output json.  Default is stored in constants.py.",
                         default=OUT_JSON)
+    parser.add_argument("--csv",
+                        help="Enter the csv filepath to parse from",
+                        type=str)
     return parser
 
 
@@ -44,25 +53,58 @@ def read_files(path: str,
                sub_labels: List[str],
                comm_labels: List[str]) -> List[Post]:
     """Read data from the given filepath and using the given post type."""
+    # if a valid label post type label is given, parse files for that type
     if posttype.lower() in sub_labels + comm_labels:
         is_sub: bool = (posttype.lower() in sub_labels)
         print("Reading Posts from files.....")
         file_data: List[Post] = extract_files(path, is_sub)
         print(f"{len(file_data)} posts from files retrieved.")
         return file_data
-    breakpoint()
+
+    # raise an exception if an invalid post type is given
     raise ValueError("Invalid post type provided.")
 
 
-def read_praw(date_str: str, limit: int) -> List[Post]:
+def read_praw(start_str: str, end_str: str, limit: int) -> List[Post]:
     """Read from praw starting from the given date."""
-    if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
-        date: datetime = datetime.strptime(date_str, "%Y-%m-%d")
-        print("Extracting posts from praw.....")
-        praw_data: List[Post] = extract_praw(SUBR, date, limit=limit)
+    # if date is formatted correctly, parse praw from the given date
+    if re.match(r'\d{4}-\d{2}-\d{2}', start_str):
+        print("Extracting posts from praw .....")
+        if not end_str:
+            start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
+            praw_data: List[Post] = extract_praw(SUBR, start_date, limit=limit)
+        if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
+            end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
+            praw_data: List[Post] = extract_praw(
+                SUBR, start_date, limit=limit, end_time=end_date)
         print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
+
+    # raise exception if date incorrectly formatted
     raise ValueError("Invalid date provided.")
+
+
+def read_csv(filepath: str,
+             posttype: str,
+             sub_labels: List[str],
+             comm_labels: List[str]) -> List[Post]:
+    """Read data from the given csv file using the given post type."""
+    # check if the given post type is valid
+    if posttype.lower() in sub_labels + comm_labels:
+        # check if the given file exists
+        if os.path.isfile(filepath):
+            sc_obj: Union[Submission, Comment] = CONN.submission if (
+                posttype.lower() in sub_labels) else CONN.comment
+            print("Reading Posts from csv file .....")
+            file_data: List[Post] = extract_csv(filepath, sc_obj)
+            print(f"{len(file_data)} posts from files retrieved.")
+            return file_data
+
+        # rase exception if file doesn't exist
+        raise ValueError("The given file does not exist.")
+
+    # raise an exception if an invalid post type is given
+    raise ValueError("Invalid post type provided.")
 
 
 def write_data(posts: List[Post],
@@ -86,11 +128,16 @@ def write_data(posts: List[Post],
     if output in json_labels:
         print("Writing data to json .....")
         fobj = open(outpath, "w+")
-        data = json.load(fobj)
-        data.append(serial_posts)
-        json.dump(data, fobj)
+        if len(fobj.readlines()) > 0:
+            # if there is existing content in the file, append data
+            data = json.load(fobj)
+            data.append(serial_posts)
+            json.dump(data, fobj)
+        else:
+            # else, just write data to file
+            json.dump(serial_posts, fobj)
         fobj.close()
-        response_str = f"\t{len(data)} documents inserted into json."
+        response_str = f"\t{len(serial_posts)} documents inserted into json."
         return response_str
 
     # raise exception if neither mongo nor json requested as output
@@ -120,7 +167,11 @@ def main() -> None:
 
     # retrieve data from praw if valid fields given
     if args.praw:
-        data += read_praw(args.praw, args.limit)
+        data += read_praw(args.praw, args.enddate, args.limit)
+
+    # retrieve data from csv if valid fields given
+    if args.csv:
+        data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
