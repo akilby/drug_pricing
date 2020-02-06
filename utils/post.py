@@ -13,30 +13,20 @@ T = TypeVar('T')
 class Post():
     """Represents an intersection of attributes from praw Submission and Comment objects."""
 
-    def __init__(self, subcomm: Union[Submission, Comment]) -> None:
+    def __init__(self,
+                 pid: str,
+                 text: str,
+                 author: str,
+                 time: datetime,
+                 is_sub: bool,
+                 parent_id: Optional[str] = None) -> None:
         """Initialize attributes of this object."""
-        # initialize attributes particular to Submissions and Comments
-        if isinstance(subcomm, Submission):
-            self.text: str = subcomm.selftext
-            self.parent_id: Optional[str] = None
-            self.is_sub: bool = True
-        elif isinstance(subcomm, Comment):
-            self.text = subcomm.body
-            self.parent_id = subcomm.parent_id
-            self.is_sub = False
-        else:
-            raise ValueError(
-                "The given object is not a Submission or Comment.")
-
-        # initialize attributes common between Submissions and Comments
-        try:
-            self.author: str = subcomm.author.name
-        except (AttributeError, prawcore.exceptions.NotFound):
-            # if praw cannot find the author, assign the string 'none'
-            self.author = "none"
-        self.time: datetime = utc_to_dt(subcomm.created_utc)
-        self.pid: str = subcomm.id
-        self.score: int = subcomm.score
+        self.pid = pid
+        self.text = text
+        self.author = author
+        self.time = time
+        self.is_sub = is_sub
+        self.parent_id = parent_id
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -50,8 +40,7 @@ class Post():
                 "is_sub": self.is_sub,
                 "author": self.author,
                 "time": str(self.time),
-                "pid": self.pid,
-                "score": self.score}
+                "pid": self.pid}
 
     def __eq__(self, obj: Any) -> bool:
         """Determine if the given object equals this object."""

@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Union
 
 from praw.models import Comment, Submission
 
-from constants import COLL, CONN, OUT_JSON, SUB_LIMIT, SUBR
+from constants import (COLL, COMM_COLNAMES, CONN, OUT_JSON, SUB_COLNAMES,
+                       SUB_LIMIT, SUBR)
 from utils.functions import extract_csv, extract_files, extract_praw
 from utils.post import Post
 
@@ -93,10 +94,10 @@ def read_csv(filepath: str,
     if posttype.lower() in sub_labels + comm_labels:
         # check if the given file exists
         if os.path.isfile(filepath):
-            sc_obj: Union[Submission, Comment] = CONN.submission if (
-                posttype.lower() in sub_labels) else CONN.comment
+            is_sub: bool = (posttype.lower() in sub_labels)
+            colnames: List[str] = SUB_COLNAMES if is_sub else COMM_COLNAMES
             print("Reading Posts from csv file .....")
-            file_data: List[Post] = extract_csv(filepath, sc_obj)
+            file_data: List[Post] = extract_csv(filepath, colnames)
             print(f"{len(file_data)} posts from files retrieved.")
             return file_data
 

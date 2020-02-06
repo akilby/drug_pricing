@@ -3,8 +3,9 @@ import csv
 import functools as ft
 import os
 from datetime import datetime
-from typing import List, Union
+from typing import List, Optional, Union
 
+import pandas as pd
 import progressbar
 from praw.models import Comment, Submission, Subreddit
 from praw.models.comment_forest import CommentForest
@@ -124,40 +125,32 @@ def extract_files(root: str, is_sub: bool) -> List[Post]:
 
 
 def extract_csv(filepath: str,
-                sc_obj: Union[Submission, Comment]) -> List[Post]:
+                colnames: List[str]) -> List[Post]:
     """
     Read all submissions or comments from the given csv file.
 
-    :param fp: the csv filepath
-    :param sc_obj: either a Submission or Comment praw object
+    :param filepath: the csv filepath
+    :param colnames: the column names associated with the csv file
 
     :returns: a list of Post objects derived from the file
     """
-    def update_bar(i: str, pbar: progressbar.ProgressBar) -> Post:
-        pbar.update(1)
-        return Post(sc_obj(i))
+    def add_row(row: pd.Series, is_sub: bool) -> Post:
+        par_id: Optional[str] = None if is_sub else row["parent_id"]
+        return Post(row["id"],
+                    row["text"],
+                    row["author"],
+                    utc_to_dt(row["utc"]),
+                    is_sub,
+                    par_id)
 
     # parse the given file if it is a csv
     if os.path.splitext(filepath)[1] == ".csv":
         # open the file as a csv object
-        fobj = open(filepath)
-        reader = csv.reader(fobj)
+        df: pd.DataFrame = pd.read_csv(filepath, header=None)
+        df.columns = colnames
 
-        # extract all of the submission/comment ids
-        ids: List[str] = [row[0] for row in reader]
-
-        # close the file since it is no longer needed
-        fobj.close()
-
-        # extract submissions/comments from ids, convert to posts, and return
-        widgets = [
-            ' [', progressbar.Timer(), '] ',
-            progressbar.Bar(),
-            ' (', progressbar.ETA(), ') ',
-        ]
-        pbar = progressbar.ProgressBar(
-            maxval=len(ids), widgets=widgets).start()
-        return [update_bar(i, pbar) for i in ids]
+        return [add_row(row, "parent_id" not in df.columns)
+                for _, row in df.iterrows()]
 
     # else, return empty list
     return []
