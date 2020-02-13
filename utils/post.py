@@ -1,25 +1,21 @@
 """Defines Post objects."""
 import abc
 from datetime import datetime
-from typing import Any, Dict, Optional, TypeVar, Union
-
-import prawcore
-from praw.models import Comment, Submission
-
-from constants import utc_to_dt
+from typing import Any, Dict, Optional
 
 
 class Post(abc.ABC):
     """An abstract representation of Submission and Comment objects."""
 
-    def __init__(self, pid: str = None, text: str = None, username: str = None,
-                 time: datetime = None, url: str = None) -> None:
+    def __init__(self, pid: Optional[str] = None,
+                 text: Optional[str] = None,
+                 username: Optional[str] = None,
+                 time: Optional[datetime] = None) -> None:
         """Initialize attributes of the Post."""
         self.pid = pid
         self.text = text
         self.username = username
         self.time = time
-        self.url = url
 
     @abc.abstractmethod
     def to_dict(self) -> Dict[str, Any]:
@@ -28,10 +24,11 @@ class Post(abc.ABC):
                 "author": self.username,
                 "time": str(self.time),
                 "pid": self.pid,
-                "url": self.url}
+                "url": self.url,
+                "hash": hash(self)}
 
     @abc.abstractmethod
-    def __eq__(self, obj: Any) -> bool:
+    def __eq__(self, obj: object) -> bool:
         """Determine if the given object equals this object."""
         return isinstance(obj, Post) and (obj.pid == self.pid) and \
             (obj.text == self.text)
@@ -48,11 +45,16 @@ class Post(abc.ABC):
 class Sub(Post):
     """Represents a Submission Object."""
 
-    def __init__(self, pid: str, text: str, username: str, time: datetime,
-                 url: str, title: str, num_comments: int) -> None:
+    def __init__(self, pid: Optional[str] = None,
+                 text: Optional[str] = None,
+                 username: Optional[str] = None,
+                 time: Optional[datetime] = None,
+                 url: Optional[str] = None,
+                 title: Optional[str] = None,
+                 num_comments: Optional[int] = None) -> None:
         """Initialize attributes of the Submission."""
-        super().__init__(pid=pid, text=text, username=username,
-                         time=time, url=url)
+        super().__init__(pid=pid, text=text, username=username, time=time)
+        self.url = url
         self.title = title
         self.num_comments = num_comments
 
@@ -72,11 +74,13 @@ class Sub(Post):
 class Comm(Post):
     """Represents a Comment object."""
 
-    def __init__(self, pid: str, text: str, username: str, time: datetime,
-                 url: str, parent_id: str) -> None:
+    def __init__(self, pid: Optional[str] = None,
+                 text: Optional[str] = None,
+                 username: Optional[str] = None,
+                 time: Optional[datetime] = None,
+                 parent_id: Optional[str] = None) -> None:
         """Initialize attributes of the Comment."""
-        super().__init__(pid=pid, text=text, username=username,
-                         time=time, url=url)
+        super().__init__(pid=pid, text=text, username=username, time=time)
         self.parent_id = parent_id
 
     def to_dict(self) -> Dict[str, Any]:

@@ -6,6 +6,7 @@ from datetime import datetime
 import pymongo
 from dotenv import load_dotenv
 from praw import Reddit
+from psaw import PushshiftAPI
 
 # define project location
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +21,7 @@ PRAW = Reddit(client_id=os.getenv("RCLIENT_ID"),
               password=os.getenv("RPASSWORD"),
               username=os.getenv("RUSERNAME"),
               user_agent=os.getenv("RUSER_AGENT"))
+PSAW = PushshiftAPI(PRAW)
 
 # define subreddit
 SUBR_NAME = "opiates"
@@ -39,7 +41,8 @@ OUT_JSON = "/work/akilby/drug_pricing_project/all_posts.json"
 # hardcode column names for legacy comment and submission csv files
 SUB_COLNAMES = ["id", "url", "num_comments",
                 "shortlink", "author", "title", "text", "utc"]
-COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
+COMM_COLNAMES = ["id", "sub_url",
+                 "parent_id", "text", "author", "utc"]
 
 
 def utc_to_dt(utc: float) -> datetime:

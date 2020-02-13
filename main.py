@@ -4,13 +4,11 @@ import json
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
-from praw.models import Comment, Submission
-
-from constants import (COLL, COMM_COLNAMES, OUT_JSON, PRAW, SUB_COLNAMES,
-                       SUB_LIMIT, SUBR)
-from utils.functions import extract_csv, extract_files, extract_praw
+from constants import (COLL, COMM_COLNAMES, OUT_JSON, SUB_COLNAMES, SUB_LIMIT,
+                       SUBR)
+from utils.functions import extract_csv, extract_praw
 from utils.post import Post
 
 
@@ -49,23 +47,6 @@ def gen_args(sub_labels: List[str],
     return parser
 
 
-def read_files(path: str,
-               posttype: str,
-               sub_labels: List[str],
-               comm_labels: List[str]) -> List[Post]:
-    """Read data from the given filepath and using the given post type."""
-    # if a valid label post type label is given, parse files for that type
-    if posttype.lower() in sub_labels + comm_labels:
-        is_sub: bool = (posttype.lower() in sub_labels)
-        print("Reading Posts from files.....")
-        file_data: List[Post] = extract_files(path, is_sub)
-        print(f"{len(file_data)} posts from files retrieved.")
-        return file_data
-
-    # raise an exception if an invalid post type is given
-    raise ValueError("Invalid post type provided.")
-
-
 def read_praw(start_str: str, end_str: str, limit: int) -> List[Post]:
     """Read from praw starting from the given date."""
     # if date is formatted correctly, parse praw from the given date
@@ -76,7 +57,7 @@ def read_praw(start_str: str, end_str: str, limit: int) -> List[Post]:
             praw_data: List[Post] = extract_praw(SUBR, start_date, limit=limit)
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
             end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
-            praw_data: List[Post] = extract_praw(
+            praw_data = extract_praw(
                 SUBR, start_date, limit=limit, end_time=end_date)
         print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
@@ -161,10 +142,6 @@ def main() -> None:
                     comm_labels,
                     mongo_labels,
                     json_labels).parse_args()
-
-    # retrieve data from files if valid fields given
-    if args.files and args.posttype:
-        data += read_files(args.files, args.posttype, sub_labels, comm_labels)
 
     # retrieve data from praw if valid fields given
     if args.praw:
