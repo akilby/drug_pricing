@@ -1,10 +1,11 @@
 """Defines Post objects."""
-import abc
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
 
 
-class Post(abc.ABC):
+@dataclass
+class Post():
     """An abstract representation of Submission and Comment objects."""
 
     def __init__(self, pid: Optional[str] = None,
@@ -17,20 +18,17 @@ class Post(abc.ABC):
         self.username = username
         self.time = time
 
-    @abc.abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
         return {"text": self.text,
-                "author": self.username,
+                "username": self.username,
                 "time": str(self.time),
                 "pid": self.pid,
-                "url": self.url,
                 "hash": hash(self)}
 
-    @abc.abstractmethod
     def __eq__(self, obj: object) -> bool:
         """Determine if the given object equals this object."""
-        return isinstance(obj, Post) and (obj.pid == self.pid) and \
+        return isinstance(obj, self) and (obj.pid == self.pid) and \
             (obj.text == self.text)
 
     def __ne__(self, obj: Any) -> bool:
@@ -42,6 +40,7 @@ class Post(abc.ABC):
         return 10 * hash(self.text) + hash(self.pid)
 
 
+@dataclass(eq=False)
 class Sub(Post):
     """Represents a Submission Object."""
 
@@ -65,12 +64,8 @@ class Sub(Post):
                           "num_comments": self.num_comments})
         return base_dict
 
-    def __eq__(self, obj: Any) -> bool:
-        """Determine if the given object equals this object."""
-        return isinstance(obj, Sub) and (obj.pid == self.pid) and \
-            (obj.text == self.text)
 
-
+@dataclass(eq=False)
 class Comm(Post):
     """Represents a Comment object."""
 
@@ -88,8 +83,3 @@ class Comm(Post):
         base_dict = super().to_dict()
         base_dict.update({"parent_id": self.parent_id})
         return base_dict
-
-    def __eq__(self, obj: Any) -> bool:
-        """Determine if the given object equals this object."""
-        return isinstance(obj, Comm) and (obj.pid == self.pid) and \
-            (obj.text == self.text)

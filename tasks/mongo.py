@@ -4,13 +4,12 @@ import os
 from datetime import datetime
 
 import luigi
+
 from constants import COLL
-from luigi import Task
-
-from .read_data import ParseFiles, ParsePraw
+from tasks.read_data import ParseCsv, ParsePraw
 
 
-class PrawToMongo(Task):
+class PrawToMongo(luigi.Task):
     """Define a task that adds data loaded from praw to a mongo collection."""
 
     # assign the data to run this task
@@ -20,7 +19,7 @@ class PrawToMongo(Task):
     # assign the mongo collection to add data to
     collection = COLL
 
-    def requires(self) -> Task:
+    def requires(self) -> luigi.Task:
         """Return the praw parsing dependency of this task."""
         return ParsePraw(self.dates)
 
@@ -31,16 +30,15 @@ class PrawToMongo(Task):
         posts = json.load(data_fn.open("r"))["posts"]
 
         # add data to mongo
-        # TODO: prevent duplicate ids from being added
         self.collection.insert_many(posts)
 
         # remove the cached data file
         os.remove(data_fn)
 
 
-class FilesToMongo(PrawToMongo):
+class CsvToMongo(PrawToMongo):
     """Define a task that adds to mongo from parsed file data instead of praw."""
 
-    def requires(self) -> Task:
+    def requires(self) -> luigi.Task:
         """Return the file parsing dependency of this task."""
-        return ParseFiles(self.dates)
+        return ParseCsv(self.dates)

@@ -6,13 +6,13 @@ from typing import List, Optional, Union
 import pandas as pd
 import pymongo
 from praw.models import Comment, Submission
+from pymongo.collection import Collection
 
 from constants import PSAW, utc_to_dt
+from utils.post import Comm, Post, Sub
 
-from .post import Comm, Post, Sub
 
-
-def convert_sc(sc: Union[Submission, Comment], is_sub: bool) -> Post:
+def sc_to_post(sc: Union[Submission, Comment], is_sub: bool) -> Post:
     """Convert a Praw Submission or Comment to a Post object."""
     # generic attributes
     pid = sc.id
@@ -35,9 +35,7 @@ def convert_sc(sc: Union[Submission, Comment], is_sub: bool) -> Post:
                 parent_id=parent_id)
 
 
-def extract_praw(subr: str,
-                 start_time: datetime,
-                 limit: Optional[int] = None,
+def extract_praw(subr: str, start_time: datetime, limit: Optional[int] = None,
                  end_time: Optional[datetime] = None) -> List[Post]:
     """
     Extract all submissions/comments from reddit in the given time frame.
@@ -60,14 +58,14 @@ def extract_praw(subr: str,
                                       limit=limit, before=end_int))
 
     # convert Submission/Comment object to Sub/Comm objects
-    sub_objs: List[Post] = [convert_sc(s, True) for s in subs]
-    comm_objs: List[Post] = [convert_sc(c, False) for c in comms]
+    sub_objs: List[Post] = [sc_to_post(s, True) for s in subs]
+    comm_objs: List[Post] = [sc_to_post(c, False) for c in comms]
 
     # return list of combined post objects
     return sub_objs + comm_objs
 
 
-def add_row(row: pd.Series, is_sub: bool) -> Post:
+def row_to_post(row: pd.Series, is_sub: bool) -> Post:
     """Convert a dataframe row to a post object."""
     # generic attributes
     pid = row["id"]
@@ -104,15 +102,29 @@ def extract_csv(filepath: str, colnames: List[str]) -> List[Post]:
         df: pd.DataFrame = pd.read_csv(filepath, header=None)
         df.columns = colnames
 
-        return [add_row(row, "parent_id" not in df.columns)
+        return [row_to_post(row, "parent_id" not in df.columns)
                 for _, row in df.iterrows()]
 
     # else, return empty list
     return []
 
 
-def config_mongo(conn: pymongo.MongoClient) -> None:
+def config_mongo(coll: Collection) -> None:
     """Conifgure the mongo collection."""
-    # text config to $text
-    # date config to increasing
-    # unique key on (pid, text)
+    coll.create_index([("text", "text")])
+    coll.create_index([("time", pymongo.DESCENDING)])
+    coll.create_index([("hash", pymongo.ASCENDING)], unique=True)
+
+
+def to_mongo(coll: Collection, posts: List[Post]) -> None:
+    """
+    Add the given posts to mongo.
+
+    :param coll: the pymongo collection to use
+    :param posts: a list of posts to add to the collection
+    """
+    # configure the given collection if not yet configured
+    config_mongo(coll)
+
+    # insert the given posts to the collection
+    coll.insert_many(posts)

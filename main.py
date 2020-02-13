@@ -1,64 +1,53 @@
 """Allows command line execution of programs."""
 import argparse
-import json
 import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List
 
-from constants import (COLL, COMM_COLNAMES, OUT_JSON, SUB_COLNAMES, SUB_LIMIT,
-                       SUBR)
+from constants import COLL, COMM_COLNAMES, SUB_COLNAMES, SUBR
 from utils.functions import extract_csv, extract_praw
 from utils.post import Post
 
 
 def gen_args(sub_labels: List[str],
-             comm_labels: List[str],
-             mongo_labels: List[str],
-             json_labels: List[str]) -> argparse.ArgumentParser:
+             comm_labels: List[str]) -> argparse.ArgumentParser:
     """Generate an argument parser."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--files",
-                        help="Enter the directory that should be read from.",
+    parser.add_argument("--subr",
+                        help="The subreddit to scrape praw from.",
                         type=str)
-    parser.add_argument("--posttype",
-                        help=f"Enter if data to parse is submissions {sub_labels} or comments {comm_labels}",
+    parser.add_argument("--startdate",
+                        help="The end date for Praw scraping",
                         type=str)
     parser.add_argument("--enddate",
-                        help="Enter the end date for Praw scraping",
-                        type=str)
-    parser.add_argument("--praw",
-                        help="Enter the date to scrape Praw from in YYYY-MM-DD format.",
+                        help="The end date for Praw scraping",
                         type=str)
     parser.add_argument("--limit",
-                        help="Enter the number of submissions to parse from praw.",
-                        type=int,
-                        default=SUB_LIMIT)
-    parser.add_argument("--output",
-                        help=f"Select whether to output data to mongo {mongo_labels} or a json file {json_labels}. Default is mongo.",
-                        type=str,
-                        default="m")
-    parser.add_argument("--outpath",
-                        help="Override the file location for output json.  Default is stored in constants.py.",
-                        default=OUT_JSON)
+                        help="The number of submissions to parse from praw.",
+                        type=int)
     parser.add_argument("--csv",
-                        help="Enter the csv filepath to parse from",
+                        help="The csv filepath to parse from",
+                        type=str)
+    parser.add_argument("--posttype",
+                        help=f"If data to parse is submissions {sub_labels} or comments {comm_labels}",
                         type=str)
     return parser
 
 
-def read_praw(start_str: str, end_str: str, limit: int) -> List[Post]:
+def read_praw(subr: str, start_str: str, end_str: str,
+              limit: int) -> List[Post]:
     """Read from praw starting from the given date."""
     # if date is formatted correctly, parse praw from the given date
     if re.match(r'\d{4}-\d{2}-\d{2}', start_str):
         print("Extracting posts from praw .....")
+        start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
         if not end_str:
-            start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
             praw_data: List[Post] = extract_praw(SUBR, start_date, limit=limit)
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
             end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
-            praw_data = extract_praw(
-                SUBR, start_date, limit=limit, end_time=end_date)
+            praw_data = extract_praw(subr, start_date, limit=limit,
+                                     end_time=end_date)
         print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
 
@@ -66,9 +55,7 @@ def read_praw(start_str: str, end_str: str, limit: int) -> List[Post]:
     raise ValueError("Invalid date provided.")
 
 
-def read_csv(filepath: str,
-             posttype: str,
-             sub_labels: List[str],
+def read_csv(filepath: str, posttype: str, sub_labels: List[str],
              comm_labels: List[str]) -> List[Post]:
     """Read data from the given csv file using the given post type."""
     # check if the given post type is valid
@@ -89,41 +76,16 @@ def read_csv(filepath: str,
     raise ValueError("Invalid post type provided.")
 
 
-def write_data(posts: List[Post],
-               output: str,
-               outpath: str,
-               mongo_labels: List[str],
-               json_labels: List[str]) -> str:
+def write_data(posts: List[Post]) -> str:
     """Write data to mongodb or json and return the response."""
     # serialize data to json compatible
     print("Serializing data .....")
     serial_posts: List[Dict[str, Any]] = [post.to_dict() for post in posts]
-
-    # check if mongodb should be written to
-    if output in mongo_labels:
-        print("Writing data to mongodb .....")
-        response = COLL.insert_many(serial_posts)
-        response_str: str = f"\t{len(response.inserted_ids)} documents inserted into mongo."
-        return response_str
-
-    # check if json should be written to
-    if output in json_labels:
-        print("Writing data to json .....")
-        fobj = open(outpath, "w+")
-        if len(fobj.readlines()) > 0:
-            # if there is existing content in the file, append data
-            data = json.load(fobj)
-            data.append(serial_posts)
-            json.dump(data, fobj)
-        else:
-            # else, just write data to file
-            json.dump(serial_posts, fobj)
-        fobj.close()
-        response_str = f"\t{len(serial_posts)} documents inserted into json."
-        return response_str
-
-    # raise exception if neither mongo nor json requested as output
-    raise ValueError("Invalid output type provided.")
+    print("Writing data to mongodb .....")
+    response = COLL.insert_many(serial_posts)
+    response_str: str = "".join([str(len(response.inserted_ids)),
+                                 " documents inserted into mongo."])
+    return response_str
 
 
 def main() -> None:
@@ -134,18 +96,13 @@ def main() -> None:
     # hardcode acceptable post type labels
     sub_labels: List[str] = ["s", "sub"]
     comm_labels: List[str] = ["c", "comm"]
-    mongo_labels: List[str] = ["m", "mongo"]
-    json_labels: List[str] = ["j", "json"]
 
     # retrieve args
-    args = gen_args(sub_labels,
-                    comm_labels,
-                    mongo_labels,
-                    json_labels).parse_args()
+    args = gen_args(sub_labels, comm_labels).parse_args()
 
     # retrieve data from praw if valid fields given
-    if args.praw:
-        data += read_praw(args.praw, args.enddate, args.limit)
+    if args.subr:
+        data += read_praw(args.subr, args.startdate, args.enddate, args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
@@ -153,11 +110,10 @@ def main() -> None:
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
-        response = write_data(
-            data, args.output, args.outpath, mongo_labels, json_labels)
+        response = write_data(data)
         print(f"Write response:\n\n{response}\n\nProgram completed.")
     else:
-        print("Insufficient program arguments detected.")
+        print("Insufficient program arguments detected or no data retreived.")
 
 
 if __name__ == "__main__":

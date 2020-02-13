@@ -2,37 +2,44 @@
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from constants import COMM_DIR, PROJ_DIR, SUB_DIR, SUB_LIMIT, SUBR
-from luigi import LocalTarget, Task
+import luigi
+from luigi import LocalTarget
 from luigi.target import Target
-from utils.functions import extract_files, extract_praw
+
+from constants import COMM_COLNAMES, PROJ_DIR, SUB_COLNAMES
+from utils.functions import extract_csv, extract_praw
 from utils.post import Post
 
 
-class ParsePraw(Task):
+class ParsePraw(luigi.Task):
     """Parses data from the Praw api."""
 
-    # assign date to run
-    # dates = luigi.DateIntervalParameter()
+    # initialize user input
+    # TODO: change to luigi params
+    subr: str = ""
     run_date: datetime = datetime.utcnow()
+    start_time: str = ""
+    end_time: str = ""
+    limit: Optional[int] = None
 
-    # define the name of the data file to be cached
-    out_fn = "~cached_data.json"
+    # define class constants
+    data_fn = "~cached_data.json"
+    out_dir = PROJ_DIR
 
     def __retrieve_posts(self) -> List[Post]:
         """Retrieve posts from praw."""
-        return extract_praw(SUBR, self.run_date, SUB_LIMIT)
+        return extract_praw(self.subr, self.start_time, self.limit,
+                            self.end_time)
 
     def output(self) -> Target:
         """Define the Target to be written to."""
-        return LocalTarget(os.path.join(PROJ_DIR, self.out_fn))
+        return LocalTarget(os.path.join(self.out_dir, self.data_fn))
 
     def run(self) -> None:
         """Extract newest posts and write to json file."""
         # extract most recent r/opiates posts
-        # TODO: check if len(new_subs) == 1000.  If T, query again.
         posts: List[Post] = self.__retrieve_posts()
 
         # serialize post objects in dictionary form
@@ -45,20 +52,32 @@ class ParsePraw(Task):
         outfile.close()
 
 
-class ParseFiles(ParsePraw):
+class ParseCsv(ParsePraw):
     """Parses reddit data stored in local CSV files."""
+
+    # initialize user input
+    # TODO: change this to luigi param
+    filepath: str = ""
+    is_sub: bool = True
+
+    # define class constants
+    sub_cols: List[str] = SUB_COLNAMES
+    comm_cols: List[str] = COMM_COLNAMES
 
     def __retrieve_posts(self) -> List[Post]:
         """
         Retrieve comments and submissions stored in files.
 
-        Note that this provides an abstraction layer by overriding the praw retrieve_posts method.
+        Note that this overrides the ParsePraw retrieve_posts method.
         """
+        # determine column names to use for csv parsing
+        cols: List[str] = self.sub_cols if self.is_sub else self.comm_cols
+
         # retrieve submissions
-        subs: List[Post] = extract_files(SUB_DIR, True)
+        subs: List[Post] = extract_csv(self.filepath, cols)
 
         # retrieve comments
-        comms: List[Post] = extract_files(COMM_DIR, False)
+        comms: List[Post] = extract_csv(self.filepath, cols)
 
         # return combined submissions and comments
         return subs + comms
