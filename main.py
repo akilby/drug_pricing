@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Union
 
 from praw.models import Comment, Submission
 
-from constants import (COLL, COMM_COLNAMES, CONN, OUT_JSON, SUB_COLNAMES,
+from constants import (COLL, COMM_COLNAMES, OUT_JSON, PRAW, SUB_COLNAMES,
                        SUB_LIMIT, SUBR)
 from utils.functions import extract_csv, extract_files, extract_praw
 from utils.post import Post

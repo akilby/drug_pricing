@@ -15,7 +15,7 @@ ENV_PATH = os.path.join(PROJ_DIR, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
 # establish reddit connection
-CONN = Reddit(client_id=os.getenv("RCLIENT_ID"),
+PRAW = Reddit(client_id=os.getenv("RCLIENT_ID"),
               client_secret=os.getenv("RSECRET_KEY"),
               password=os.getenv("RPASSWORD"),
               username=os.getenv("RUSERNAME"),
@@ -23,7 +23,7 @@ CONN = Reddit(client_id=os.getenv("RCLIENT_ID"),
 
 # define subreddit
 SUBR_NAME = "opiates"
-SUBR = CONN.subreddit(SUBR_NAME)
+SUBR = PRAW.subreddit(SUBR_NAME)
 SUB_LIMIT = 1000
 
 # define mongo connection

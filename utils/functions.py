@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 import pandas as pd
-import progressbar
+import pymongo
 from praw.models import Comment, Submission, Subreddit
 from praw.models.comment_forest import CommentForest
 from praw.models.listing.generator import ListingGenerator
 
-from constants import CONN, utc_to_dt
+from constants import PRAW, SUB_LIMIT, utc_to_dt
 
 from .post import Post
 
@@ -72,13 +72,17 @@ def extract_praw(subr: Subreddit,
 
     # combine submission and comments lists and convert all to post objects
     posts: List[Post] = [Post(sc) for sc in subs + comms]
+
+    # search for more posts if post limit is reached
+    if len(posts) == SUB_LIMIT:
+
     return posts
 
 
 def read_line(line: List[str], is_sub: bool) -> Post:
     """Convert a line from a csv file to a Post object."""
     # select the proper id extractor method from the connection
-    sb_getter = CONN.submission if is_sub else CONN.comment
+    sb_getter = PRAW.submission if is_sub else PRAW.comment
 
     # extract the submission/comment using the id from the given line
     # NOTE: assumes that the id is the first item on the line
@@ -154,3 +158,10 @@ def extract_csv(filepath: str,
 
     # else, return empty list
     return []
+
+
+def config_mongo(conn: pymongo.MongoClient) -> None:
+    """Conifgure the mongo collection."""
+    # text config to $text
+    # date config to increasing
+    # unique key on (pid, text)
