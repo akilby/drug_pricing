@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import pytz
+
 
 @dataclass
 class Post():
@@ -11,20 +13,24 @@ class Post():
     def __init__(self, pid: Optional[str] = None,
                  text: Optional[str] = None,
                  username: Optional[str] = None,
-                 time: Optional[datetime] = None) -> None:
+                 time: Optional[datetime] = None,
+                 subr: Optional[str] = None) -> None:
         """Initialize attributes of the Post."""
         self.pid = pid
         self.text = text
         self.username = username
         self.time = time
+        self.subr = subr
+        self.utc = None if not time else self.time.astimezone(pytz.UTC)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
         return {"text": self.text,
                 "username": self.username,
-                "time": str(self.time),
+                "time": self.utc,
                 "pid": self.pid,
-                "hash": hash(self)}
+                "hash": hash(self),
+                "subr": self.subr}
 
     def __eq__(self, obj: object) -> bool:
         """Determine if the given object equals this object."""
@@ -50,9 +56,11 @@ class Sub(Post):
                  time: Optional[datetime] = None,
                  url: Optional[str] = None,
                  title: Optional[str] = None,
-                 num_comments: Optional[int] = None) -> None:
+                 num_comments: Optional[int] = None,
+                 subr: Optional[str] = None) -> None:
         """Initialize attributes of the Submission."""
-        super().__init__(pid=pid, text=text, username=username, time=time)
+        super().__init__(pid=pid, text=text, username=username, time=time,
+                         subr=subr)
         self.url = url
         self.title = title
         self.num_comments = num_comments
@@ -61,7 +69,8 @@ class Sub(Post):
         """Convert the attributes of this object to a dictionary."""
         base_dict = super().to_dict()
         base_dict.update({"title": self.title,
-                          "num_comments": self.num_comments})
+                          "num_comments": self.num_comments,
+                          "is_sub": True})
         return base_dict
 
 
@@ -73,13 +82,16 @@ class Comm(Post):
                  text: Optional[str] = None,
                  username: Optional[str] = None,
                  time: Optional[datetime] = None,
-                 parent_id: Optional[str] = None) -> None:
+                 parent_id: Optional[str] = None,
+                 subr: Optional[str] = None) -> None:
         """Initialize attributes of the Comment."""
-        super().__init__(pid=pid, text=text, username=username, time=time)
+        super().__init__(pid=pid, text=text, username=username, time=time,
+                         subr=subr)
         self.parent_id = parent_id
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
         base_dict = super().to_dict()
-        base_dict.update({"parent_id": self.parent_id})
+        base_dict.update({"parent_id": self.parent_id,
+                          "is_sub": False})
         return base_dict

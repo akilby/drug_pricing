@@ -12,7 +12,8 @@ from constants import PSAW, utc_to_dt
 from utils.post import Comm, Post, Sub
 
 
-def sc_to_post(sc: Union[Submission, Comment], is_sub: bool) -> Post:
+def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
+               subr: str) -> Post:
     """Convert a Praw Submission or Comment to a Post object."""
     # generic attributes
     pid = sc.id
@@ -25,14 +26,15 @@ def sc_to_post(sc: Union[Submission, Comment], is_sub: bool) -> Post:
         text = sc.selftext
         title = sc.title
         num_comments = sc.num_comments
-        return Sub(pid=pid, username=username, time=time, text=text, url=url,
-                   title=title, num_comments=num_comments)
+        return Sub(pid=pid, username=username, time=time, text=text,
+                   url=url, title=title, num_comments=num_comments,
+                   subr=subr)
 
     # comment attrs
     text = sc.body
     parent_id = sc.parent_id
     return Comm(pid=pid, username=username, time=time, text=text,
-                parent_id=parent_id)
+                parent_id=parent_id, subr=subr)
 
 
 def extract_praw(subr: str, start_time: datetime, limit: Optional[int] = None,
@@ -58,8 +60,8 @@ def extract_praw(subr: str, start_time: datetime, limit: Optional[int] = None,
                                       limit=limit, before=end_int))
 
     # convert Submission/Comment object to Sub/Comm objects
-    sub_objs: List[Post] = [sc_to_post(s, True) for s in subs]
-    comm_objs: List[Post] = [sc_to_post(c, False) for c in comms]
+    sub_objs: List[Post] = [sc_to_post(s, True, subr) for s in subs]
+    comm_objs: List[Post] = [sc_to_post(c, False, subr) for c in comms]
 
     # return list of combined post objects
     return sub_objs + comm_objs
@@ -78,13 +80,12 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
         url = row["url"]
         title = row["title"]
         num_comments = row["num_comments"]
-        return Sub(pid=pid, username=username, time=time, text=text, url=url,
-                   title=title, num_comments=num_comments)
+        return Sub(pid=pid, username=username, time=time, text=text, url=url, title=title, num_comments=num_comments, subr="opiates")
 
     # comment attrs
     parent_id = row["parent_id"]
     return Comm(pid=pid, username=username, time=time, text=text,
-                parent_id=parent_id)
+                parent_id=parent_id, subr="opiates")
 
 
 def extract_csv(filepath: str, colnames: List[str]) -> List[Post]:
