@@ -80,7 +80,8 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
         url = row["url"]
         title = row["title"]
         num_comments = row["num_comments"]
-        return Sub(pid=pid, username=username, time=time, text=text, url=url, title=title, num_comments=num_comments, subr="opiates")
+        return Sub(pid=pid, username=username, time=time, text=text, url=url,
+                   title=title, num_comments=num_comments, subr="opiates")
 
     # comment attrs
     parent_id = row["parent_id"]

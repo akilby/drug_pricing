@@ -30,7 +30,10 @@ def gen_args(sub_labels: List[str],
                         help="The csv filepath to parse from",
                         type=str)
     parser.add_argument("--posttype",
-                        help=f"If data to parse is submissions {sub_labels} or comments {comm_labels}",
+                        help=" ".join("If data to parse is submissions",
+                                     str(sub_labels),
+                                     "or comments",
+                                     str(comm_labels))
                         type=str)
     return parser
 
