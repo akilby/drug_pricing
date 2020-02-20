@@ -30,10 +30,10 @@ def gen_args(sub_labels: List[str],
                         help="The csv filepath to parse from",
                         type=str)
     parser.add_argument("--posttype",
-                        help=" ".join("If data to parse is submissions",
-                                     str(sub_labels),
-                                     "or comments",
-                                     str(comm_labels))
+                        help=" ".join(["If data to parse is submissions",
+                                       str(sub_labels),
+                                       "or comments",
+                                       str(comm_labels)]),
                         type=str)
     return parser
 
@@ -47,6 +47,8 @@ def read_praw(subr: str, start_str: str, end_str: str,
         start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
         if not end_str:
             praw_data: List[Post] = extract_praw(SUBR, start_date, limit=limit)
+            print(f"{len(praw_data)} posts from Reddit retrieved.")
+            return praw_data
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
             end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
             praw_data = extract_praw(subr, start_date, limit=limit,
