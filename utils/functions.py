@@ -1,7 +1,7 @@
 """Define utility functions for the data pipeline."""
 import os
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 
 import pandas as pd
 import pymongo
@@ -118,15 +118,29 @@ def config_mongo(coll: Collection) -> None:
     coll.create_index([("hash", pymongo.ASCENDING)], unique=True)
 
 
-def to_mongo(coll: Collection, posts: List[Post]) -> None:
+def to_mongo(coll: Collection, posts: List[Post]) -> str:
     """
     Add the given posts to mongo.
 
     :param coll: the pymongo collection to use
     :param posts: a list of posts to add to the collection
+
+    :returns: the number of posts inserted
     """
     # configure the given collection if not yet configured
     config_mongo(coll)
 
+    # serialize posts
+    serial_posts: List[Dict[str, Any]] = [post.to_dict() for post in posts]
+
     # insert the given posts to the collection
-    coll.insert_many(posts)
+    n_inserts: int = 0
+    for sp in serial_posts:
+        try:
+            coll.insert_one(sp)
+            n_inserts += 1
+        except pymongo.errors.DuplicateKeyError:
+            pass
+
+    # return response
+    return f"{n_inserts}/{len(serial_posts)} posts inserted"

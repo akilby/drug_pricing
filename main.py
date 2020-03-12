@@ -16,6 +16,7 @@ from typing import List
 from typing import Optional
 from utils.functions import extract_csv
 from utils.functions import extract_praw
+from utils.functions import to_mongo
 from utils.post import Post
 from constants import SPACY_FP
 
@@ -52,8 +53,7 @@ def gen_args(sub_labels: List[str],
                         help="Cache documents as spacy objects",
                         type=int)
     parser.add_argument("--fromspacy",
-                        help="Read cached spacy docs",
-			type=int)
+                        help="Read cached spacy docs")
     return parser
 
 
@@ -102,14 +102,9 @@ def read_csv(filepath: str, posttype: str, sub_labels: List[str],
 
 def write_data(posts: List[Post]) -> str:
     """Write data to mongodb or json and return the response."""
-    # serialize data to json compatible
-    print("Serializing data .....")
-    serial_posts: List[Dict[str, Any]] = [post.to_dict() for post in posts]
     print("Writing data to mongodb .....")
-    response = COLL.insert_many(serial_posts)
-    response_str: str = "".join([str(len(response.inserted_ids)),
-                                 " documents inserted into mongo."])
-    return response_str
+    resp: str = to_mongo(COLL, posts)
+    return resp
 
 
 def proc_query_text(doc: Dict[Any, Any]) -> str:
@@ -145,12 +140,10 @@ def write_spacy(limit: Optional[int]) -> None:
     out_f.write(bytes_data)
 
 
-def read_spacy(limit: Optional[int]) -> None:
+def read_spacy() -> None:
     """Sample function to read spacy cache."""
     docbin = DocBin().from_bytes(open(SPACY_FP, "rb").read())
-    docs = list(docbin.get_docs(nlp.vocab))
-    if limit:
-        docs = docs[:limit]
+    docs = docbin.get_docs(nlp.vocab)
     for i, doc in enumerate(docs):
         print(f"Doc {i}:")
         print(doc)
@@ -184,7 +177,7 @@ def main() -> None:
 
     # read sample from spacy data
     if args.fromspacy:
-        read_spacy(args.fromspacy)
+        read_spacy()
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
