@@ -52,7 +52,8 @@ def gen_args(sub_labels: List[str],
                         help="Cache documents as spacy objects",
                         type=int)
     parser.add_argument("--fromspacy",
-                        help="Read cached spacy docs")
+                        help="Read cached spacy docs",
+			type=int)
     return parser
 
 
@@ -144,10 +145,12 @@ def write_spacy(limit: Optional[int]) -> None:
     out_f.write(bytes_data)
 
 
-def read_spacy() -> None:
+def read_spacy(limit: Optional[int]) -> None:
     """Sample function to read spacy cache."""
     docbin = DocBin().from_bytes(open(SPACY_FP, "rb").read())
-    docs = docbin.get_docs(nlp.vocab)
+    docs = list(docbin.get_docs(nlp.vocab))
+    if limit:
+        docs = docs[:limit]
     for i, doc in enumerate(docs):
         print(f"Doc {i}:")
         print(doc)
@@ -181,7 +184,7 @@ def main() -> None:
 
     # read sample from spacy data
     if args.fromspacy:
-        read_spacy()
+        read_spacy(args.fromspacy)
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
