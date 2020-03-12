@@ -3,11 +3,24 @@ import argparse
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, List
 
-from constants import COLL, COMM_COLNAMES, SUB_COLNAMES, SUBR
-from utils.functions import extract_csv, extract_praw
+import spacy
+from constants import COLL
+from constants import COMM_COLNAMES
+from constants import SUBR
+from constants import SUB_COLNAMES
+from spacy.tokens import DocBin
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from utils.functions import extract_csv
+from utils.functions import extract_praw
 from utils.post import Post
+from constants import SPACY_FP
+
+# load nlp module from spacy
+nlp = spacy.load("en_core_web_sm")
 
 
 def gen_args(sub_labels: List[str],
@@ -24,7 +37,7 @@ def gen_args(sub_labels: List[str],
                         help="The end date for Praw scraping",
                         type=str)
     parser.add_argument("--limit",
-                        help="The number of submissions to parse from praw.",
+                        help="Limit number of praw or spacy objects",
                         type=int)
     parser.add_argument("--csv",
                         help="The csv filepath to parse from",
@@ -35,6 +48,11 @@ def gen_args(sub_labels: List[str],
                                        "or comments",
                                        str(comm_labels)]),
                         type=str)
+    parser.add_argument("--tospacy",
+                        help="Cache documents as spacy objects",
+                        type=int)
+    parser.add_argument("--fromspacy",
+                        help="Read cached spacy docs")
     return parser
 
 
@@ -93,6 +111,50 @@ def write_data(posts: List[Post]) -> str:
     return response_str
 
 
+def proc_query_text(doc: Dict[Any, Any]) -> str:
+    """Extract text from a mongo query."""
+    text = doc["text"]
+    if type(text) == str:
+        return text
+    else:
+        return ""
+
+
+def write_spacy(limit: Optional[int]) -> None:
+    """Write documents from to disk as spacy objects."""
+    # load documents from mongo
+    if limit:
+        text_res = COLL.find({}, {"text": 1}).limit(limit)
+    else:
+        text_res = COLL.find({}, {"text": 1})
+
+    # process text as necessary
+    all_text = map(proc_query_text, text_res)
+
+    # train spacy on all text blocks
+    print("Training spacy on text .....")
+    doc_bin = DocBin(attrs=["LEMMA", "ENT_IOB", "ENT_TYPE"],
+                     store_user_data=True)
+    for doc in nlp.pipe(all_text):
+        doc_bin.add(doc)
+        bytes_data = doc_bin.to_bytes()
+
+    # write bytes data to file
+    out_f = open(SPACY_FP, "wb")
+    out_f.write(bytes_data)
+
+
+def read_spacy() -> None:
+    """Sample function to read spacy cache."""
+    docbin = DocBin().from_bytes(open(SPACY_FP, "rb").read())
+    docs = docbin.get_docs(nlp.vocab)
+    for i, doc in enumerate(docs):
+        print(f"Doc {i}:")
+        print(doc)
+        for j, ent in enumerate(doc.ents):
+            print(f"ent {j}: ", ent, ent.label_)
+
+
 def main() -> None:
     """Execute programs from the command line."""
     # initialize data
@@ -113,12 +175,18 @@ def main() -> None:
     if args.csv:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
+    # write to spacy if requested
+    if args.tospacy:
+        write_spacy(args.tospacy)
+
+    # read sample from spacy data
+    if args.fromspacy:
+        read_spacy()
+
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
         response = write_data(data)
         print(f"Write response:\n\n{response}\n\nProgram completed.")
-    else:
-        print("Insufficient program arguments detected or no data retreived.")
 
 
 if __name__ == "__main__":

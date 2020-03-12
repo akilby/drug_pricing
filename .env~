@@ -1,0 +1,15 @@
+# praw reddit variables
+RUSERNAME = "cccdenhart"
+RPASSWORD = "DrugPrices19"
+RCLIENT_ID = "oHT-p5bHvswo-g"
+RSECRET_KEY = "5KsH_0w_B4s5PUdMsGTvYXFVcEI"
+RUSER_AGENT = "macos:https//localhost:8080:v1.0.0 (by /u/cccdenhart)"
+
+# mongo client variables
+PORT = "27017"
+DB_NAME = "drug_pricing"
+COLL_NAME = "praw"
+HOST = "localhost"
+
+# other
+DATA_ROOT = "/work/akilby/drug_pricing_project/opiates"

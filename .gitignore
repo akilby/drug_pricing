@@ -14,6 +14,7 @@ __pycache__/
 
 # data
 sample_data/
+data/
 .metals/
 *.csv
 
