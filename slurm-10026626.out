@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "/shared/centos7/python/3.7.3-base/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/shared/centos7/python/3.7.3-base/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/denhart.c/projects/drug_pricing/main.py", line 197, in <module>
+    main()
+  File "/home/denhart.c/projects/drug_pricing/main.py", line 184, in main
+    write_spacy(args.tospacy)
+  File "/home/denhart.c/projects/drug_pricing/main.py", line 140, in write_spacy
+    for doc in nlp.pipe(all_text):
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/spacy/language.py", line 793, in pipe
+    for doc in docs:
+  File "nn_parser.pyx", line 225, in pipe
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/spacy/util.py", line 497, in minibatch
+    batch = list(itertools.islice(items, int(batch_size)))
+  File "nn_parser.pyx", line 225, in pipe
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/spacy/util.py", line 497, in minibatch
+    batch = list(itertools.islice(items, int(batch_size)))
+  File "pipes.pyx", line 397, in pipe
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/spacy/util.py", line 497, in minibatch
+    batch = list(itertools.islice(items, int(batch_size)))
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/spacy/language.py", line 768, in <genexpr>
+    docs = (self.make_doc(text) for text in texts)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/cursor.py", line 1156, in next
+    if len(self.__data) or self._refresh():
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/cursor.py", line 1093, in _refresh
+    self.__send_message(g)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/cursor.py", line 955, in __send_message
+    address=self.__address)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/mongo_client.py", line 1347, in _run_operation_with_response
+    exhaust=exhaust)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/mongo_client.py", line 1465, in _retryable_read
+    return func(session, server, sock_info, slave_ok)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/mongo_client.py", line 1341, in _cmd
+    unpack_res)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/server.py", line 136, in run_operation_with_response
+    _check_command_response(first)
+  File "/home/denhart.c/.local/lib/python3.7/site-packages/pymongo/helpers.py", line 156, in _check_command_response
+    raise CursorNotFound(errmsg, code, response)
+pymongo.errors.CursorNotFound: cursor id 81467326259 not found
+Training spacy on text .....
