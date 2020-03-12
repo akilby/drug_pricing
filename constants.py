@@ -48,8 +48,8 @@ SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
 COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
 
 # names for spacy
-SPACY_FN = "spacy_docs"
-SPACY_FP = os.path.join(PROJ_DIR, "data",  SPACY_FN)
+SPACY_FN = "~spacy_docs"
+SPACY_FP = os.path.join(PROJ_DIR,  SPACY_FN)
 
 
 def utc_to_dt(utc: float) -> datetime:
