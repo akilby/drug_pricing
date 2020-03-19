@@ -20,6 +20,7 @@ data/
 
 # slurm files
 *.sh
+*.out
 
 # other
 .vscode/
