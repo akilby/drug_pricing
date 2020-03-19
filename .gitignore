@@ -18,7 +18,11 @@ data/
 .metals/
 *.csv
 
+# slurm files
+*.sh
+
 # other
 .vscode/
 ~*
+*~
 
