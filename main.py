@@ -7,7 +7,6 @@ from datetime import datetime
 import spacy
 from constants import COLL
 from constants import COMM_COLNAMES
-from constants import SUBR
 from constants import SUB_COLNAMES
 from spacy.tokens import DocBin
 from typing import Any
@@ -50,8 +49,7 @@ def gen_args(sub_labels: List[str],
                                        str(comm_labels)]),
                         type=str)
     parser.add_argument("--tospacy",
-                        help="Cache documents as spacy objects",
-                        type=int)
+                        help="Cache documents as spacy objects")
     parser.add_argument("--fromspacy",
                         help="Read cached spacy docs")
     return parser
