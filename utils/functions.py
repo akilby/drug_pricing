@@ -125,7 +125,7 @@ def to_mongo(coll: Collection, posts: List[Post]) -> str:
     :param coll: the pymongo collection to use
     :param posts: a list of posts to add to the collection
 
-    :returns: the number of posts inserted
+    :returns: a summary of the posts that were inserted
     """
     # configure the given collection if not yet configured
     config_mongo(coll)
@@ -133,7 +133,7 @@ def to_mongo(coll: Collection, posts: List[Post]) -> str:
     # serialize posts
     serial_posts: List[Dict[str, Any]] = [post.to_dict() for post in posts]
 
-    # insert the given posts to the collection
+    # insert the given posts to the collection if they do not already exist
     n_inserts: int = 0
     for sp in serial_posts:
         try:
