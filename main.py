@@ -7,16 +7,7 @@ from typing import List
 
 from constants import COLL
 from constants import COMM_COLNAMES
-from constants import PSAW
-from constants import SPACY_FP
 from constants import SUB_COLNAMES
-from constants import TOPN_FP
-from constants import TOPN_SPACY_FP
-from utils.explore_funcs import read_spacy
-from utils.explore_funcs import text_to_spacy
-from utils.explore_funcs import top_n_posters
-from utils.explore_funcs import users_posts
-from utils.explore_funcs import write_spacy
 from utils.pipeline_funcs import extract_csv
 from utils.pipeline_funcs import extract_praw
 from utils.pipeline_funcs import to_mongo
@@ -126,22 +117,6 @@ def main() -> None:
     # retrieve data from csv if valid fields given
     if args.csv:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
-
-    # write to spacy if requested
-    if args.tospacy:
-        limit = None if args.tospacy == "all" else args.tospacy
-        write_spacy(SPACY_FP, COLL, limit)
-
-    # read sample from spacy data
-    if args.fromspacy:
-        read_spacy(SPACY_FP)
-
-    # extract the reddit data from top n users
-    if args.topn:
-        posters = top_n_posters(COLL, args.topn, args.subr)
-        users_df = users_posts(PSAW, posters)
-        users_df.to_csv(TOPN_FP)
-        text_to_spacy(users_df["text"], TOPN_SPACY_FP)
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
