@@ -6,6 +6,7 @@ from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 import pandas as pd
 import pymongo
@@ -81,14 +82,16 @@ def top_n_posters(coll: pymongo.collection.Collection, n: int,
 
     :return: a list of the most frequent usernames
     """
-    constraints = {"subr": subr} if subr else {}
-    query = coll.find(constraints, {"username": 1})
-    usernames = [obj["username"] for obj in query if obj["username"]]
-    freq_counts = Counter(usernames)
-    sorted_freqs = sorted(freq_counts.items(), key=operator.itemgetter(1))
-    top_n = sorted_freqs[:n]
-    top_n_users = [pair[0] for pair in top_n]
-    return top_n_users
+    query = [
+        {"$group": {"_id": "$username",
+                    "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": n}]
+    if subr:
+        query.insert(0, {"$match": {"subr": subr}})
+    res = coll.aggregate(query)
+    users = [rec["_id"] for rec in res]
+    return users
 
 
 def user_posts(conn: PushshiftAPI, user: str) -> pd.DataFrame:
@@ -127,8 +130,8 @@ def main():
         users_df = pd.read_csv(TOPN_FP)
     else:
         top_n = 100
-        posters = top_n_posters(COLL, top_n)
-        users_df = users_posts(PSAW, posters)
+        users = top_n_posters(COLL, top_n)
+        users_df = users_posts(PSAW, users)
         users_df.to_csv(TOPN_FP, index=False)
 
     # store user data as spacy
