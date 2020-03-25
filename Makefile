@@ -1,10 +1,10 @@
 ARGS=main.py
 
 clean:
-	rm ~*
-	rm slurm*
-	rm \#*
-	rm *\#
+	rm -rf slurm*
+	rm -rf ~*
+	rm -rf \#*
+	rm -rf *\#
 
 run:
 	python $(ARGS)
