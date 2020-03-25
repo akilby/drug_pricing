@@ -91,7 +91,8 @@ def top_n_posters(coll: pymongo.collection.Collection, n: int,
         query.insert(0, {"$match": {"subr": subr}})
     res = coll.aggregate(query)
     users = [rec["_id"] for rec in res]
-    return users
+    filt_users = list(filter(lambda x: x and pd.notna(x), users))
+    return filt_users
 
 
 def user_posts(conn: PushshiftAPI, user: str) -> pd.DataFrame:

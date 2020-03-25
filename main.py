@@ -13,6 +13,7 @@ from utils.pipeline_funcs import extract_praw
 from utils.pipeline_funcs import to_mongo
 from utils.post import Post
 
+
 def gen_args(sub_labels: List[str],
              comm_labels: List[str]) -> argparse.ArgumentParser:
     """Generate an argument parser."""
