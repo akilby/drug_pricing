@@ -26,7 +26,7 @@ class TestToMongo(unittest.TestCase):
             self.coll.remove(query)
 
         # insert p1
-        to_mongo(self.coll, [self.p1])
+        to_mongo(self.coll, [self.p1.to_dict()])
 
         # assert is exists
         self.assertEqual(self.coll.count_documents(query), 1)
@@ -41,7 +41,7 @@ class TestToMongo(unittest.TestCase):
             self.coll.remove(query1)
 
         # insert p1 to test coll
-        to_mongo(self.coll, [self.p1])
+        to_mongo(self.coll, [self.p1.to_dict()])
 
         # count total in mongo
         count1 = self.coll.count_documents({})

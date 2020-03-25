@@ -127,22 +127,6 @@ def main() -> None:
     if args.csv:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
-    # write to spacy if requested
-    if args.tospacy:
-        limit = None if args.tospacy == "all" else args.tospacy
-        write_spacy(SPACY_FP, COLL, limit)
-
-    # read sample from spacy data
-    if args.fromspacy:
-        read_spacy(SPACY_FP)
-
-    # extract the reddit data from top n users
-    if args.topn:
-        posters = top_n_posters(COLL, args.topn, args.subr)
-        users_df = users_posts(PSAW, posters)
-        users_df.to_csv(TOPN_FP)
-        text_to_spacy(users_df["text"], TOPN_SPACY_FP)
-
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
         response = write_data(data)

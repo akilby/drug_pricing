@@ -2,8 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
-
-import pytz
+from constants import dt_to_utc
 
 
 @dataclass
@@ -21,7 +20,7 @@ class Post():
         self.username = username
         self.time = time
         self.subr = subr
-        self.utc = None if not time else self.time.astimezone(pytz.UTC)
+        self.utc = dt_to_utc(self.time)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
