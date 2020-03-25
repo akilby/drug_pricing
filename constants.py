@@ -2,10 +2,13 @@
 import os
 from datetime import datetime
 
+import pytz
+
 import pymongo
 from dotenv import load_dotenv
 from praw import Reddit
 from psaw import PushshiftAPI
+from typing import Optional
 
 # define project location
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -48,10 +51,21 @@ SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
 COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
 
 # names for spacy
-SPACY_FN = "~spacy_docs"
-SPACY_FP = os.path.join(PROJ_DIR,  SPACY_FN)
+SPACY_FN = "spacy_docs.spacy"
+SPACY_FP = os.path.join(PROJ_DIR, "data", SPACY_FN)
+
+# names for topn users
+TOPN_FN = "topn_users.csv"
+TOPN_FP = os.path.join(PROJ_DIR, "data", TOPN_FN)
+TOP_SPACY_FN = "topn_spacy.spacy"
+TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOPN_FP)
 
 
 def utc_to_dt(utc: float) -> datetime:
     """Convert a unix time to a python datetime."""
     return datetime.utcfromtimestamp(int(utc))
+
+
+def dt_to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    """Converts a standard datetime representation to UTC."""
+    return None if not dt else dt.astimezone(pytz.UTC)

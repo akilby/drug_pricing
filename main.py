@@ -3,32 +3,31 @@ import argparse
 import os
 import re
 from datetime import datetime
+from typing import List
 
-import spacy
 from constants import COLL
 from constants import COMM_COLNAMES
-from constants import SUB_COLNAMES
-from spacy.tokens import DocBin
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from utils.functions import extract_csv
-from utils.functions import extract_praw
-from utils.functions import to_mongo
-from utils.post import Post
+from constants import PSAW
 from constants import SPACY_FP
-
-# load nlp module from spacy
-nlp = spacy.load("en_core_web_sm")
-
+from constants import SUB_COLNAMES
+from constants import TOPN_FP
+from constants import TOPN_SPACY_FP
+from utils.explore_funcs import read_spacy
+from utils.explore_funcs import text_to_spacy
+from utils.explore_funcs import top_n_posters
+from utils.explore_funcs import users_posts
+from utils.explore_funcs import write_spacy
+from utils.pipeline_funcs import extract_csv
+from utils.pipeline_funcs import extract_praw
+from utils.pipeline_funcs import to_mongo
+from utils.post import Post
 
 def gen_args(sub_labels: List[str],
              comm_labels: List[str]) -> argparse.ArgumentParser:
     """Generate an argument parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--subr",
-                        help="The subreddit to scrape praw from.",
+                        help="The subreddit to use.",
                         type=str)
     parser.add_argument("--startdate",
                         help="The end date for Praw scraping",
@@ -52,6 +51,9 @@ def gen_args(sub_labels: List[str],
                         help="Cache documents as spacy objects")
     parser.add_argument("--fromspacy",
                         help="Read cached spacy docs")
+    parser.add_argument("--topn",
+                        help="Retrieve reddit history for top n users",
+                        type=int)
     return parser
 
 
@@ -105,50 +107,6 @@ def write_data(posts: List[Post]) -> str:
     return resp
 
 
-def proc_query_text(doc: Dict[Any, Any]) -> str:
-    """Extract text from a mongo query."""
-    text = doc["text"]
-    if type(text) == str:
-        return text
-    else:
-        return ""
-
-
-def write_spacy(limit: Optional[int]) -> None:
-    """Write documents from to disk as spacy objects."""
-    # load documents from mongo
-    if limit:
-        text_res = COLL.find({}, {"text": 1}).limit(limit)
-    else:
-        text_res = COLL.find({}, {"text": 1})
-
-    # process text as necessary
-    all_text = map(proc_query_text, text_res)
-
-    # train spacy on all text blocks
-    print("Training spacy on text .....")
-    doc_bin = DocBin(attrs=["LEMMA", "ENT_IOB", "ENT_TYPE"],
-                     store_user_data=True)
-    for doc in nlp.pipe(all_text):
-        doc_bin.add(doc)
-        bytes_data = doc_bin.to_bytes()
-
-    # write bytes data to file
-    out_f = open(SPACY_FP, "wb")
-    out_f.write(bytes_data)
-
-
-def read_spacy() -> None:
-    """Sample function to read spacy cache."""
-    docbin = DocBin().from_bytes(open(SPACY_FP, "rb").read())
-    docs = docbin.get_docs(nlp.vocab)
-    for i, doc in enumerate(docs):
-        print(f"Doc {i}:")
-        print(doc)
-        for j, ent in enumerate(doc.ents):
-            print(f"ent {j}: ", ent, ent.label_)
-
-
 def main() -> None:
     """Execute programs from the command line."""
     # initialize data
@@ -171,11 +129,19 @@ def main() -> None:
 
     # write to spacy if requested
     if args.tospacy:
-        write_spacy(args.tospacy)
+        limit = None if args.tospacy == "all" else args.tospacy
+        write_spacy(SPACY_FP, COLL, limit)
 
     # read sample from spacy data
     if args.fromspacy:
-        read_spacy()
+        read_spacy(SPACY_FP)
+
+    # extract the reddit data from top n users
+    if args.topn:
+        posters = top_n_posters(COLL, args.topn, args.subr)
+        users_df = users_posts(PSAW, posters)
+        users_df.to_csv(TOPN_FP)
+        text_to_spacy(users_df["text"], TOPN_SPACY_FP)
 
     # if data exists, write it to either mongodb or a json file
     if len(data) > 0:
