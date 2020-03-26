@@ -143,7 +143,7 @@ def main():
     # store user data as spacy
     print("Storing user data as spacy objs .....")
     if not os.path.exists(TOPN_SPACY_FP):
-        text_to_spacy(users_df["text"], TOPN_SPACY_FP, nlp)
+        text_to_spacy(users_df["text"].tolist(), TOPN_SPACY_FP, nlp)
 
 
 if __name__ == "__main__":
