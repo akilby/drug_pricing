@@ -58,7 +58,7 @@ SPACY_FP = os.path.join(PROJ_DIR, "data", SPACY_FN)
 TOPN_FN = "topn_users.csv"
 TOPN_FP = os.path.join(PROJ_DIR, "data", TOPN_FN)
 TOP_SPACY_FN = "topn_spacy.spacy"
-TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOPN_FP)
+TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOP_SPACY_FN)
 
 
 def utc_to_dt(utc: float) -> datetime:

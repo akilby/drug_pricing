@@ -13,14 +13,12 @@ import pymongo
 import spacy
 from psaw import PushshiftAPI
 from spacy.tokens import DocBin
+from spacy.lang.en import English
 
 from constants import COLL
 from constants import PSAW
 from constants import TOPN_FP
 from constants import TOPN_SPACY_FP
-
-# load nlp module from spacy
-nlp = spacy.load("en_core_web_sm")
 
 
 def proc_query_text(doc: Dict[Any, Any]) -> str:
@@ -29,7 +27,12 @@ def proc_query_text(doc: Dict[Any, Any]) -> str:
     return text if type(text) == str else ""
 
 
-def text_to_spacy(docs: Iterable[str], fp: str) -> None:
+def text_to_docs(text: List[str], nlp: English) -> English:
+    """Convert raw text to spacy docs."""
+    return [nlp(t) for t in text]
+
+
+def text_to_spacy(docs: Iterable[str], fp: str, nlp: English) -> None:
     """Process the docs with spacy and write to disk."""
     doc_bin = DocBin(attrs=["LEMMA", "ENT_IOB", "ENT_TYPE"],
                      store_user_data=True)
@@ -59,15 +62,11 @@ def write_spacy(fp: str, coll: pymongo.collection.Collection,
     text_to_spacy(all_text, fp)
 
 
-def read_spacy(fp: str) -> None:
+def read_spacy(fp: str, nlp: English) -> List[English]:
     """Sample function to read spacy cache."""
     docbin = DocBin().from_bytes(open(fp, "rb").read())
     docs = docbin.get_docs(nlp.vocab)
-    for i, doc in enumerate(docs):
-        print(f"Doc {i}:")
-        print(doc)
-        for j, ent in enumerate(doc.ents):
-            print(f"ent {j}: ", ent, ent.label_)
+    return list(docs)
 
 
 def top_n_posters(coll: pymongo.collection.Collection, n: int,
@@ -120,7 +119,10 @@ def users_posts(conn: PushshiftAPI, users: List[str]) -> List[str]:
     :return: a dataframe of post features
     """
     dfs = list(map(lambda u: user_posts(conn, u), users))
-    return pd.concat(dfs)
+    if len(dfs) > 0:
+        return pd.concat(dfs)
+    else:
+        raise TypeError("No users were retrieved.")
 
 
 def main():
@@ -135,10 +137,13 @@ def main():
         users_df = users_posts(PSAW, users)
         users_df.to_csv(TOPN_FP, index=False)
 
+    # load spacy object
+    nlp = spacy.load("en_core_web_sm")
+
     # store user data as spacy
     print("Storing user data as spacy objs .....")
     if not os.path.exists(TOPN_SPACY_FP):
-        text_to_spacy(users_df["text"], TOPN_SPACY_FP)
+        text_to_spacy(users_df["text"], TOPN_SPACY_FP, nlp)
 
 
 if __name__ == "__main__":
