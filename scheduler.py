@@ -5,13 +5,13 @@ import re
 from datetime import datetime
 from typing import List
 
-from constants import COLL
-from constants import COMM_COLNAMES
-from constants import SUB_COLNAMES
-from utils.pipeline_funcs import extract_csv
-from utils.pipeline_funcs import extract_praw
-from utils.pipeline_funcs import to_mongo
-from utils.post import Post
+from utils import COLL
+from utils import COMM_COLNAMES
+from utils import SUB_COLNAMES
+from pipeline.pipeline_funcs import extract_csv
+from pipeline.pipeline_funcs import extract_praw
+from pipeline.pipeline_funcs import to_mongo
+from pipeline.post import Post
 
 
 def gen_args(sub_labels: List[str],
@@ -28,7 +28,7 @@ def gen_args(sub_labels: List[str],
                         help="The end date for Praw scraping",
                         type=str)
     parser.add_argument("--limit",
-                        help="Limit number of praw or spacy objects",
+                        help="Limit number of praw objects",
                         type=int)
     parser.add_argument("--csv",
                         help="The csv filepath to parse from",
@@ -38,14 +38,6 @@ def gen_args(sub_labels: List[str],
                                        str(sub_labels),
                                        "or comments",
                                        str(comm_labels)]),
-                        type=str)
-    parser.add_argument("--tospacy",
-                        help="Cache documents as spacy objects")
-    parser.add_argument("--fromspacy",
-                        help="Read cached spacy docs")
-    parser.add_argument("--topn",
-                        help="Retrieve reddit history for top n users",
-                        type=int)
     return parser
 
 
@@ -92,13 +84,6 @@ def read_csv(filepath: str, posttype: str, sub_labels: List[str],
     raise ValueError("Invalid post type provided.")
 
 
-def write_data(posts: List[Post]) -> str:
-    """Write data to mongodb or json and return the response."""
-    print("Writing data to mongodb .....")
-    resp: str = to_mongo(COLL, posts)
-    return resp
-
-
 def main() -> None:
     """Execute programs from the command line."""
     # initialize data
@@ -120,9 +105,8 @@ def main() -> None:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
     # if data exists, write it to either mongodb or a json file
-    if len(data) > 0:
-        response = write_data(data)
-        print(response)
+    resp = to_mongo(COLL, data)
+    print(resp)
 
     print("Program completed.")
 

@@ -10,6 +10,7 @@ from praw import Reddit
 from psaw import PushshiftAPI
 from typing import Optional
 
+""" --- Utility Constants --- """
 # define project location
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -59,6 +60,9 @@ TOPN_FN = "topn_users.csv"
 TOPN_FP = os.path.join(PROJ_DIR, "data", TOPN_FN)
 TOP_SPACY_FN = "topn_spacy.spacy"
 TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOP_SPACY_FN)
+
+
+""" --- Utility Functions --- """
 
 
 def utc_to_dt(utc: float) -> datetime:

@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
-from constants import dt_to_utc
+from utils import dt_to_utc
 
 
 @dataclass
