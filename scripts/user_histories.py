@@ -8,8 +8,7 @@ import random
 import prawcore
 import spacy
 from spacy.tokens import DocBin
-from spacy.lang.en import English
-nlp = English()
+nlp = spacy.load("en_core_web_sm")
 
 
 def get_users(coll: pymongo.collection.Collection,
