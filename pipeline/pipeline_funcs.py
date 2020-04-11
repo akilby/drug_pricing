@@ -8,8 +8,8 @@ import pymongo
 from praw.models import Comment, Submission
 from pymongo.collection import Collection
 
-from constants import PSAW, utc_to_dt
-from utils.post import Comm, Post, Sub
+from utils import PSAW, utc_to_dt
+from pipeline.post import Comm, Post, Sub
 
 
 def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
