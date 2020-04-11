@@ -5,6 +5,7 @@ import pymongo
 from typing import Optional, List
 import pandas as pd
 import random
+import prawcore
 
 
 def get_users(coll: pymongo.collection.Collection,
@@ -61,9 +62,12 @@ def get_non_mods(users: List[str],
         return acc
     user = users.pop(0)
     redditor = Redditor(praw, user)
-    if hasattr(redditor, "is_mod") and (not redditor.is_mod):
-        acc.append(user)
-        return get_non_mods(users, praw, n - 1, acc=acc)
+    try:
+        if hasattr(redditor, "is_mod") and (not redditor.is_mod):
+            acc.append(user)
+            return get_non_mods(users, praw, n - 1, acc=acc)
+    except prawcore.exceptions.NotFound:
+        pass
     return get_non_mods(users, praw, n, acc=acc)
 
 
