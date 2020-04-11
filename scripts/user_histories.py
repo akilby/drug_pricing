@@ -2,10 +2,14 @@ from praw.models import Redditor
 from praw import Reddit
 from psaw import PushshiftAPI
 import pymongo
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import pandas as pd
 import random
 import prawcore
+import spacy
+from spacy.tokens import DocBin
+from spacy.lang.en import English
+nlp = English()
 
 
 def get_users(coll: pymongo.collection.Collection,
@@ -117,3 +121,23 @@ def top_histories(coll: pymongo.collection.Collection,
     history_df = pd.concat(top_history_dfs + rand_history_dfs)
 
     return history_df
+
+
+def to_spacy(text: List[str]) -> Tuple[List[int], List[str]]:
+    """Convert list of text to spacy docs."""
+    text_idx = [i for i, t in enumerate(text) if type(t) == str]
+    spacy_docs = [nlp(t) for t in text if type(t) == str]
+    return text_idx, spacy_docs
+
+
+def spacy_to_disk(spacy_docs, fp):
+    """Write spacy docs to disk."""
+    doc_bin = DocBin(attrs=["LEMMA", "ENT_IOB", "ENT_TYPE"],
+                     store_user_data=True)
+    for doc in spacy_docs:
+        doc_bin.add(doc)
+
+    # write bytes data to file
+    bytes_data = doc_bin.to_bytes()
+    out_f = open(fp, "wb")
+    out_f.write(bytes_data)
