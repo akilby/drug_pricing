@@ -112,7 +112,7 @@ def main() -> None:
     if args.csv:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
-    # if data exists, write it to either mongodb or a json file
+    # if data exists, write it to mongoe
     resp = to_mongo(COLL, data)
     print(resp)
 

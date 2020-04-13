@@ -152,6 +152,7 @@ WTForms = "==2.2.1"
 "zope.deprecation" = "==4.4.0"
 importmagic = "*"
 etc = "*"
+dotenv = "*"
 
 [requires]
 python_version = "3.7"
