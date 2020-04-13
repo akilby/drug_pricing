@@ -144,3 +144,10 @@ def to_mongo(coll: Collection, posts: List[Post]) -> str:
 
     # return response
     return f"{n_inserts}/{len(serial_posts)} posts inserted"
+
+
+def last_date(coll: Collection) -> datetime:
+    """Gets the newest date from the mongo collection."""
+    res = coll.aggregate([{"$sort": {"time": -1}}, {"$limit": 1}])
+    time = list(res)[0]["time"]
+    return time

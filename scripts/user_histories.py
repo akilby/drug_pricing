@@ -1,13 +1,16 @@
-from praw.models import Redditor
-from praw import Reddit
-from psaw import PushshiftAPI
-import pymongo
-from typing import Optional, List, Tuple
-import pandas as pd
+"""Functions to retrieve user histories."""
 import random
+from typing import List, Optional, Tuple
+
+import pandas as pd
 import prawcore
+import pymongo
 import spacy
+from praw import Reddit
+from praw.models import Redditor
+from psaw import PushshiftAPI
 from spacy.tokens import DocBin
+
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -28,19 +31,16 @@ def get_users(coll: pymongo.collection.Collection,
         users = [rec["_id"] for rec in res]
         filt_users = list(filter(lambda x: x and pd.notna(x), users))
         return filt_users
-    elif how == "rand":
+    if how == "rand":
         res = coll.distinct("username")
         users = [u for u in res if u is not None]
         rand_users = random.sample(users, len(users))
         return rand_users
-    else:
-        raise ValueError("Invalid 'how' type given.")
+    raise ValueError("Invalid 'how' type given.")
 
 
-def user_posts(praw: Reddit,
-               psaw: PushshiftAPI,
-               user: str,
-               filt_mods: Optional[bool] = None) -> Optional[pd.DataFrame]:
+def user_posts(psaw: PushshiftAPI,
+               user: str) -> Optional[pd.DataFrame]:
     """Retrieve the full reddit posting history for the given users."""
     print("On user:", user)
     subs = list(psaw.search_submissions(author=user))
@@ -96,7 +96,7 @@ def users_posts(users: List[str],
             n_users = users[:n]
         else:
             raise ValueError("n is too big")
-    dfs = [user_posts(praw, psaw, user, filt_mods) for user in n_users]
+    dfs = [user_posts(psaw, user) for user in n_users]
     dfs = [df for df in dfs if df is not None]
     return dfs
 

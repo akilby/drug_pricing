@@ -10,7 +10,7 @@ from utils import COMM_COLNAMES
 from utils import SUB_COLNAMES
 from pipeline.pipeline_funcs import extract_csv
 from pipeline.pipeline_funcs import extract_praw
-from pipeline.pipeline_funcs import to_mongo
+from pipeline.pipeline_funcs import to_mongo, last_date
 from pipeline.post import Post
 
 
@@ -37,7 +37,10 @@ def gen_args(sub_labels: List[str],
                         help=" ".join(["If data to parse is submissions",
                                        str(sub_labels),
                                        "or comments",
-                                       str(comm_labels)]),
+                                       str(comm_labels)]))
+    parser.add_argument("--lastdate",
+                        help="The last date in the mongo collection.",
+                        action="store_true")
     return parser
 
 
@@ -95,6 +98,11 @@ def main() -> None:
 
     # retrieve args
     args = gen_args(sub_labels, comm_labels).parse_args()
+
+    # retrieve the last date stored in mongo
+    if args.lastdate:
+        date = last_date(COLL)
+        print(date)
 
     # retrieve data from praw if valid fields given
     if args.subr:

@@ -1,8 +1,10 @@
-import sys
 import os
-from scripts.user_histories import top_histories, to_spacy, spacy_to_disk
-from utils import COLL, PRAW, PSAW, PROJ_DIR
+import sys
+
 import pandas as pd
+
+from scripts.user_histories import spacy_to_disk, to_spacy, top_histories
+from utils import COLL, PRAW, PROJ_DIR, PSAW
 
 
 def main():

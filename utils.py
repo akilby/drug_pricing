@@ -1,16 +1,15 @@
 """Stores project constants and utility functions."""
 import os
 from datetime import datetime
-
-import pytz
+from typing import Optional
 
 import pymongo
+import pytz
 from dotenv import load_dotenv
 from praw import Reddit
 from psaw import PushshiftAPI
-from typing import Optional
 
-""" --- Utility Constants --- """
+# --- Utility Constants ---
 # define project location
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,7 +61,7 @@ TOP_SPACY_FN = "topn_spacy.spacy"
 TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOP_SPACY_FN)
 
 
-""" --- Utility Functions --- """
+# --- Utility Functions --- 
 
 
 def utc_to_dt(utc: float) -> datetime:
