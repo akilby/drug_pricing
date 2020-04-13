@@ -3,6 +3,7 @@ ARGS=main.py
 clean:
 	rm -rf slurm*
 	rm -rf ~*
+	rm -rf *~
 	rm -rf \#*
 	rm -rf *\#
 

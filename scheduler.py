@@ -5,13 +5,9 @@ import re
 from datetime import datetime
 from typing import List
 
-from utils import COLL
-from utils import COMM_COLNAMES
-from utils import SUB_COLNAMES
-from pipeline.pipeline_funcs import extract_csv
-from pipeline.pipeline_funcs import extract_praw
-from pipeline.pipeline_funcs import to_mongo, last_date
-from pipeline.post import Post
+from scripts.pipeline import (Post, extract_csv, extract_praw, last_date,
+                              to_mongo)
+from utils import COLL, COMM_COLNAMES, SUB_COLNAMES
 
 
 def gen_args(sub_labels: List[str],

@@ -3,6 +3,10 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[pipenv]
+
+allow_prereleases = true
+
 [dev-packages]
 
 [packages]
@@ -36,7 +40,6 @@ urllib3 = "==1.25.7"
 wasabi = "==0.4.0"
 zipp = "==0.6.0"
 alembic = "==1.3.2"
-apache-airflow = "==1.10.6"
 apispec = "==3.1.1"
 appnope = "==0.1.0"
 argcomplete = "==1.10.3"
@@ -73,10 +76,6 @@ jupyter-client = "==5.3.4"
 jupyter-core = "==4.6.1"
 lazy-object-proxy = "==1.4.3"
 lockfile = "==0.12.2"
-luigi = "==2.8.11"
-marshmallow = "==3.3.0"
-marshmallow-enum = "==1.5.1"
-marshmallow-sqlalchemy = "==0.18.0"
 mccabe = "==0.6.1"
 mypy = "==0.760"
 mypy-extensions = "==0.4.3"
@@ -152,6 +151,7 @@ WTForms = "==2.2.1"
 "zope.deprecation" = "==4.4.0"
 importmagic = "*"
 etc = "*"
+epc = "*"
 
 [requires]
 python_version = "3.7"

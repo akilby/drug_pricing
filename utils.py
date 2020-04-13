@@ -32,7 +32,7 @@ SUB_LIMIT = 1000
 
 # define mongo connection
 MONGO = pymongo.MongoClient(os.getenv("HOST"),
-                            int(os.getenv("PORT")),
+                            int(str(os.getenv("PORT"))),
                             username=os.getenv("MUSERNAME"),
                             password=os.getenv("MPASSWORD"),
                             authSource=os.getenv("DB_NAME"))
@@ -50,18 +50,7 @@ SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
                 "text", "utc"]
 COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
 
-# names for spacy
-SPACY_FN = "spacy_docs.spacy"
-SPACY_FP = os.path.join(PROJ_DIR, "data", SPACY_FN)
-
-# names for topn users
-TOPN_FN = "topn_users.csv"
-TOPN_FP = os.path.join(PROJ_DIR, "data", TOPN_FN)
-TOP_SPACY_FN = "topn_spacy.spacy"
-TOPN_SPACY_FP = os.path.join(PROJ_DIR, "data", TOP_SPACY_FN)
-
-
-# --- Utility Functions --- 
+# --- Utility Functions ---
 
 
 def utc_to_dt(utc: float) -> datetime:
