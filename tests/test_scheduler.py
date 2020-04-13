@@ -5,7 +5,7 @@ from typing import List
 from datetime import datetime
 import functools as ft
 
-from utils import PROJ_DIR, SUBR, DB
+from utils import PROJ_DIR, SUBR, TEST_COLL
 from scripts.pipeline import Post, extract_csv, extract_praw, to_mongo, Sub
 
 
@@ -59,7 +59,7 @@ class TestToMongo(unittest.TestCase):
     p2 = Sub(pid="abc", text="sample text")
 
     # initialize test collection connection
-    coll = DB["test"]
+    coll = TEST_COLL
 
     def test_insert(self) -> None:
         """Test that insertion works correctly."""
