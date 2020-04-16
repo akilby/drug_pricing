@@ -10,6 +10,7 @@ from praw import Reddit
 from praw.models import Redditor
 from psaw import PushshiftAPI
 from spacy.tokens import DocBin
+from spacy.lang.en import English
 
 nlp = spacy.load("en_core_web_sm")
 
