@@ -38,6 +38,7 @@ MONGO = pymongo.MongoClient(os.getenv("HOST"),
                             authSource=os.getenv("DB_NAME"))
 DB = MONGO[os.getenv("DB_NAME")]
 COLL = DB[os.getenv("COLL_NAME")]
+TEST_COLL = DB[os.getenv("TEST_COLL_NAME")]
 
 # define hardcoded file locations on the HPC cluster
 BASE_DIR = "/work/akilby/drug_pricing_project"

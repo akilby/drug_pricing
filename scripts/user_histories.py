@@ -140,3 +140,11 @@ def spacy_to_disk(spacy_docs, fp):
     bytes_data = doc_bin.to_bytes()
     out_f = open(fp, "wb")
     out_f.write(bytes_data)
+
+
+def disk_to_spacy(fp: str) -> List[English]:
+    """Read spacy documents from disk."""
+    docbin = DocBin().from_bytes(open(fp, "rb").read())
+    disk_docs = docbin.get_docs(nlp.vocab)
+    disk_docsl = list(disk_docs)
+    return disk_docsl
