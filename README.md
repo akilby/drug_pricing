@@ -36,11 +36,13 @@ Run `pipenv install` to install all dependencies
 ## Running the Project
 
 **Running the scheduler**
+
 To update all new data from all subreddits, run `make run`.
 
 More specific execution of the scheduler is also possible. Run `python3 scheduler.py --help` for more details.
 
 **Running tests**
+
 Run `make test` to execute all tests.
 
 *Note:* tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
