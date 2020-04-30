@@ -103,7 +103,6 @@ class Comm(Post):
         return base_dict
 
 
-
 def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
                subr: str) -> Post:
     """Convert a Praw Submission or Comment to a Post object."""
@@ -238,9 +237,11 @@ def to_mongo(coll: Collection, posts: List[Post]) -> str:
     return f"{n_inserts}/{len(serial_posts)} posts inserted"
 
 
-def last_date(coll: Collection) -> datetime:
+def last_date(coll: Collection, subr: str) -> datetime:
     """Gets the newest date from the mongo collection."""
-    res = coll.aggregate([{"$sort": {"time": -1}}, {"$limit": 1}])
+    res = coll.aggregate([{"$match": {"subr": subr}},
+                          {"$sort": {"time": -1}},
+                          {"$limit": 1}])
     time = list(res)[0]["time"]
     return time
 

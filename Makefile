@@ -1,4 +1,4 @@
-ARGS=main.py
+ARGS="--update"
 
 clean:
 	rm -rf slurm*
@@ -8,4 +8,7 @@ clean:
 	rm -rf *\#
 
 run:
-	python $(ARGS)
+	pipenv run python scheduler.py $(ARGS)
+
+test: 
+	pipenv run python -m unittest

@@ -5,9 +5,9 @@ import re
 from datetime import datetime
 from typing import List
 
-from scripts.pipeline import (Post, extract_csv, extract_praw, last_date,
-                              to_mongo)
-from utils import COLL, COMM_COLNAMES, SUB_COLNAMES
+from pipeline import (Post, extract_csv, extract_praw, last_date,
+                      to_mongo)
+from utils import SUBR_NAMES, COLL, COMM_COLNAMES, SUB_COLNAMES
 
 
 def gen_args(sub_labels: List[str],
@@ -24,7 +24,7 @@ def gen_args(sub_labels: List[str],
                         help="The end date for Praw scraping",
                         type=str)
     parser.add_argument("--limit",
-                        help="Limit number of praw objects",
+                        help="The number of Praw objects to limit querying",
                         type=int)
     parser.add_argument("--csv",
                         help="The csv filepath to parse from",
@@ -35,7 +35,12 @@ def gen_args(sub_labels: List[str],
                                        "or comments",
                                        str(comm_labels)]))
     parser.add_argument("--lastdate",
-                        help="The last date in the mongo collection.",
+                        help="Retrieve the last date stored in the mongo\
+                                collection.",
+                        action="store_true")
+    parser.add_argument("--update",
+                        help="Insert all posts for all subreddits from the\
+                                last posted date",
                         action="store_true")
     return parser
 
@@ -96,17 +101,24 @@ def main() -> None:
     args = gen_args(sub_labels, comm_labels).parse_args()
 
     # retrieve the last date stored in mongo
-    if args.lastdate:
-        date = last_date(COLL)
+    if args.lastdate and args.subr:
+        date = last_date(COLL, args.subr)
         print(date)
 
     # retrieve data from praw if valid fields given
     if args.subr:
-        data += read_praw(args.subr, args.startdate, args.enddate, args.limit)
+        data += read_praw(args.subr, args.startdate, end_time=args.enddate,
+                          limit=args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
+
+    # add all recent posts to database
+    if args.update:
+        for subr_name in SUBR_NAMES:
+            start_date = last_date(COLL, subr_name)
+            data += read_praw(subr_name, start_date)
 
     # if data exists, write it to mongo
     resp = to_mongo(COLL, data)

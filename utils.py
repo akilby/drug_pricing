@@ -26,8 +26,8 @@ PRAW = Reddit(client_id=os.getenv("RCLIENT_ID"),
 PSAW = PushshiftAPI(PRAW)
 
 # define subreddit
-SUBR_NAME = "opiates"
-SUBR = PRAW.subreddit(SUBR_NAME)
+SUBR_NAMES = ["opiates", "heroin"]
+DEF_SUBR = PRAW.subreddit(SUBR_NAMES[0])
 SUB_LIMIT = 1000
 
 # define mongo connection
