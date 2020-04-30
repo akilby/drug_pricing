@@ -4,16 +4,17 @@ This project contains code for extracting posts and comments from Reddit. It all
 ## Project Structure
 
 `scheduler.py` allows for command-line execution of the scheduler
+
 `pipeline.py` contains functions & objects for the scheduling pipeline
+
 `utils.py` contains project-wide variables and functions
+
 `tests/` contains all tests for the project
 
 ## Setup Instructions
 
 ### 1. Environment variables
-This project utilizes the python "dotenv" package to read secret information as environment variables.
-
-For security reasons, the file containing these environment variables is not tracked on git.  In order to make the git version of the project functional:
+This project utilizes the python "dotenv" package to read secure information as environment variables. This secure information is not tracked on version control, so you must populate your own credentials. Follow the below instructions.
 
 A. Create a file named `.env` in the project root
 
