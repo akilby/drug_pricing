@@ -5,8 +5,8 @@ from typing import List
 from datetime import datetime
 import functools as ft
 
-from utils import PROJ_DIR, SUBR, TEST_COLL
-from scripts.pipeline import Post, extract_csv, extract_praw, to_mongo, Sub
+from utils import PROJ_DIR, DEF_SUBR, TEST_COLL, SUB_COLNAMES, COMM_COLNAMES
+from pipeline import Post, extract_csv, extract_praw, to_mongo, Sub
 
 
 class TestExtractPraw(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestExtractPraw(unittest.TestCase):
 
     def __get_posts(self) -> List[Post]:
         """Retrieve posts from Reddit."""
-        return extract_praw(SUBR, self.date, limit=50)
+        return extract_praw(DEF_SUBR, self.date, limit=50)
 
     def test_is_post(self) -> None:
         """Test that the objects returned are all post objects."""
@@ -41,13 +41,14 @@ class TestExtractCsv(TestExtractPraw):
     """
 
     # file paths that test data are stored in
-    threads_dir = os.path.join(PROJ_DIR, "sample_data", "threads")
-    comments_dir = os.path.join(PROJ_DIR, "sample_data", "comments")
+    data_dir = os.path.join(PROJ_DIR, "data")
 
     def __get_posts(self) -> List[Post]:
         """Overwrite the method for retrieving posts to read from files."""
-        threads = extract_csv(self.threads_dir, True)
-        comments = extract_csv(self.comments_dir, False)
+        thread_fp = os.path.join(self.data_dir, "all_subms.csv")
+        comm_fp = os.path.join(self.data_dir, "all_comments.csv")
+        threads = extract_csv(thread_fp, SUB_COLNAMES)
+        comments = extract_csv(comm_fp, COMM_COLNAMES)
         return threads + comments
 
 
