@@ -1,24 +1,20 @@
-# Drug Pricing Project
-This project attempts to extract street opiate pricing and location data from online Reddit forums.
+# Drug Pricing Scheduler
+This project contains code for extracting posts and comments from Reddit. It allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.
 
 ## Project Structure
 
-`notebooks/` contains exploratory code in Jupyter Notebooks
+`scheduler.py` allows for command-line execution of the scheduler
 
-`tasks/` contains files that define [Luigi](https://luigi.readthedocs.io/en/stable/) tasks for the data pipeline
-- `mongo.py` contains tasks that import data to a mongo database
-- `read_data.py` contains tasks that parse data from Reddit and files
+`pipeline.py` contains functions & objects for the scheduling pipeline
 
-`utils/` contains utility functions and objects referenced/utilized throughout the project
+`utils.py` contains project-wide variables and functions
 
 `tests/` contains all tests for the project
 
 ## Setup Instructions
 
 ### 1. Environment variables
-This project utilizes the python "dotenv" package to read secret information as environment variables.
-
-For security reasons, the file containing these environment variables is not tracked on git.  In order to make the git version of the project functional:
+This project utilizes the python "dotenv" package to read secure information as environment variables. This secure information is not tracked on version control, so you must populate your own credentials. Follow the below instructions.
 
 A. Create a file named `.env` in the project root
 
@@ -35,22 +31,18 @@ B. Store the following variables in there with your own credentials/info
 Checkout [here](https://www.reddit.com/dev/api/oauth/) for help with Reddit API setup.
 
 ### 2. Install dependencies
-Create a virtual environment if you want.
-
-Then, run `pip install -r requirements.txt`.
+Run `pipenv install` to install all dependencies
 
 ## Running the Project
 
-### Running the Scheduler
-TODO
+**Running the scheduler**
 
-### Running from command line
+To update all new data from all subreddits, run `make run`.
 
-## Testing
+More specific execution of the scheduler is also possible. Run `python3 scheduler.py --help` for more details.
 
-To execute project tests, run `python -m unittest`
+**Running tests**
 
-**Note:** tests involving loading data from files will not run using code from git because sample data is not committed.
-In order to get these to run, create and populate the following two directories with appropriate sample data:
-- `<project_root>/sample_data/comments/`
-- `<project_root>/sample_data/threads/`
+Run `make test` to execute all tests.
+
+*Note:* tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
