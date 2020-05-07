@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import List
 
 from pipeline import (Post, extract_csv, extract_praw, last_date,
-                      to_mongo)
-from utils import SUBR_NAMES, COLL, COMM_COLNAMES, SUB_COLNAMES
+                      to_mongo, all_user_hists)
+from utils import SUBR_NAMES, COLL, COMM_COLNAMES, SUB_COLNAMES, PSAW, PRAW 
 
 
 def gen_args(sub_labels: List[str],
@@ -41,6 +41,9 @@ def gen_args(sub_labels: List[str],
     parser.add_argument("--update",
                         help="Insert all posts for all subreddits from the\
                                 last posted date",
+                        action="store_true")
+    parser.add_argument("--histories",
+                        help="Retrieve full posting history for all users.",
                         action="store_true")
     return parser
 
@@ -119,6 +122,9 @@ def main() -> None:
         for subr_name in SUBR_NAMES:
             start_date = last_date(COLL, subr_name)
             data += extract_praw(subr_name, start_date)
+
+    if args.histories:
+        data += all_user_hists(PRAW, PSAW, COLL)
 
     # if data exists, write it to mongo
     resp = to_mongo(COLL, data)

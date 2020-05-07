@@ -3,11 +3,17 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
+import random
 
 import pandas as pd
 import pymongo
+import prawcore
+from praw import Reddit
+from praw.models import Redditor
 from praw.models import Comment, Submission
 from pymongo.collection import Collection
+from psaw import PushshiftAPI
+
 
 from utils import PSAW, dt_to_utc, utc_to_dt
 
@@ -246,3 +252,120 @@ def last_date(coll: Collection, subr: str) -> datetime:
     return time
 
 
+def get_users(coll: pymongo.collection.Collection,
+              how: str = "top") -> List[str]:
+    """
+    Retrieve distinct usernames from the collection.
+
+    Currently sorting by number of posts in collection and random sorting
+    is supported.
+    """
+    if how == "top":
+        query = [
+            {"$group": {"_id": "$username",
+                        "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}]
+        res = coll.aggregate(query)
+        users = [rec["_id"] for rec in res]
+        filt_users = list(filter(lambda x: x and pd.notna(x), users))
+        return filt_users
+    if how == "rand":
+        res = coll.distinct("username")
+        users = [u for u in res if u is not None]
+        rand_users = random.sample(users, len(users))
+        return rand_users
+    if how == "all":
+        users = list(coll.distinct("username"))
+        return users
+    raise ValueError("Invalid 'how' type given.")
+
+
+def user_posts(psaw: PushshiftAPI,
+               user: str) -> Optional[pd.DataFrame]:
+    """Retrieve the full reddit posting history for the given users."""
+    print("On user:", user)
+    subs = list(psaw.search_submissions(author=user))
+    comms = list(psaw.search_comments(author=user))
+    username = [user] * (len(subs) + len(comms))
+    text = [s.selftext for s in subs] + [c.body for c in comms]
+    subr = [s.subreddit for s in subs] + [c.subreddit for c in comms]
+    times = [utc_to_dt(p.created_utc) for p in subs + comms]
+    is_sub = [True] * len(subs) + [False] * len(comms)
+    ids = [s.id for s in subs] + [c.id for c in comms]
+    data = {"username": username, "text": text, "subreddit": subr,
+            "is_sub": is_sub, "id": ids, "time": times}
+    df = pd.DataFrame(data)
+    return df
+
+
+def get_non_mods(users: List[str],
+                 praw: Reddit,
+                 n: int,
+                 acc: List[str] = []) -> List[str]:
+    """Retrieve n users that are not moderators."""
+    if n <= 0 or n >= len(users) or len(users) == 0:
+        return acc
+    user = users.pop(0)
+    redditor = Redditor(praw, user)
+    try:
+        if hasattr(redditor, "is_mod") and (not redditor.is_mod):
+            acc.append(user)
+            return get_non_mods(users, praw, n - 1, acc=acc)
+    except prawcore.exceptions.NotFound:
+        pass
+    return get_non_mods(users, praw, n, acc=acc)
+
+
+def users_posts(users: List[str],
+                praw: Reddit,
+                psaw: PushshiftAPI,
+                n: int,
+                filt_mods: bool = False) -> pd.DataFrame:
+    """
+    Retrieve the full reddit posting history for all given users.
+
+    :param conn: a psaw connection object
+    :param users: a list of usernames
+
+    :return: a dataframe of post features
+    """
+    # get n users that are not moderators if desired
+    if filt_mods:
+        n_users = get_non_mods(users, praw, n)
+    # otheriwse just select first n users
+    else:
+        if n <= len(users):
+            n_users = users[:n]
+        else:
+            raise ValueError("n is too big")
+    dfs = [user_posts(psaw, user) for user in n_users]
+    df = pd.concat([df for df in dfs if df is not None])
+    return df
+
+
+def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
+                   coll: pymongo.collection.Collection
+                   ) -> List[Post]:
+    """Retrieve full posting history for all users."""
+    # retrieve all users
+    all_users = get_users(coll, how="all")
+
+    # retrieve all user's posts
+    posts_df = users_posts(all_users, praw, psaw, len(all_users))
+
+    # convert posts from df form to Post form
+    def row_to_post(row) -> Post:
+        if row["is_sub"]:
+            return Sub(username=row["username"],
+                       text=row["text"],
+                       pid=row["id"],
+                       subr=row["subreddit"],
+                       time=row["time"])
+        return Comm(username=row["username"],
+                    text=row["text"],
+                    pid=row["id"],
+                    subr=row["subreddit"],
+                    time=row["time"])
+
+    posts = [row_to_post(row) for _, row in posts_df.iterrows()]
+    return posts
