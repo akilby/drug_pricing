@@ -1,11 +1,7 @@
 ARGS="--update"
 
 clean:
-	rm -rf slurm*
-	rm -rf ~*
-	rm -rf *~
-	rm -rf \#*
-	rm -rf *\#
+	rm -rf slurm* ~* *~ \#* *\#
 
 run:
 	pipenv run python scheduler.py $(ARGS)

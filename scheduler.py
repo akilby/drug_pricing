@@ -107,8 +107,8 @@ def main() -> None:
 
     # retrieve data from praw if valid fields given
     if args.subr:
-        data += read_praw(args.subr, args.startdate, end_time=args.enddate,
-                          limit=args.limit)
+        data += read_praw(args.subr, args.startdate, args.enddate,
+                          args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
@@ -118,7 +118,7 @@ def main() -> None:
     if args.update:
         for subr_name in SUBR_NAMES:
             start_date = last_date(COLL, subr_name)
-            data += read_praw(subr_name, start_date)
+            data += extract_praw(subr_name, start_date)
 
     # if data exists, write it to mongo
     resp = to_mongo(COLL, data)
