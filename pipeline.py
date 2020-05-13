@@ -349,9 +349,14 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     """Retrieve full posting history for all users."""
     # retrieve all users
     all_users = get_users(coll, how="all")
+    pct_start = 0
+    pct_end = .1
+    i_start = int(len(all_users) * pct_start)
+    i_end = int(len(all_users) * pct_end)
+    sub_users = all_users[i_start:i_end]
 
     # retrieve all user's posts
-    posts_df = users_posts(all_users, praw, psaw, len(all_users))
+    posts_df = users_posts(sub_users, praw, psaw, len(all_users))
 
     # convert posts from df form to Post form
     def row_to_post(row) -> Post:
