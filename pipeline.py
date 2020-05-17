@@ -283,7 +283,6 @@ def get_users(coll: pymongo.collection.Collection,
 def user_posts(psaw: PushshiftAPI,
                user: str) -> Optional[pd.DataFrame]:
     """Retrieve the full reddit posting history for the given users."""
-    print("On user:", user)
     subs = list(psaw.search_submissions(author=user))
     comms = list(psaw.search_comments(author=user))
     username = [user] * (len(subs) + len(comms))
@@ -348,29 +347,32 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
                    ) -> List[Post]:
     """Retrieve full posting history for all users."""
     # retrieve all users
+    print("Retrieving users .....")
     all_users = get_users(coll, how="all")
     pct_start = 0
-    pct_end = .1
+    pct_end = .01
     i_start = int(len(all_users) * pct_start)
     i_end = int(len(all_users) * pct_end)
     sub_users = all_users[i_start:i_end]
 
     # retrieve all user's posts
+    print("Retrieving user posts .....")
     posts_df = users_posts(sub_users, praw, psaw, len(sub_users))
 
-    # convert posts from df form to Post form
-    def row_to_post(row) -> Post:
+    def hist_to_post(row) -> Post:
+        """Convert posts from df form to Post form."""
         if row["is_sub"]:
             return Sub(username=row["username"],
                        text=row["text"],
                        pid=row["id"],
                        subr=row["subreddit"],
-                       time=row["time"])
+                       time=row["time"].to_datetime())
         return Comm(username=row["username"],
                     text=row["text"],
                     pid=row["id"],
                     subr=row["subreddit"],
-                    time=row["time"])
+                    time=row["time"].to_datetime())
 
-    posts = [row_to_post(row) for _, row in posts_df.iterrows()]
+    print("Converting histories to Posts .....")
+    posts = [hist_to_post(row) for _, row in posts_df.iterrows()]
     return posts
