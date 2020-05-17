@@ -350,7 +350,7 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     # retrieve all users
     all_users = get_users(coll, how="all")
     pct_start = 0
-    pct_end = .1
+    pct_end = .01
     i_start = int(len(all_users) * pct_start)
     i_end = int(len(all_users) * pct_end)
     sub_users = all_users[i_start:i_end]
@@ -365,12 +365,12 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
                        text=row["text"],
                        pid=row["id"],
                        subr=row["subreddit"],
-                       time=row["time"])
+                       time=row["time"].to_datetime())
         return Comm(username=row["username"],
                     text=row["text"],
                     pid=row["id"],
                     subr=row["subreddit"],
-                    time=row["time"])
+                    time=row["time"].to_datetime())
 
     posts = [row_to_post(row) for _, row in posts_df.iterrows()]
     return posts
