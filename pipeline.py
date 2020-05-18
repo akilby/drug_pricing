@@ -366,12 +366,12 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
                        text=row["text"],
                        pid=row["id"],
                        subr=row["subreddit"],
-                       time=row["time"].to_datetime())
+                       time=row["time"].to_pydatetime())
         return Comm(username=row["username"],
                     text=row["text"],
                     pid=row["id"],
                     subr=row["subreddit"],
-                    time=row["time"].to_datetime())
+                    time=row["time"].to_pydatetime())
 
     print("Converting histories to Posts .....")
     posts = [hist_to_post(row) for _, row in posts_df.iterrows()]
