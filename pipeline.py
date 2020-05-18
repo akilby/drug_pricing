@@ -287,7 +287,7 @@ def user_posts(psaw: PushshiftAPI,
     comms = list(psaw.search_comments(author=user))
     username = [user] * (len(subs) + len(comms))
     text = [s.selftext for s in subs] + [c.body for c in comms]
-    subr = [s.subreddit for s in subs] + [c.subreddit for c in comms]
+    subr = [s.subreddit.name for s in subs] + [c.subreddit for c in comms]
     times = [utc_to_dt(p.created_utc) for p in subs + comms]
     is_sub = [True] * len(subs) + [False] * len(comms)
     ids = [s.id for s in subs] + [c.id for c in comms]
@@ -350,7 +350,7 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     print("Retrieving users .....")
     all_users = get_users(coll, how="all")
     pct_start = 0
-    pct_end = .01
+    pct_end = .001
     i_start = int(len(all_users) * pct_start)
     i_end = int(len(all_users) * pct_end)
     sub_users = all_users[i_start:i_end]
