@@ -287,7 +287,7 @@ def user_posts(psaw: PushshiftAPI,
     comms = list(psaw.search_comments(author=user))
     username = [user] * (len(subs) + len(comms))
     text = [s.selftext for s in subs] + [c.body for c in comms]
-    subr = [s.subreddit.name for s in subs] + [c.subreddit.name for c in comms]
+    subr = [sc.subreddit.display_name for sc in subs + comms]
     times = [utc_to_dt(p.created_utc) for p in subs + comms]
     is_sub = [True] * len(subs) + [False] * len(comms)
     ids = [s.id for s in subs] + [c.id for c in comms]
