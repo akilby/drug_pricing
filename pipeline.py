@@ -13,6 +13,7 @@ from praw.models import Redditor
 from praw.models import Comment, Submission
 from pymongo.collection import Collection
 from psaw import PushshiftAPI
+from spacy.tokens import Doc
 
 
 from utils import PSAW, dt_to_utc, utc_to_dt
@@ -253,7 +254,8 @@ def last_date(coll: Collection, subr: str) -> datetime:
 
 
 def get_users(coll: pymongo.collection.Collection,
-              how: str = "top") -> List[str]:
+              how: str = "top"
+              ) -> List[str]:
     """
     Retrieve distinct usernames from the collection.
 
@@ -349,8 +351,8 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     # retrieve all users
     print("Retrieving users .....")
     all_users = get_users(coll, how="all")
-    pct_start = 0
-    pct_end = .001
+    pct_start = .4
+    pct_end = .5
     i_start = int(len(all_users) * pct_start)
     i_end = int(len(all_users) * pct_end)
     sub_users = all_users[i_start:i_end]
@@ -376,3 +378,15 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     print("Converting histories to Posts .....")
     posts = [hist_to_post(row) for _, row in posts_df.iterrows()]
     return posts
+
+
+def spacy_to_mongo(doc, coll):
+    """Insert a spacy doc to mongo."""
+    coll.insert_one({"spacy": doc.to_bytes()})
+
+
+def mongo_to_spacy(coll, nlp):
+    """Retrieve spacy from mongo."""
+    spacy_data = list(coll.find({}))[0]["spacy"]
+    doc = Doc(nlp.vocab).from_bytes(spacy_data)
+    return doc
