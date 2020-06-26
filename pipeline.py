@@ -1,29 +1,27 @@
 """Define utility functions for the data pipeline."""
 import os
+import random
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
-import random
 
 import pandas as pd
-import pymongo
 import prawcore
+import pymongo
 from praw import Reddit
-from praw.models import Redditor
-from praw.models import Comment, Submission
-from pymongo.collection import Collection
+from praw.models import Comment, Redditor, Submission
 from psaw import PushshiftAPI
 from spacy.tokens import Doc
+from pymongo.collection import Collection
 
-
-from utils import PSAW, dt_to_utc, utc_to_dt
+from utils import dt_to_utc, get_psaw, utc_to_dt
 
 
 @dataclass
 class Post():
     """An abstract representation of Submission and Comment objects."""
-
-    def __init__(self, pid: Optional[str] = None,
+    def __init__(self,
+                 pid: Optional[str] = None,
                  text: Optional[str] = None,
                  username: Optional[str] = None,
                  time: Optional[datetime] = None,
@@ -38,12 +36,14 @@ class Post():
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
-        return {"text": self.text,
-                "username": self.username,
-                "time": self.utc,
-                "pid": self.pid,
-                "hash": hash(self),
-                "subr": self.subr}
+        return {
+            "text": self.text,
+            "username": self.username,
+            "time": self.utc,
+            "pid": self.pid,
+            "hash": hash(self),
+            "subr": self.subr
+        }
 
     def __eq__(self, obj: object) -> bool:
         """Determine if the given object equals this object."""
@@ -62,8 +62,8 @@ class Post():
 @dataclass(eq=False)
 class Sub(Post):
     """Represents a Submission Object."""
-
-    def __init__(self, pid: Optional[str] = None,
+    def __init__(self,
+                 pid: Optional[str] = None,
                  text: Optional[str] = None,
                  username: Optional[str] = None,
                  time: Optional[datetime] = None,
@@ -72,7 +72,10 @@ class Sub(Post):
                  num_comments: Optional[int] = None,
                  subr: Optional[str] = None) -> None:
         """Initialize attributes of the Submission."""
-        super().__init__(pid=pid, text=text, username=username, time=time,
+        super().__init__(pid=pid,
+                         text=text,
+                         username=username,
+                         time=time,
                          subr=subr)
         self.url = url
         self.title = title
@@ -81,32 +84,36 @@ class Sub(Post):
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
         base_dict = super().to_dict()
-        base_dict.update({"title": self.title,
-                          "num_comments": self.num_comments,
-                          "is_sub": True})
+        base_dict.update({
+            "title": self.title,
+            "num_comments": self.num_comments,
+            "is_sub": True
+        })
         return base_dict
 
 
 @dataclass(eq=False)
 class Comm(Post):
     """Represents a Comment object."""
-
-    def __init__(self, pid: Optional[str] = None,
+    def __init__(self,
+                 pid: Optional[str] = None,
                  text: Optional[str] = None,
                  username: Optional[str] = None,
                  time: Optional[datetime] = None,
                  parent_id: Optional[str] = None,
                  subr: Optional[str] = None) -> None:
         """Initialize attributes of the Comment."""
-        super().__init__(pid=pid, text=text, username=username, time=time,
+        super().__init__(pid=pid,
+                         text=text,
+                         username=username,
+                         time=time,
                          subr=subr)
         self.parent_id = parent_id
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the attributes of this object to a dictionary."""
         base_dict = super().to_dict()
-        base_dict.update({"parent_id": self.parent_id,
-                          "is_sub": False})
+        base_dict.update({"parent_id": self.parent_id, "is_sub": False})
         return base_dict
 
 
@@ -124,18 +131,30 @@ def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
         text = sc.selftext
         title = sc.title
         num_comments = sc.num_comments
-        return Sub(pid=pid, username=username, time=time, text=text,
-                   url=url, title=title, num_comments=num_comments,
+        return Sub(pid=pid,
+                   username=username,
+                   time=time,
+                   text=text,
+                   url=url,
+                   title=title,
+                   num_comments=num_comments,
                    subr=subr)
 
     # comment attrs
     text = sc.body
     parent_id = sc.parent_id
-    return Comm(pid=pid, username=username, time=time, text=text,
-                parent_id=parent_id, subr=subr)
+    return Comm(pid=pid,
+                username=username,
+                time=time,
+                text=text,
+                parent_id=parent_id,
+                subr=subr)
 
 
-def extract_praw(subr: str, start_time: datetime, limit: Optional[int] = None,
+def extract_praw(psaw: PushshiftAPI,
+                 subr: str,
+                 start_time: datetime,
+                 limit: Optional[int] = None,
                  end_time: Optional[datetime] = None) -> List[Post]:
     """
     Extract all submissions/comments from reddit in the given time frame.
@@ -152,10 +171,17 @@ def extract_praw(subr: str, start_time: datetime, limit: Optional[int] = None,
     end_int = int(end_time.timestamp()) if end_time else None
 
     # retrieve all submissions and comments
-    subs = list(PSAW.search_submissions(after=start_int, subreddit=subr,
-                                        limit=limit, before=end_int))
-    comms = list(PSAW.search_comments(after=start_int, subreddit=subr,
-                                      limit=limit, before=end_int))
+
+    subs = list(
+        psaw.search_submissions(after=start_int,
+                                subreddit=subr,
+                                limit=limit,
+                                before=end_int))
+    comms = list(
+        psaw.search_comments(after=start_int,
+                             subreddit=subr,
+                             limit=limit,
+                             before=end_int))
 
     # convert Submission/Comment object to Sub/Comm objects
     sub_objs: List[Post] = [sc_to_post(s, True, subr) for s in subs]
@@ -178,13 +204,23 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
         url = row["url"]
         title = row["title"]
         num_comments = row["num_comments"]
-        return Sub(pid=pid, username=username, time=time, text=text, url=url,
-                   title=title, num_comments=num_comments, subr="opiates")
+        return Sub(pid=pid,
+                   username=username,
+                   time=time,
+                   text=text,
+                   url=url,
+                   title=title,
+                   num_comments=num_comments,
+                   subr="opiates")
 
     # comment attrs
     parent_id = row["parent_id"]
-    return Comm(pid=pid, username=username, time=time, text=text,
-                parent_id=parent_id, subr="opiates")
+    return Comm(pid=pid,
+                username=username,
+                time=time,
+                text=text,
+                parent_id=parent_id,
+                subr="opiates")
 
 
 def extract_csv(filepath: str, colnames: List[str]) -> List[Post]:
@@ -202,8 +238,10 @@ def extract_csv(filepath: str, colnames: List[str]) -> List[Post]:
         df: pd.DataFrame = pd.read_csv(filepath, header=None)
         df.columns = colnames
 
-        return [row_to_post(row, "parent_id" not in df.columns)
-                for _, row in df.iterrows()]
+        return [
+            row_to_post(row, "parent_id" not in df.columns)
+            for _, row in df.iterrows()
+        ]
 
     # else, return empty list
     return []
@@ -246,9 +284,17 @@ def to_mongo(coll: Collection, posts: List[Post]) -> str:
 
 def last_date(coll: Collection, subr: str) -> datetime:
     """Gets the newest date from the mongo collection."""
-    res = coll.aggregate([{"$match": {"subr": subr}},
-                          {"$sort": {"time": -1}},
-                          {"$limit": 1}])
+    res = coll.aggregate([{
+        "$match": {
+            "subr": subr
+        }
+    }, {
+        "$sort": {
+            "time": -1
+        }
+    }, {
+        "$limit": 1
+    }])
     time = list(res)[0]["time"]
     return time
 
@@ -263,10 +309,18 @@ def get_users(coll: pymongo.collection.Collection,
     is supported.
     """
     if how == "top":
-        query = [
-            {"$group": {"_id": "$username",
-                        "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}}]
+        query = [{
+            "$group": {
+                "_id": "$username",
+                "count": {
+                    "$sum": 1
+                }
+            }
+        }, {
+            "$sort": {
+                "count": -1
+            }
+        }]
         res = coll.aggregate(query)
         users = [rec["_id"] for rec in res]
         filt_users = list(filter(lambda x: x and pd.notna(x), users))
@@ -282,8 +336,7 @@ def get_users(coll: pymongo.collection.Collection,
     raise ValueError("Invalid 'how' type given.")
 
 
-def user_posts(psaw: PushshiftAPI,
-               user: str) -> Optional[pd.DataFrame]:
+def user_posts(psaw: PushshiftAPI, user: str) -> Optional[pd.DataFrame]:
     """Retrieve the full reddit posting history for the given users."""
     subs = list(psaw.search_submissions(author=user))
     comms = list(psaw.search_comments(author=user))
@@ -293,8 +346,14 @@ def user_posts(psaw: PushshiftAPI,
     times = [utc_to_dt(p.created_utc) for p in subs + comms]
     is_sub = [True] * len(subs) + [False] * len(comms)
     ids = [s.id for s in subs] + [c.id for c in comms]
-    data = {"username": username, "text": text, "subreddit": subr,
-            "is_sub": is_sub, "id": ids, "time": times}
+    data = {
+        "username": username,
+        "text": text,
+        "subreddit": subr,
+        "is_sub": is_sub,
+        "id": ids,
+        "time": times
+    }
     df = pd.DataFrame(data)
     return df
 
@@ -345,8 +404,7 @@ def users_posts(users: List[str],
 
 
 def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
-                   coll: pymongo.collection.Collection
-                   ) -> List[Post]:
+                   coll: pymongo.collection.Collection) -> List[Post]:
     """Retrieve full posting history for all users."""
     # retrieve all users
     print("Retrieving users .....")

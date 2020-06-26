@@ -1,12 +1,14 @@
 """Tests for parsing data from Reddit."""
+import functools as ft
 import os
 import unittest
-from typing import List
 from datetime import datetime
-import functools as ft
+from typing import List
 
-from utils import PROJ_DIR, DEF_SUBR, TEST_COLL, SUB_COLNAMES, COMM_COLNAMES
-from pipeline import Post, extract_csv, extract_praw, to_mongo, Sub
+from pipeline import Post, Sub, extract_csv, extract_praw, to_mongo
+from utils import (COMM_COLNAMES, DB_NAME, PROJ_DIR, SUB_COLNAMES,
+                   TEST_COLL_NAME, dt_to_utc, get_mongo, get_praw, get_psaw,
+                   utc_to_dt)
 
 
 class TestExtractPraw(unittest.TestCase):
@@ -14,16 +16,19 @@ class TestExtractPraw(unittest.TestCase):
 
     # arbitrary date to test with
     date = datetime(2019, 12, 20)
+    subreddit = "opiates"
+    praw = get_praw()
+    psaw = get_psaw(praw)
 
     def __get_posts(self) -> List[Post]:
         """Retrieve posts from Reddit."""
-        return extract_praw(DEF_SUBR, self.date, limit=50)
+        return extract_praw(self.psaw, self.subreddit, self.date, limit=50)
 
     def test_is_post(self) -> None:
         """Test that the objects returned are all post objects."""
         posts = self.__get_posts()
-        are_posts = ft.reduce(
-            lambda acc, p: acc and isinstance(p, Post), posts, True)
+        are_posts = ft.reduce(lambda acc, p: acc and isinstance(p, Post),
+                              posts, True)
         self.assertTrue(are_posts)
 
     def test_at_least_one(self) -> None:
@@ -60,7 +65,7 @@ class TestToMongo(unittest.TestCase):
     p2 = Sub(pid="abc", text="sample text")
 
     # initialize test collection connection
-    coll = TEST_COLL
+    coll = get_mongo()[DB_NAME][TEST_COLL_NAME]
 
     def test_insert(self) -> None:
         """Test that insertion works correctly."""
