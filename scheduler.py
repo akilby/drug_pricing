@@ -5,18 +5,17 @@ import re
 from datetime import datetime
 from typing import List
 
-from pipeline import (Post, extract_csv, extract_praw, last_date,
-                      to_mongo, all_user_hists)
-from utils import SUBR_NAMES, COLL, COMM_COLNAMES, SUB_COLNAMES, PSAW, PRAW 
+from pipeline import (Post, all_user_hists, extract_csv, extract_praw,
+                      last_date, to_mongo)
+from utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES, SUBR_NAMES,
+                   get_mongo, get_praw, get_psaw)
 
 
 def gen_args(sub_labels: List[str],
              comm_labels: List[str]) -> argparse.ArgumentParser:
     """Generate an argument parser."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--subr",
-                        help="The subreddit to use.",
-                        type=str)
+    parser.add_argument("--subr", help="The subreddit to use.", type=str)
     parser.add_argument("--startdate",
                         help="The end date for Praw scraping",
                         type=str)
@@ -30,10 +29,11 @@ def gen_args(sub_labels: List[str],
                         help="The csv filepath to parse from",
                         type=str)
     parser.add_argument("--posttype",
-                        help=" ".join(["If data to parse is submissions",
-                                       str(sub_labels),
-                                       "or comments",
-                                       str(comm_labels)]))
+                        help=" ".join([
+                            "If data to parse is submissions",
+                            str(sub_labels), "or comments",
+                            str(comm_labels)
+                        ]))
     parser.add_argument("--lastdate",
                         help="Retrieve the last date stored in the mongo\
                                 collection.",
@@ -61,7 +61,9 @@ def read_praw(subr: str, start_str: str, end_str: str,
             return praw_data
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
             end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
-            praw_data = extract_praw(subr, start_date, limit=limit,
+            praw_data = extract_praw(subr,
+                                     start_date,
+                                     limit=limit,
                                      end_time=end_date)
         print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
@@ -95,6 +97,9 @@ def main() -> None:
     """Execute programs from the command line."""
     # initialize data
     data: List[Post] = []
+    collection = get_mongo()[DB_NAME][COLL_NAME]
+    praw = get_praw()
+    psaw = get_psaw(praw)
 
     # hardcode acceptable post type labels
     sub_labels: List[str] = ["s", "sub"]
@@ -105,13 +110,12 @@ def main() -> None:
 
     # retrieve the last date stored in mongo
     if args.lastdate and args.subr:
-        date = last_date(COLL, args.subr)
+        date = last_date(collection, args.subr)
         print(date)
 
     # retrieve data from praw if valid fields given
     if args.subr:
-        data += read_praw(args.subr, args.startdate, args.enddate,
-                          args.limit)
+        data += read_praw(args.subr, args.startdate, args.enddate, args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
@@ -120,14 +124,14 @@ def main() -> None:
     # add all recent posts to database
     if args.update:
         for subr_name in SUBR_NAMES:
-            start_date = last_date(COLL, subr_name)
-            data += extract_praw(subr_name, start_date)
+            start_date = last_date(collection, subr_name)
+            data += extract_praw(psaw, subr_name, start_date)
 
     if args.histories:
-        data += all_user_hists(PRAW, PSAW, COLL)
+        data += all_user_hists(praw, psaw, collection)
 
     # if data exists, write it to mongo
-    resp = to_mongo(COLL, data)
+    resp = to_mongo(collection, data)
     print(resp)
 
     print("Program completed.")

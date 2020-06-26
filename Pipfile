@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [pipenv]
-
 allow_prereleases = true
 
 [dev-packages]
@@ -152,6 +151,7 @@ WTForms = "==2.2.1"
 importmagic = "*"
 etc = "*"
 epc = "*"
+nose = "*"
 
 [requires]
 python_version = "3.7"

@@ -10,48 +10,58 @@ from praw import Reddit
 from psaw import PushshiftAPI
 
 # --- Utility Constants ---
-# define project location
+# project constants
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# load local environment variables
-ENV_PATH = os.path.join(PROJ_DIR, ".env")
-load_dotenv(dotenv_path=ENV_PATH)
-
-# establish reddit connection
-PRAW = Reddit(client_id=os.getenv("RCLIENT_ID"),
-              client_secret=os.getenv("RSECRET_KEY"),
-              password=os.getenv("RPASSWORD"),
-              username=os.getenv("RUSERNAME"),
-              user_agent=os.getenv("RUSER_AGENT"))
-PSAW = PushshiftAPI(PRAW)
-
-# define subreddit
 SUBR_NAMES = ["opiates", "heroin"]
-DEF_SUBR = PRAW.subreddit(SUBR_NAMES[0])
 SUB_LIMIT = 1000
 
-# define mongo connection
-MONGO = pymongo.MongoClient(os.getenv("HOST"),
-                            int(str(os.getenv("PORT"))),
-                            username=os.getenv("MUSERNAME"),
-                            password=os.getenv("MPASSWORD"),
-                            authSource=os.getenv("DB_NAME"))
-DB = MONGO[os.getenv("DB_NAME")]
-COLL = DB[os.getenv("COLL_NAME")]
-TEST_COLL = DB[os.getenv("TEST_COLL_NAME")]
-
-# define hardcoded file locations on the HPC cluster
+# hardcoded file locations on the HPC cluster
 BASE_DIR = "/work/akilby/drug_pricing_project"
 SUB_DIR = os.path.join(BASE_DIR, "opiates/opiates/threads")
 COMM_DIR = os.path.join(BASE_DIR, "opiates/opiates/comments/complete")
 OUT_JSON = os.path.join(BASE_DIR, "all_posts.json")
 
-# hardcode column names for legacy comment and submission csv files
+# hardcoded column names for legacy comment and submission csv files
 SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
                 "text", "utc"]
 COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
 
+# database constants
+DB_NAME = os.getenv("DB_NAME")
+COLL_NAME = os.getenv("COLL_NAME")
+TEST_COLL_NAME = os.getenv("TEST_COLL_NAME")
+
+# load local environment variables
+load_dotenv(dotenv_path=os.path.join(PROJ_DIR, ".env"))
+
 # --- Utility Functions ---
+
+
+def get_mongo() -> pymongo.MongoClient:
+    """Allows for lazy connection to Mongo."""
+    return pymongo.MongoClient(
+        os.getenv("HOST"),
+        int(str(os.getenv("PORT"))),
+        username=os.getenv("MUSERNAME"),
+        password=os.getenv("MPASSWORD"),
+        authSource=os.getenv("DB_NAME")
+    )
+
+
+def get_praw() -> Reddit:
+    """Allows for lazy connection to Praw."""
+    return Reddit(
+        client_id=os.getenv("RCLIENT_ID"),
+        client_secret=os.getenv("RSECRET_KEY"),
+        password=os.getenv("RPASSWORD"),
+        username=os.getenv("RUSERNAME"),
+        user_agent=os.getenv("RUSER_AGENT")
+    )
+
+
+def get_psaw(praw: Reddit) -> PushshiftAPI:
+    """Allows for lazy connection to Psaw."""
+    return PushshiftAPI(praw)
 
 
 def utc_to_dt(utc: float) -> datetime:
