@@ -118,12 +118,13 @@ def main() -> None:
     if args.lastdate and args.subr:
         print("Getting last date .....")
         date = last_date(collection, args.subr)
-        print(date)
+        print("Most recent date in the database:", date)
 
     # retrieve data from praw if valid fields given
     if args.subr:
         print("Retrieving limited posts from Reddit .....")
-        data += read_praw(psaw, args.subr, args.startdate, args.enddate, args.limit)
+        data += read_praw(psaw, args.subr, args.startdate, args.enddate,
+                          args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
