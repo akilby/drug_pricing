@@ -3,16 +3,12 @@ import functools as ft
 import os
 import unittest
 from datetime import datetime
-from typing import Dict, List
+from typing import List
 
-import pymongo
-import spacy
-
-from pipeline import (Post, Sub, add_spacy_to_mongo, extract_csv, extract_praw,
-                      to_mongo)
-from utils import (COMM_COLNAMES, DB_NAME, PROJ_DIR, SUB_COLNAMES,
-                   TEST_COLL_NAME, dt_to_utc, get_mongo, get_praw, get_psaw,
-                   utc_to_dt)
+from src.pipeline import extract_csv, extract_praw, to_mongo
+from src.utils import (COMM_COLNAMES, DB_NAME, PROJ_DIR, SUB_COLNAMES,
+                       TEST_COLL_NAME, Post, Sub, get_mongo, get_praw,
+                       get_psaw)
 
 
 class TestExtractPraw(unittest.TestCase):
@@ -107,48 +103,6 @@ class TestToMongo(unittest.TestCase):
         # assert count is count1
         count2 = self.coll.count_documents({})
         self.assertEqual(count1, count2)
-
-
-class TestAddSpacyToMongo(unittest.TestCase):
-    """Tests for adding a spacy doc to each post in mongo."""
-
-    coll = get_mongo()[DB_NAME][TEST_COLL_NAME]
-    nlp = spacy.load("en_core_web_sm")
-
-    @staticmethod
-    def add_to_mongo(doc: Dict, coll: pymongo.collection.Collection):
-        """Add a document to mongo."""
-        try:
-            coll.insert_one(doc)
-        except pymongo.errors.DuplicateKeyError:
-            pass
-
-    def test_add_spacy_to_mongo(self):
-        pre_total_count = self.coll.count_documents({})
-        pre_spacy_count = self.coll.count_documents(
-            {"spacy": {
-                "$exists": True
-            }})
-
-        # insert sample doc without spacy
-        doc1 = {
-            "name": "test-no-spacy",
-            "text": "sample text for testing if spacy is added."
-        }
-        doc2 = {"name": "test-no-spacy-no-text"}
-        self.add_to_mongo(doc1, self.coll)
-        self.add_to_mongo(doc2, self.coll)
-
-        n_updated = add_spacy_to_mongo(self.coll, self.nlp)
-
-        post_total_count = self.coll.count_documents({})
-        self.assertEqual(pre_total_count, post_total_count)
-
-        post_spacy_count = self.coll.count_documents(
-            {"spacy": {
-                "$exists": True
-            }})
-        self.assertEqual(n_updated, (post_spacy_count - pre_spacy_count))
 
 
 if __name__ == '__main__':

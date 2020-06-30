@@ -5,13 +5,15 @@ import re
 from datetime import datetime
 from typing import List
 
-import spacy
 from psaw import PushshiftAPI
 
-from pipeline import (Post, add_spacy_to_mongo, all_user_hists, extract_csv,
-                      extract_praw, last_date, to_mongo)
-from utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES, SUBR_NAMES,
-                   get_mongo, get_praw, get_psaw)
+import spacy
+from src.histories import all_user_hists
+from src.pipeline import extract_csv, extract_praw, to_mongo
+from src.spacy import add_spacy_to_mongo
+from src.utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES,
+                       SUBR_NAMES, Post, get_mongo, get_praw, get_psaw,
+                       last_date)
 
 
 def gen_args() -> argparse.ArgumentParser:
