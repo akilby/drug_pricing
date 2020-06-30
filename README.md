@@ -4,7 +4,7 @@ This project contains code for extracting posts and comments from Reddit. It all
 ## Setup Instructions
 
 ### 1. Environment variables
-This project utilizes the python "dotenv" package to read secure information as environment variables. This secure information is not tracked on version control, so you must populate your own credentials. Follow the below instructions.
+This project utilizes the python "dotenv" package to read sensitive information as environment variables. This information is not tracked on version control, so you populate your own credentials by following the below instructions.
 
 A. Create a file named `.env` in the project root
 
