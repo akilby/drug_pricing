@@ -1,16 +1,6 @@
 # Drug Pricing Scheduler
 This project contains code for extracting posts and comments from Reddit. It allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.
 
-## Project Structure
-
-`scheduler.py` allows for command-line execution of the scheduler
-
-`pipeline.py` contains functions & objects for the scheduling pipeline
-
-`utils.py` contains project-wide variables and functions
-
-`tests/` contains all tests for the project
-
 ## Setup Instructions
 
 ### 1. Environment variables
@@ -39,7 +29,7 @@ Run `pipenv install` to install all dependencies
 
 To update all new data from all subreddits, run `make run`.
 
-More specific execution of the scheduler is also possible. Run `python3 scheduler.py --help` for more details.
+More specific execution of the scheduler is also possible. Run `python -m src.scheduler --help` for more details.
 
 **Running tests**
 
