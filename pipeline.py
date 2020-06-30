@@ -11,8 +11,10 @@ import pymongo
 from praw import Reddit
 from praw.models import Comment, Redditor, Submission
 from psaw import PushshiftAPI
-from spacy.tokens import Doc
 from pymongo.collection import Collection
+from spacy.lang.en import English
+from spacy.tokens import Doc
+import tqdm
 
 from utils import dt_to_utc, get_psaw, utc_to_dt
 
@@ -300,8 +302,7 @@ def last_date(coll: Collection, subr: str) -> datetime:
 
 
 def get_users(coll: pymongo.collection.Collection,
-              how: str = "top"
-              ) -> List[str]:
+              how: str = "top") -> List[str]:
     """
     Retrieve distinct usernames from the collection.
 
@@ -438,13 +439,32 @@ def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
     return posts
 
 
-def spacy_to_mongo(doc, coll):
-    """Insert a spacy doc to mongo."""
-    coll.insert_one({"spacy": doc.to_bytes()})
+def add_spacy_to_mongo(coll: pymongo.collection.Collection,
+                       nlp: English) -> int:
+    """Add spacy field to all posts in mongo."""
+    docs = list(
+        coll.find({
+            "$and": [{
+                "spacy": {
+                    "$exists": False
+                }
+            }, {
+                "text": {
+                    "$exists": True
+                }
+            }]
+        }))
+    for doc in tqdm.tqdm(docs):
+        post = doc["text"]
+        if type(post) == str:
+            coll.update_one({"_id": doc["_id"]},
+                            {"$set": {
+                                "spacy": nlp(post).to_bytes()
+                            }}, False)
+    return len(docs)
 
 
-def mongo_to_spacy(coll, nlp):
-    """Retrieve spacy from mongo."""
-    spacy_data = list(coll.find({}))[0]["spacy"]
-    doc = Doc(nlp.vocab).from_bytes(spacy_data)
+def bytes_to_spacy(data: bytes, nlp: English) -> Doc:
+    """Convert byte data to a spacy doc."""
+    doc = Doc(nlp.vocab).from_bytes(data)
     return doc

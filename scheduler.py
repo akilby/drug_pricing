@@ -5,14 +5,16 @@ import re
 from datetime import datetime
 from typing import List
 
-from pipeline import (Post, all_user_hists, extract_csv, extract_praw,
-                      last_date, to_mongo)
+import spacy
+from psaw import PushshiftAPI
+
+from pipeline import (Post, add_spacy_to_mongo, all_user_hists, extract_csv,
+                      extract_praw, last_date, to_mongo)
 from utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES, SUBR_NAMES,
                    get_mongo, get_praw, get_psaw)
 
 
-def gen_args(sub_labels: List[str],
-             comm_labels: List[str]) -> argparse.ArgumentParser:
+def gen_args() -> argparse.ArgumentParser:
     """Generate an argument parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--subr", help="The subreddit to use.", type=str)
@@ -29,11 +31,8 @@ def gen_args(sub_labels: List[str],
                         help="The csv filepath to parse from",
                         type=str)
     parser.add_argument("--posttype",
-                        help=" ".join([
-                            "If data to parse is submissions",
-                            str(sub_labels), "or comments",
-                            str(comm_labels)
-                        ]))
+                        help="If data to parse is" +
+                        "submissions (s) or comments (c)")
     parser.add_argument("--lastdate",
                         help="Retrieve the last date stored in the mongo\
                                 collection.",
@@ -45,10 +44,13 @@ def gen_args(sub_labels: List[str],
     parser.add_argument("--histories",
                         help="Retrieve full posting history for all users.",
                         action="store_true")
+    parser.add_argument("--spacy",
+                        help="Run spacy on all new documents.",
+                        action="store_true")
     return parser
 
 
-def read_praw(subr: str, start_str: str, end_str: str,
+def read_praw(psaw: PushshiftAPI, subr: str, start_str: str, end_str: str,
               limit: int) -> List[Post]:
     """Read from praw starting from the given date."""
     # if date is formatted correctly, parse praw from the given date
@@ -56,12 +58,13 @@ def read_praw(subr: str, start_str: str, end_str: str,
         print("Extracting posts from praw .....")
         start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
         if not end_str:
-            praw_data: List[Post] = extract_praw(subr, start_date, limit=limit)
+            praw_data: List[Post] = extract_praw(psaw, subr, start_date, limit=limit)
             print(f"{len(praw_data)} posts from Reddit retrieved.")
             return praw_data
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
             end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
-            praw_data = extract_praw(subr,
+            praw_data = extract_praw(psaw,
+                                     subr,
                                      start_date,
                                      limit=limit,
                                      end_time=end_date)
@@ -100,35 +103,46 @@ def main() -> None:
     collection = get_mongo()[DB_NAME][COLL_NAME]
     praw = get_praw()
     psaw = get_psaw(praw)
+    nlp = spacy.load("en_core_web_sm")
 
     # hardcode acceptable post type labels
     sub_labels: List[str] = ["s", "sub"]
     comm_labels: List[str] = ["c", "comm"]
 
     # retrieve args
-    args = gen_args(sub_labels, comm_labels).parse_args()
+    args = gen_args().parse_args()
 
     # retrieve the last date stored in mongo
     if args.lastdate and args.subr:
+        print("Getting last date .....")
         date = last_date(collection, args.subr)
         print(date)
 
     # retrieve data from praw if valid fields given
     if args.subr:
-        data += read_praw(args.subr, args.startdate, args.enddate, args.limit)
+        print("Retrieving limited posts from Reddit .....")
+        data += read_praw(psaw, args.subr, args.startdate, args.enddate, args.limit)
 
     # retrieve data from csv if valid fields given
     if args.csv:
+        print("Retrieving data from csv .....")
         data += read_csv(args.csv, args.posttype, sub_labels, comm_labels)
 
     # add all recent posts to database
     if args.update:
+        print("Retrieving all new posts from Reddit .....")
         for subr_name in SUBR_NAMES:
             start_date = last_date(collection, subr_name)
             data += extract_praw(psaw, subr_name, start_date)
 
     if args.histories:
+        print("Retrieving user histories .....")
         data += all_user_hists(praw, psaw, collection)
+
+    # add spacy to docs without spacy
+    if args.spacy:
+        print("Updating documents with spacy .....")
+        add_spacy_to_mongo(collection, nlp)
 
     # if data exists, write it to mongo
     resp = to_mongo(collection, data)
