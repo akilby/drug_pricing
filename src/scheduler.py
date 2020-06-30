@@ -119,6 +119,7 @@ def main() -> None:
         print("Getting last date .....")
         date = last_date(collection, args.subr)
         print("Most recent date in the database:", date)
+        return
 
     # retrieve data from praw if valid fields given
     if args.subr:
@@ -146,6 +147,7 @@ def main() -> None:
     if args.spacy:
         print("Updating documents with spacy .....")
         add_spacy_to_mongo(collection, nlp)
+        return
 
     # if data exists, write it to mongo
     resp = to_mongo(collection, data)
