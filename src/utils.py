@@ -2,7 +2,7 @@
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 import pymongo
 import pytz
@@ -70,9 +70,9 @@ def utc_to_dt(utc: float) -> datetime:
     return datetime.utcfromtimestamp(int(utc))
 
 
-def dt_to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+def dt_to_utc(dt_: Optional[datetime]) -> Optional[datetime]:
     """Converts a standard datetime representation to UTC."""
-    return None if not dt else dt.astimezone(pytz.UTC)
+    return None if not dt_ else dt_.astimezone(pytz.UTC)
 
 
 def last_date(coll: pymongo.collection.Collection, subr: str) -> datetime:
@@ -118,8 +118,10 @@ class Post():
 
     def __eq__(self, obj: object) -> bool:
         """Determine if the given object equals this object."""
-        return isinstance(obj, self) and (obj.pid == self.pid) and \
-            (obj.text == self.text)
+        if isinstance(obj, Post):
+            post_obj = cast(Post, obj)
+            return post_obj.pid == self.pid and post_obj.text == self.text
+        return False
 
     def __ne__(self, obj: Any) -> bool:
         """Determine if the given object does not equal this object."""
