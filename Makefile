@@ -1,10 +1,20 @@
-args="--update"
+args=""
+base="pipenv run python -m src.scheduler"
 
 clean:
 	rm -rf slurm* ~* *~ \#* *\#
 
-run:
-	pipenv run python -m src.scheduler $(args)
+update:
+	pipenv run $(base) --update $(args)
 
-test: 
+histories:
+	pipenv run $(base) --histories $(args)
+
+spacy:
+	pipenv run $(base) --spacy $(args)
+
+run:
+	pipenv run $(args)
+
+test:
 	pipenv run python -m unittest

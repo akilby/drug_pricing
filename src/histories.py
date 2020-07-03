@@ -5,10 +5,12 @@ from typing import List, Optional
 import pandas as pd
 import prawcore
 import pymongo
+import tqdm
 from praw import Reddit
 from praw.models import Redditor
 from psaw import PushshiftAPI
 
+from src.pipeline import to_mongo
 from src.utils import Comm, Post, Sub, utc_to_dt
 
 
@@ -48,8 +50,8 @@ def get_users(coll: pymongo.collection.Collection,
     raise ValueError("Invalid 'how' type given.")
 
 
-def user_posts(psaw: PushshiftAPI, user: str) -> Optional[pd.DataFrame]:
-    """Retrieve the full reddit posting history for the given users."""
+def user_posts(psaw: PushshiftAPI, user: str) -> pd.DataFrame:
+    """Retrieve the full reddit posting history for the given user."""
     subs = list(psaw.search_submissions(author=user))
     comms = list(psaw.search_comments(author=user))
     username = [user] * (len(subs) + len(comms))
@@ -70,29 +72,25 @@ def user_posts(psaw: PushshiftAPI, user: str) -> Optional[pd.DataFrame]:
     return df
 
 
-def get_non_mods(users: List[str],
-                 praw: Reddit,
-                 n: int,
-                 acc: List[str] = []) -> List[str]:
-    """Retrieve n users that are not moderators."""
-    if n <= 0 or n >= len(users) or len(users) == 0:
-        return acc
-    user = users.pop(0)
-    redditor = Redditor(praw, user)
-    try:
-        if hasattr(redditor, "is_mod") and (not redditor.is_mod):
-            acc.append(user)
-            return get_non_mods(users, praw, n - 1, acc=acc)
-    except prawcore.exceptions.NotFound:
-        pass
-    return get_non_mods(users, praw, n, acc=acc)
+def hist_to_post(row) -> Post:
+    """Convert posts from df form to Post form."""
+    if row["is_sub"]:
+        return Sub(username=row["username"],
+                   text=row["text"],
+                   pid=row["id"],
+                   subr=row["subreddit"],
+                   time=row["time"].to_pydatetime())
+    return Comm(username=row["username"],
+                text=row["text"],
+                pid=row["id"],
+                subr=row["subreddit"],
+                time=row["time"].to_pydatetime())
 
 
-def users_posts(users: List[str],
-                praw: Reddit,
-                psaw: PushshiftAPI,
-                n: int,
-                filt_mods: bool = False) -> pd.DataFrame:
+def get_users_histories(users: List[str],
+                        psaw: PushshiftAPI,
+                        coll: pymongo.collection.Collection,
+                        filt_mods: bool = False) -> None:
     """
     Retrieve the full reddit posting history for all given users.
 
@@ -101,50 +99,7 @@ def users_posts(users: List[str],
 
     :return: a dataframe of post features
     """
-    # get n users that are not moderators if desired
-    if filt_mods:
-        n_users = get_non_mods(users, praw, n)
-    # otheriwse just select first n users
-    else:
-        if n <= len(users):
-            n_users = users[:n]
-        else:
-            raise ValueError("n is too big")
-    dfs = [user_posts(psaw, user) for user in n_users]
-    df = pd.concat([df for df in dfs if df is not None])
-    return df
-
-
-def all_user_hists(praw: Reddit, psaw: PushshiftAPI,
-                   coll: pymongo.collection.Collection) -> List[Post]:
-    """Retrieve full posting history for all users."""
-    # retrieve all users
-    print("Retrieving users .....")
-    all_users = get_users(coll, how="all")
-    pct_start = .4
-    pct_end = .5
-    i_start = int(len(all_users) * pct_start)
-    i_end = int(len(all_users) * pct_end)
-    sub_users = all_users[i_start:i_end]
-
-    # retrieve all user's posts
-    print("Retrieving user posts .....")
-    posts_df = users_posts(sub_users, praw, psaw, len(sub_users))
-
-    def hist_to_post(row) -> Post:
-        """Convert posts from df form to Post form."""
-        if row["is_sub"]:
-            return Sub(username=row["username"],
-                       text=row["text"],
-                       pid=row["id"],
-                       subr=row["subreddit"],
-                       time=row["time"].to_pydatetime())
-        return Comm(username=row["username"],
-                    text=row["text"],
-                    pid=row["id"],
-                    subr=row["subreddit"],
-                    time=row["time"].to_pydatetime())
-
-    print("Converting histories to Posts .....")
-    posts = [hist_to_post(row) for _, row in posts_df.iterrows()]
-    return posts
+    for user in tqdm.tqdm(users):
+        df = user_posts(psaw, user)
+        posts = [hist_to_post(row) for _, row in df.iterrows()]
+        to_mongo(coll, posts)

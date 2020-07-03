@@ -8,7 +8,7 @@ from typing import List
 from psaw import PushshiftAPI
 
 import spacy
-from src.histories import all_user_hists
+from src.histories import get_users_histories
 from src.pipeline import extract_csv, extract_praw, to_mongo
 from src.spacy import add_spacy_to_mongo
 from src.utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES,
@@ -141,7 +141,8 @@ def main() -> None:
 
     if args.histories:
         print("Retrieving user histories .....")
-        data += all_user_hists(praw, psaw, collection)
+        users = []
+        get_users_histories(users, praw, psaw, collection)
 
     # add spacy to docs without spacy
     if args.spacy:
