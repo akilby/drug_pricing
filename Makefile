@@ -1,5 +1,5 @@
 args=""
-base="pipenv run python -m src.scheduler"
+base="pipenv run python -m src.__init__"
 
 clean:
 	rm -rf slurm* ~* *~ \#* *\#

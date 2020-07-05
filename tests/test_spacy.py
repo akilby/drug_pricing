@@ -5,8 +5,8 @@ from typing import Dict
 import pymongo
 import spacy
 
-from src.spacy import add_spacy_to_mongo
-from src.utils import get_mongo, DB_NAME, TEST_COLL_NAME
+from src.tasks.spacy import add_spacy_to_mongo
+from src.utils import DB_NAME, TEST_COLL_NAME, get_mongo
 
 
 class TestAddSpacyToMongo(unittest.TestCase):

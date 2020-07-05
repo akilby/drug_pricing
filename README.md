@@ -25,14 +25,23 @@ Run `pipenv install` to install all dependencies
 
 ## Running the Project
 
-**Running the scheduler**
+**Updating the database**
 
 To update all new data from all subreddits, run `make run`.
 
-More specific execution of the scheduler is also possible. Run `python -m src.scheduler --help` for more details.
 
 **Running tests**
 
 Run `make test` to execute all tests.
 
-*Note:* tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
+*Note:** tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
+
+**Additional Functionality**
+
+Other available functionality include:
+- Retrieve Reddit posts by subreddit and timeframe
+- Retrieve all posts from the subreddits listed in `utils.py` file since the last date in the mongo db
+- Add spacy objects to all posts in the mongo db
+
+Run `python -m src.__init__ --help` for more details.
+
