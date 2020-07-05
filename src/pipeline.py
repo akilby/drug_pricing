@@ -9,7 +9,7 @@ from praw.models import Comment, Submission
 from psaw import PushshiftAPI
 from pymongo.collection import Collection
 
-from src.utils import Comm, Post, Sub, utc_to_dt
+from src.utils import CustomComment, CustomSubmission, Post, utc_to_dt
 
 
 def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
@@ -26,7 +26,7 @@ def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
         text = sc.selftext
         title = sc.title
         num_comments = sc.num_comments
-        return Sub(
+        return CustomSubmission(
             pid=pid,
             username=username,
             time=time,
@@ -40,7 +40,7 @@ def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
     # comment attrs
     text = sc.body
     parent_id = sc.parent_id
-    return Comm(
+    return CustomComment(
         pid=pid,
         username=username,
         time=time,
@@ -105,7 +105,7 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
         url = row["url"]
         title = row["title"]
         num_comments = row["num_comments"]
-        return Sub(
+        return CustomSubmission(
             pid=pid,
             username=username,
             time=time,
@@ -118,7 +118,7 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
 
     # comment attrs
     parent_id = row["parent_id"]
-    return Comm(
+    return CustomComment(
         pid=pid,
         username=username,
         time=time,

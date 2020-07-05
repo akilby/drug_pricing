@@ -7,8 +7,8 @@ from typing import List
 
 from src.pipeline import extract_csv, extract_praw, to_mongo
 from src.utils import (COMM_COLNAMES, DB_NAME, PROJ_DIR, SUB_COLNAMES,
-                       TEST_COLL_NAME, Post, Sub, get_mongo, get_praw,
-                       get_psaw)
+                       TEST_COLL_NAME, CustomSubmission, Post, get_mongo,
+                       get_praw, get_psaw)
 
 
 class TestExtractPraw(unittest.TestCase):
@@ -61,8 +61,8 @@ class TestToMongo(unittest.TestCase):
     """Tests for the to_mongo method."""
 
     # instantiate sample posts
-    p1 = Sub(pid="abc", text="sample text")
-    p2 = Sub(pid="abc", text="sample text")
+    p1 = CustomSubmission(pid="abc", text="sample text")
+    p2 = CustomSubmission(pid="abc", text="sample text")
 
     # initialize test collection connection
     coll = get_mongo()[DB_NAME][TEST_COLL_NAME]

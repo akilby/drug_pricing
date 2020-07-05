@@ -116,29 +116,13 @@ class Post():
             "subr": self.subr
         }
 
-    def __eq__(self, obj: object) -> bool:
-        """Determine if the given object equals this object."""
-        if isinstance(obj, Post):
-            post_obj = cast(Post, obj)
-            return post_obj.pid == self.pid and post_obj.text == self.text
-        return False
 
-    def __ne__(self, obj: Any) -> bool:
-        """Determine if the given object does not equal this object."""
-        return not obj == self
-
-    def __hash__(self) -> int:
-        """Establish a hash value for this object."""
-        return 10 * hash(self.text) + hash(self.pid)
-
-
-@dataclass(eq=False)
-class Sub(Post):
-    """A representation of a Submission object."""
+@dataclass
+class CustomSubmission(Post):
+    """A custom representation of a Submission object."""
     url: Optional[str] = None
     title: Optional[str] = None
     num_comments: Optional[int] = None
-    subr: Optional[str] = None
 
     def to_dict(self) -> Dict:
         """Convert the attributes of this object to a dictionary."""
@@ -150,10 +134,25 @@ class Sub(Post):
         })
         return base_dict
 
+    def __eq__(self, obj: object) -> bool:
+        """Determine if the given object equals this object."""
+        if isinstance(obj, CustomSubmission):
+            submission_obj = cast(CustomSubmission, obj)
+            return submission_obj.pid == self.pid and submission_obj.text == self.text
+        return False
 
-@dataclass(eq=False)
-class Comm(Post):
-    """Represents a Comment object."""
+    def __ne__(self, obj: Any) -> bool:
+        """Determine if the given object does not equal this object."""
+        return not obj == self
+
+    def __hash__(self) -> int:
+        """Establish a hash value for this object."""
+        return 10 * hash(self.text) + hash(self.pid)
+
+
+@dataclass
+class CustomComment(Post):
+    """A custom representation a Comment object."""
     parent_id: Optional[str] = None
 
     def to_dict(self) -> Dict:
@@ -161,3 +160,18 @@ class Comm(Post):
         base_dict = super().to_dict()
         base_dict.update({"parent_id": self.parent_id, "is_sub": False})
         return base_dict
+
+    def __eq__(self, obj: object) -> bool:
+        """Determine if the given object equals this object."""
+        if isinstance(obj, CustomComment):
+            comment_obj = cast(CustomComment, obj)
+            return comment_obj.pid == self.pid and comment_obj.text == self.text
+        return False
+
+    def __ne__(self, obj: Any) -> bool:
+        """Determine if the given object does not equal this object."""
+        return not obj == self
+
+    def __hash__(self) -> int:
+        """Establish a hash value for this object."""
+        return 10 * hash(self.text) + hash(self.pid)
