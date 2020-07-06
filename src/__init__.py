@@ -11,9 +11,9 @@ from psaw import PushshiftAPI
 from src.pipeline import extract_csv, extract_praw, to_mongo
 from src.tasks.histories import get_users_histories
 from src.tasks.spacy import add_spacy_to_mongo
-from src.utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, SUB_COLNAMES,
-                       SUBR_NAMES, Post, get_mongo, get_praw, get_psaw,
-                       last_date)
+from src.utils import (COLL_NAME, COMM_COLNAMES, DB_NAME, PROJ_DIR,
+                       SUB_COLNAMES, SUBR_NAMES, Post, get_mongo, get_praw,
+                       get_psaw, last_date)
 
 
 def gen_args() -> argparse.ArgumentParser:
@@ -142,8 +142,9 @@ def main() -> None:
 
     if args.histories:
         print("Retrieving user histories .....")
-        users = []
-        get_users_histories(users, praw, psaw, collection)
+        with open(os.path.join(PROJ_DIR, "data", "users_to_add.txt"), "r+") as users_file:
+            users = users_file.readlines()
+            get_users_histories(users, psaw, collection, users_file)
 
     # add spacy to docs without spacy
     if args.spacy:
