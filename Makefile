@@ -1,5 +1,5 @@
 args=""
-base="pipenv run python -m src.__init__"
+base="python -m src.__init__"
 
 clean:
 	rm -rf slurm* ~* *~ \#* *\#
