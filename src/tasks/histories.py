@@ -83,7 +83,7 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
 def get_users_histories(users: List[str],
                         psaw: PushshiftAPI,
                         coll: pymongo.collection.Collection,
-                        cache_file: Optional[TextIO] = None) -> None:
+                        cache_fn: Optional[str] = None) -> None:
     """
     Retrieve the full reddit posting history for all given users.
 
@@ -96,6 +96,7 @@ def get_users_histories(users: List[str],
         posts = extract_user_posts(psaw, users[i])
         to_mongo(coll, posts)
 
-        if cache_file:
+        if cache_fn:
+            cache_file = open(cache_fn, "w")
             for u in users[(i + 1):]:
-                cache_file.write(u)
+                cache_file.write(u + "\n")

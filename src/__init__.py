@@ -142,9 +142,10 @@ def main() -> None:
 
     if args.histories:
         print("Retrieving user histories .....")
-        with open(os.path.join(PROJ_DIR, "data", "users_to_add.txt"), "r+") as users_file:
+        users_fp = os.path.join(PROJ_DIR, "data", "users_to_add.txt")
+        with open(users_fp, "r") as users_file:
             users = users_file.readlines()
-            get_users_histories(users, psaw, collection, users_file)
+            get_users_histories(users, psaw, collection, users_fp)
 
     # add spacy to docs without spacy
     if args.spacy:
