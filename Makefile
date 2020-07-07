@@ -1,5 +1,5 @@
-args=""
-base="python -m src.__init__"
+args=
+base=python -m src.__init__
 
 clean:
 	rm -rf slurm* ~* *~ \#* *\#
