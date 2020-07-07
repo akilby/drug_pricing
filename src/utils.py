@@ -12,7 +12,7 @@ from psaw import PushshiftAPI
 
 # --- Utility Constants ---
 # project constants
-PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 SUBR_NAMES = ["opiates", "heroin"]
 SUB_LIMIT = 1000
 
