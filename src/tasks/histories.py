@@ -61,7 +61,7 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
             username=user,
             text=s.selftext,
             pid=s.id,
-            subr=s.display_name,
+            subr=s.subreddit.display_name,
             time=utc_to_dt(s.created_utc),
             title=s.title,
             url=s.url,
@@ -73,7 +73,7 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
             username=user,
             text=c.body,
             pid=c.id,
-            subr=c.display_name,
+            subr=c.subreddit.display_name,
             time=utc_to_dt(c.created_utc),
             parent_id=c.parent_id
         ))
@@ -97,6 +97,5 @@ def get_users_histories(users: List[str],
         to_mongo(coll, posts)
 
         if cache_fn:
-            cache_file = open(cache_fn, "w")
-            for u in users[(i + 1):]:
-                cache_file.write(u + "\n")
+            new_users = users[(i + 1):]
+            pd.Series(new_users).to_csv(cache_fn, index=False, header=False)

@@ -7,6 +7,7 @@ from typing import List
 
 import spacy
 from psaw import PushshiftAPI
+import pandas as pd
 
 from src.pipeline import extract_csv, extract_praw, to_mongo
 from src.tasks.histories import get_users_histories
@@ -142,10 +143,9 @@ def main() -> None:
 
     if args.histories:
         print("Retrieving user histories .....")
-        users_fp = os.path.join(PROJ_DIR, "data", "users_to_add.txt")
-        with open(users_fp, "r") as users_file:
-            users = users_file.readlines()
-            get_users_histories(users, psaw, collection, users_fp)
+        users_fp = os.path.join(PROJ_DIR, "data", "users.csv")
+        users = pd.read_csv(users_fp, squeeze=True, header=None).tolist()
+        get_users_histories(users, psaw, collection, users_fp)
 
     # add spacy to docs without spacy
     if args.spacy:
