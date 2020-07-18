@@ -5,9 +5,9 @@ import re
 from datetime import datetime
 from typing import List
 
+import pandas as pd
 import spacy
 from psaw import PushshiftAPI
-import pandas as pd
 
 from src.pipeline import extract_csv, extract_praw, to_mongo
 from src.tasks.histories import get_users_histories
@@ -37,12 +37,10 @@ def gen_args() -> argparse.ArgumentParser:
                         help="If data to parse is" +
                         "submissions (s) or comments (c)")
     parser.add_argument("--lastdate",
-                        help="Retrieve the last date stored in the mongo\
-                                collection.",
+                        help="Retrieve the last date stored in the mongo collection.",
                         action="store_true")
     parser.add_argument("--update",
-                        help="Insert all posts for all subreddits from the\
-                                last posted date",
+                        help="Insert all posts for all subreddits from the last posted date",
                         action="store_true")
     parser.add_argument("--histories",
                         help="Retrieve full posting history for all users.",
@@ -56,21 +54,23 @@ def gen_args() -> argparse.ArgumentParser:
 def read_praw(psaw: PushshiftAPI, subr: str, start_str: str, end_str: str,
               limit: int) -> List[Post]:
     """Read from praw starting from the given date."""
-    # if date is formatted correctly, parse praw from the given date
     if re.match(r'\d{4}-\d{2}-\d{2}', start_str):
         print("Extracting posts from praw .....")
-        start_date: datetime = datetime.strptime(start_str, "%Y-%m-%d")
+        start_date = datetime.strptime(start_str, "%Y-%m-%d")
+
         if not end_str:
-            praw_data: List[Post] = extract_praw(psaw, subr, start_date, limit=limit)
+            praw_data = extract_praw(psaw, subr, start_date, limit=limit)
             print(f"{len(praw_data)} posts from Reddit retrieved.")
             return praw_data
+
         if re.match(r'\d{4}-\d{2}-\d{2}', end_str):
-            end_date: datetime = datetime.strptime(end_str, "%Y-%m-%d")
+            end_date = datetime.strptime(end_str, "%Y-%m-%d")
             praw_data = extract_praw(psaw,
                                      subr,
                                      start_date,
                                      limit=limit,
                                      end_time=end_date)
+
         print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
 
@@ -81,21 +81,19 @@ def read_praw(psaw: PushshiftAPI, subr: str, start_str: str, end_str: str,
 def read_csv(filepath: str, posttype: str, sub_labels: List[str],
              comm_labels: List[str]) -> List[Post]:
     """Read data from the given csv file using the given post type."""
-    # check if the given post type is valid
     if posttype.lower() in sub_labels + comm_labels:
-        # check if the given file exists
         if os.path.isfile(filepath):
-            is_sub: bool = (posttype.lower() in sub_labels)
-            colnames: List[str] = SUB_COLNAMES if is_sub else COMM_COLNAMES
+            is_sub = (posttype.lower() in sub_labels)
+            colnames = SUB_COLNAMES if is_sub else COMM_COLNAMES
+
             print("Reading Posts from csv file .....")
-            file_data: List[Post] = extract_csv(filepath, colnames)
+            file_data = extract_csv(filepath, colnames)
+
             print(f"{len(file_data)} posts from files retrieved.")
             return file_data
 
-        # rase exception if file doesn't exist
         raise ValueError("The given file does not exist.")
 
-    # raise an exception if an invalid post type is given
     raise ValueError("Invalid post type provided.")
 
 
