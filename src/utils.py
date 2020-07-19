@@ -12,9 +12,12 @@ from psaw import PushshiftAPI
 
 # --- Utility Constants ---
 # project constants
-PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 SUBR_NAMES = ["opiates", "heroin"]
 SUB_LIMIT = 1000
+
+# load local environment variables
+load_dotenv(os.path.join(PROJ_DIR, "..", ".env"))
 
 # hardcoded file locations on the HPC cluster
 BASE_DIR = "/work/akilby/drug_pricing_project"
@@ -23,17 +26,13 @@ COMM_DIR = os.path.join(BASE_DIR, "opiates/opiates/comments/complete")
 OUT_JSON = os.path.join(BASE_DIR, "all_posts.json")
 
 # hardcoded column names for legacy comment and submission csv files
-SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
-                "text", "utc"]
+SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title", "text", "utc"]
 COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
 
 # database constants
 DB_NAME = os.getenv("DB_NAME")
 COLL_NAME = os.getenv("COLL_NAME")
 TEST_COLL_NAME = os.getenv("TEST_COLL_NAME")
-
-# load local environment variables
-load_dotenv(dotenv_path=os.path.join(PROJ_DIR, ".env"))
 
 # --- Utility Functions ---
 
@@ -45,7 +44,7 @@ def get_mongo() -> pymongo.MongoClient:
         int(str(os.getenv("PORT"))),
         username=os.getenv("MUSERNAME"),
         password=os.getenv("MPASSWORD"),
-        authSource=os.getenv("DB_NAME")
+        authSource=os.getenv("DB_NAME"),
     )
 
 
@@ -56,7 +55,7 @@ def get_praw() -> Reddit:
         client_secret=os.getenv("RSECRET_KEY"),
         password=os.getenv("RPASSWORD"),
         username=os.getenv("RUSERNAME"),
-        user_agent=os.getenv("RUSER_AGENT")
+        user_agent=os.getenv("RUSER_AGENT"),
     )
 
 
@@ -77,17 +76,7 @@ def dt_to_utc(dt_: Optional[datetime]) -> Optional[datetime]:
 
 def last_date(coll: pymongo.collection.Collection, subr: str) -> datetime:
     """Gets the newest date from the mongo collection."""
-    res = coll.aggregate([{
-        "$match": {
-            "subr": subr
-        }
-    }, {
-        "$sort": {
-            "time": -1
-        }
-    }, {
-        "$limit": 1
-    }])
+    res = coll.aggregate([{"$match": {"subr": subr}}, {"$sort": {"time": -1}}, {"$limit": 1}])
     time = list(res)[0]["time"]
     return time
 
@@ -96,8 +85,9 @@ def last_date(coll: pymongo.collection.Collection, subr: str) -> datetime:
 
 
 @dataclass
-class Post():
+class Post:
     """An abstract representation of Submission and Comment objects."""
+
     pid: Optional[str] = None
     text: Optional[str] = None
     username: Optional[str] = None
@@ -113,13 +103,14 @@ class Post():
             "time": self.utc,
             "pid": self.pid,
             "hash": hash(self),
-            "subr": self.subr
+            "subr": self.subr,
         }
 
 
 @dataclass
 class CustomSubmission(Post):
     """A custom representation of a Submission object."""
+
     url: Optional[str] = None
     title: Optional[str] = None
     num_comments: Optional[int] = None
@@ -127,11 +118,7 @@ class CustomSubmission(Post):
     def to_dict(self) -> Dict:
         """Convert the attributes of this object to a dictionary."""
         base_dict = super().to_dict()
-        base_dict.update({
-            "title": self.title,
-            "num_comments": self.num_comments,
-            "is_sub": True
-        })
+        base_dict.update({"title": self.title, "num_comments": self.num_comments, "is_sub": True})
         return base_dict
 
     def __eq__(self, obj: object) -> bool:
@@ -153,6 +140,7 @@ class CustomSubmission(Post):
 @dataclass
 class CustomComment(Post):
     """A custom representation a Comment object."""
+
     parent_id: Optional[str] = None
 
     def to_dict(self) -> Dict:

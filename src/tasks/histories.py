@@ -1,21 +1,17 @@
 """Functions for extracting user histories."""
 import random
-from typing import List, Optional, TextIO
+from typing import List, Optional
 
 import pandas as pd
-import prawcore
 import pymongo
 import tqdm
-from praw import Reddit
-from praw.models import Redditor
 from psaw import PushshiftAPI
 
 from src.pipeline import to_mongo
 from src.utils import CustomComment, CustomSubmission, Post, utc_to_dt
 
 
-def get_users(coll: pymongo.collection.Collection,
-              how: str = "top") -> List[str]:
+def get_users(coll: pymongo.collection.Collection, how: str = "top") -> List[str]:
     """
     Retrieve distinct usernames from the collection.
 
@@ -23,18 +19,7 @@ def get_users(coll: pymongo.collection.Collection,
     is supported.
     """
     if how == "top":
-        query = [{
-            "$group": {
-                "_id": "$username",
-                "count": {
-                    "$sum": 1
-                }
-            }
-        }, {
-            "$sort": {
-                "count": -1
-            }
-        }]
+        query = [{"$group": {"_id": "$username", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}]
         res = coll.aggregate(query)
         users = [rec["_id"] for rec in res]
         filt_users = list(filter(lambda x: x and pd.notna(x), users))
@@ -57,33 +42,39 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
     posts = []
 
     for s in submissions:
-        posts.append(CustomSubmission(
-            username=user,
-            text=s.selftext,
-            pid=s.id,
-            subr=s.subreddit.display_name,
-            time=utc_to_dt(s.created_utc),
-            title=s.title,
-            url=s.url,
-            num_comments=s.num_comments
-        ))
+        posts.append(
+            CustomSubmission(
+                username=user,
+                text=s.selftext,
+                pid=s.id,
+                subr=s.subreddit.display_name,
+                time=utc_to_dt(s.created_utc),
+                title=s.title,
+                url=s.url,
+                num_comments=s.num_comments,
+            )
+        )
 
     for c in comments:
-        posts.append(CustomComment(
-            username=user,
-            text=c.body,
-            pid=c.id,
-            subr=c.subreddit.display_name,
-            time=utc_to_dt(c.created_utc),
-            parent_id=c.parent_id
-        ))
+        posts.append(
+            CustomComment(
+                username=user,
+                text=c.body,
+                pid=c.id,
+                subr=c.subreddit.display_name,
+                time=utc_to_dt(c.created_utc),
+                parent_id=c.parent_id,
+            )
+        )
     return posts
 
 
-def get_users_histories(users: List[str],
-                        psaw: PushshiftAPI,
-                        coll: pymongo.collection.Collection,
-                        cache_fn: Optional[str] = None) -> None:
+def get_users_histories(
+    users: List[str],
+    psaw: PushshiftAPI,
+    coll: pymongo.collection.Collection,
+    cache_fn: Optional[str] = None,
+) -> None:
     """
     Retrieve the full reddit posting history for all given users.
 
@@ -97,5 +88,5 @@ def get_users_histories(users: List[str],
         to_mongo(coll, posts)
 
         if cache_fn:
-            new_users = users[(i + 1):]
+            new_users = users[(i + 1) :]
             pd.Series(new_users).to_csv(cache_fn, index=False, header=False)

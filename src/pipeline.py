@@ -12,8 +12,7 @@ from pymongo.collection import Collection
 from src.utils import CustomComment, CustomSubmission, Post, utc_to_dt
 
 
-def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
-               subr: str) -> Post:
+def sc_to_post(sc: Union[Submission, Comment], is_sub: bool, subr: str) -> Post:
     """Convert a Praw Submission or Comment to a Post object."""
     # generic attributes
     pid = sc.id
@@ -34,27 +33,24 @@ def sc_to_post(sc: Union[Submission, Comment], is_sub: bool,
             url=url,
             title=title,
             num_comments=num_comments,
-            subr=subr
+            subr=subr,
         )
 
     # comment attrs
     text = sc.body
     parent_id = sc.parent_id
     return CustomComment(
-        pid=pid,
-        username=username,
-        time=time,
-        text=text,
-        parent_id=parent_id,
-        subr=subr
+        pid=pid, username=username, time=time, text=text, parent_id=parent_id, subr=subr
     )
 
 
-def extract_praw(psaw: PushshiftAPI,
-                 subr: str,
-                 start_time: datetime,
-                 limit: Optional[int] = None,
-                 end_time: Optional[datetime] = None) -> List[Post]:
+def extract_praw(
+    psaw: PushshiftAPI,
+    subr: str,
+    start_time: datetime,
+    limit: Optional[int] = None,
+    end_time: Optional[datetime] = None,
+) -> List[Post]:
     """
     Extract all submissions/comments from reddit in the given time frame.
 
@@ -71,18 +67,10 @@ def extract_praw(psaw: PushshiftAPI,
 
     # retrieve all submissions and comments
 
-    subs = list(psaw.search_submissions(
-        after=start_int,
-        subreddit=subr,
-        limit=limit,
-        before=end_int
-    ))
-    comms = list(psaw.search_comments(
-        after=start_int,
-        subreddit=subr,
-        limit=limit,
-        before=end_int
-    ))
+    subs = list(
+        psaw.search_submissions(after=start_int, subreddit=subr, limit=limit, before=end_int)
+    )
+    comms = list(psaw.search_comments(after=start_int, subreddit=subr, limit=limit, before=end_int))
 
     # convert Submission/Comment object to Sub/Comm objects
     sub_objs: List[Post] = [sc_to_post(s, True, subr) for s in subs]
@@ -113,18 +101,13 @@ def row_to_post(row: pd.Series, is_sub: bool) -> Post:
             url=url,
             title=title,
             num_comments=num_comments,
-            subr="opiates"
+            subr="opiates",
         )
 
     # comment attrs
     parent_id = row["parent_id"]
     return CustomComment(
-        pid=pid,
-        username=username,
-        time=time,
-        text=text,
-        parent_id=parent_id,
-        subr="opiates"
+        pid=pid, username=username, time=time, text=text, parent_id=parent_id, subr="opiates"
     )
 
 
@@ -143,10 +126,7 @@ def extract_csv(filepath: str, colnames: List[str]) -> List[Post]:
         df: pd.DataFrame = pd.read_csv(filepath, header=None)
         df.columns = colnames
 
-        return [
-            row_to_post(row, "parent_id" not in df.columns)
-            for _, row in df.iterrows()
-        ]
+        return [row_to_post(row, "parent_id" not in df.columns) for _, row in df.iterrows()]
 
     # else, return empty list
     return []
