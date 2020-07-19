@@ -8,7 +8,7 @@ import tqdm
 from psaw import PushshiftAPI
 
 from src.pipeline import to_mongo
-from src.utils import CustomComment, CustomSubmission, Post, utc_to_dt
+from src.utils import CommentPost, SubmissionPost, Post, utc_to_dt
 
 
 def get_users(coll: pymongo.collection.Collection, how: str = "top") -> List[str]:
@@ -43,7 +43,7 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
 
     for s in submissions:
         posts.append(
-            CustomSubmission(
+            SubmissionPost(
                 username=user,
                 text=s.selftext,
                 pid=s.id,
@@ -57,7 +57,7 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
 
     for c in comments:
         posts.append(
-            CustomComment(
+            CommentPost(
                 username=user,
                 text=c.body,
                 pid=c.id,
@@ -72,7 +72,6 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
 def get_users_histories(
     users: List[str],
     psaw: PushshiftAPI,
-    coll: pymongo.collection.Collection,
     cache_fn: Optional[str] = None,
 ) -> None:
     """
@@ -85,7 +84,8 @@ def get_users_histories(
     """
     for i in tqdm.tqdm(range(len(users))):
         posts = extract_user_posts(psaw, users[i])
-        to_mongo(coll, posts)
+        for p in posts:
+            p.save()
 
         if cache_fn:
             new_users = users[(i + 1) :]

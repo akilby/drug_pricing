@@ -161,6 +161,7 @@ websocket_client = "==0.56.0"
 Werkzeug = "==0.16.0"
 WTForms = "==2.2.1"
 "zope.deprecation" = "==4.4.0"
+mongoengine = "*"
 
 [requires]
 python_version = "3.7"

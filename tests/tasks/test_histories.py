@@ -1,7 +1,5 @@
 import unittest
-from typing import Dict
 
-from src.tasks.histories import get_users_histories
 from src.utils import DB_NAME, TEST_COLL_NAME, get_mongo, get_praw, get_psaw
 
 

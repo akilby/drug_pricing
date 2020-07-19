@@ -43,7 +43,7 @@ def check_locs(loc_df, city_df, denylist):
     return loc_df
 
 
-def predict(loc_df, cit_df):
+def _predict(loc_df, cit_df):
     """Strategy for guessing a users location."""
     users = []
     guesses = []
@@ -65,3 +65,6 @@ def predict(loc_df, cit_df):
             guesses.append(None)
             conf.append(None)
     return pd.DataFrame({"user": users, "guess": guesses, "conf": conf})
+
+
+def predict(doc: nlp, )
