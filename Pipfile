@@ -162,6 +162,7 @@ Werkzeug = "==0.16.0"
 WTForms = "==2.2.1"
 "zope.deprecation" = "==4.4.0"
 mongoengine = "*"
+mongomock = "*"
 
 [requires]
 python_version = "3.7"

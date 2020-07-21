@@ -11,10 +11,10 @@ class Post(Document):
     subreddit = StringField()
     spacy = StringField()
     meta = {
-        'abstract': True,
+        'allow_inheritance': True,
         'indexes': [
             '$text',
-            '-time',
+            '-datetime',
             {
                 'fields': ['pid'],
                 'unique': True
@@ -34,6 +34,3 @@ class CommentPost(Post):
     """A Reddit Comment."""
     parent_id = StringField()
 
-
-class Location(Document):
-    pass

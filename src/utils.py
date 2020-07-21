@@ -1,14 +1,16 @@
 """Stores project constants and utility functions."""
 import os
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from mongoengine import connect
 import pytz
 from dotenv import load_dotenv
+from mongoengine import connect
 from praw import Reddit
 from psaw import PushshiftAPI
-from schema import Post
+
+from src.schema import Post
 
 # --- Utility Constants ---
 # project constants
@@ -68,3 +70,13 @@ def last_date(subreddit: Optional[str] = None) -> datetime:
     """Gets the newest date from the mongo collection."""
     base_query = Post.objects(subreddit=subreddit) if subreddit else Post.objects
     return base_query.order_by("-datetime").first().datetime
+
+
+# --- Data Structures ---
+
+@dataclass
+class Location:
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    county: Optional[str] = None
+    state: Optional[str] = None

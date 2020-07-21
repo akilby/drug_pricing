@@ -1,3 +1,5 @@
+import ast
+
 import tqdm
 from mongoengine.queryset.visitor import Q
 
@@ -12,11 +14,17 @@ def add_spacy_to_mongo(nlp: English) -> int:
     for post in tqdm.tqdm(posts):
         text = post["text"]
         if type(text) == str:
-            post.spacy = nlp(text).to_bytes()
+            post.spacy = str(nlp(text).to_bytes())
     return len(posts)
 
 
 def bytes_to_spacy(data: bytes, nlp: English) -> Doc:
-    """Convert byte data to a spacy doc."""
+    """Convert bytes data to a spacy doc."""
     doc = Doc(nlp.vocab).from_bytes(data)
     return doc
+
+
+def literal_bytes_to_spacy(data: str, nlp: English) -> Doc:
+    """Convert a string literal containing spacy bytes data to a spacy doc."""
+    return bytes_to_spacy(ast.literal_eval(data), nlp)
+

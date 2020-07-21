@@ -7,8 +7,8 @@ import pymongo
 import tqdm
 from psaw import PushshiftAPI
 
-from src.pipeline import to_mongo
-from src.utils import CommentPost, SubmissionPost, Post, utc_to_dt
+from src.utils import utc_to_dt
+from src.schema import CommentPost, Post, SubmissionPost
 
 
 def get_users(coll: pymongo.collection.Collection, how: str = "top") -> List[str]:
