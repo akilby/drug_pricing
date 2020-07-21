@@ -3,9 +3,7 @@ import functools as ft
 from collections import Counter
 from typing import List, Dict, Set, Callable, Optional
 
-import pandas as pd
 from spacy.lang.en import English
-from spacy.tokens.span import Span
 import dataclasses
 
 from src.utils import Location
