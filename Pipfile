@@ -163,6 +163,7 @@ WTForms = "==2.2.1"
 "zope.deprecation" = "==4.4.0"
 mongoengine = "*"
 mongomock = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.7"

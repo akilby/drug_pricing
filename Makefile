@@ -24,7 +24,7 @@ run:
 	pipenv run scheduler $(args)
 
 test:
-	pipenv run py.test tests --cov=src --cov-report=term-missing --cov-fail-under 95
+	pipenv run py.test tests --cov=src --cov-report=term-missing --cov-fail-under 50
 
 lint:
 	pipenv run flake8 src

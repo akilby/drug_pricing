@@ -1,7 +1,9 @@
-from src.utils import get_mongo, PROJ_DIR
-from src.tasks.histories import get_users
 import os
+
 import tqdm
+
+from src.tasks.histories import get_users
+from src.utils import PROJ_DIR, get_mongo
 
 
 def main():

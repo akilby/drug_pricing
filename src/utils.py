@@ -2,15 +2,18 @@
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional, Union
 
+import mongoengine
+import pymongo
 import pytz
 from dotenv import load_dotenv
 from mongoengine import connect
 from praw import Reddit
+from praw.models import Comment, Submission
 from psaw import PushshiftAPI
 
-from src.schema import Post
+from src.schema import CommentPost, Post, SubmissionPost, User
 
 # --- Utility Constants ---
 # project constants
@@ -27,6 +30,17 @@ COLL_NAME = os.getenv("COLL_NAME")
 TEST_COLL_NAME = os.getenv("TEST_COLL_NAME")
 
 # --- Utility Functions ---
+
+
+def get_mongo() -> pymongo.MongoClient:
+    """Allows for lazy connection to Mongo."""
+    return pymongo.MongoClient(
+        os.getenv("HOST"),
+        int(str(os.getenv("PORT"))),
+        username=os.getenv("MUSERNAME"),
+        password=os.getenv("MPASSWORD"),
+        authSource=os.getenv("DB_NAME"),
+    )
 
 
 def connect_to_mongo():
@@ -72,7 +86,63 @@ def last_date(subreddit: Optional[str] = None) -> datetime:
     return base_query.order_by("-datetime").first().datetime
 
 
+def posts_to_mongo(posts: List[Post]) -> None:
+    """Store the given posts in mongo."""
+    n_posted = 0
+    for post in posts:
+        try:
+            post.save()
+            n_posted += 1
+        except mongoengine.errors.ValidationError as e:
+            print(f"Error adding post {post.pid}: {e}")
+    print(f"{n_posted} posts added to mongo.")
+
+
+def user_from_username(username: Optional[str]) -> Optional[User]:
+    """Return the user if it exists, else create it and return."""
+    user = None
+    if isinstance(username, str):
+        query = User.objects(username=username)
+        if query.count() == 0:
+            user = User(username=username)
+            user.save()
+        else:
+            user = query.first()
+
+    return user
+
+
+def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool) -> Post:
+    """Convert a Praw Submission or Comment to a Post object."""
+    # convert username to user
+    username = None if not sub_comm.author else sub_comm.author.name
+    user = user_from_username(username)
+
+    # store attributes common to both submission and comments
+    kwargs = {
+        "pid": sub_comm.id,
+        "user": user,
+        "datetime": utc_to_dt(sub_comm.created_utc),
+        "subreddit": sub_comm.subreddit.display_name,
+    }
+
+    # assign particular attributes and return the proper post type
+    if is_sub:
+        kwargs["url"] = sub_comm.url
+        kwargs["text"] = sub_comm.selftext
+        kwargs["title"] = sub_comm.title
+        kwargs["num_comments"] = sub_comm.num_comments
+        post = SubmissionPost
+    else:
+        kwargs["text"] = sub_comm.body
+        kwargs["parent_id"] = sub_comm.parent_id
+        post = CommentPost
+
+    return post(**kwargs)
+
+
 # --- Data Structures ---
+
 
 @dataclass
 class Location:
@@ -80,3 +150,13 @@ class Location:
     city: Optional[str] = None
     county: Optional[str] = None
     state: Optional[str] = None
+    state_short: Optional[str] = None
+
+    def __hash__(self):
+        return (
+            10000 * hash(self.neighborhood)
+            + 1000 * hash(self.city)
+            + 100 * hash(self.county)
+            + 10 * hash(self.state)
+            + hash(self.state_short)
+        )

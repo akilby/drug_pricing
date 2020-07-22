@@ -2,19 +2,20 @@ import ast
 
 import tqdm
 from mongoengine.queryset.visitor import Q
-
 from spacy.lang.en import English
 from spacy.tokens import Doc
+
 from src.schema import Post
 
 
 def add_spacy_to_mongo(nlp: English) -> int:
     """Add spacy field to all posts in mongo."""
-    posts = Post.objects(Q(spacy_exists=False) & Q(text_exists=True))
+    posts = Post.objects(Q(spacy__exists=False) & Q(text__exists=True))
     for post in tqdm.tqdm(posts):
-        text = post["text"]
+        text = post.text
         if type(text) == str:
-            post.spacy = str(nlp(text).to_bytes())
+            post.spacy = nlp(text).to_bytes()
+            post.save()
     return len(posts)
 
 
@@ -27,4 +28,3 @@ def bytes_to_spacy(data: bytes, nlp: English) -> Doc:
 def literal_bytes_to_spacy(data: str, nlp: English) -> Doc:
     """Convert a string literal containing spacy bytes data to a spacy doc."""
     return bytes_to_spacy(ast.literal_eval(data), nlp)
-

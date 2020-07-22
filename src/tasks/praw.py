@@ -1,52 +1,12 @@
 """Define utility functions for the data pipeline."""
-from datetime import datetime
 import re
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
+from typing import List, Optional
 
-import pymongo
-from praw.models import Comment, Submission
 from psaw import PushshiftAPI
-from pymongo.collection import Collection
 
-from src.schema import CommentPost, Post, SubmissionPost
-from src.utils import utc_to_dt
-
-
-def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool, subr: str) -> Post:
-    """Convert a Praw Submission or Comment to a Post object."""
-    # generic attributes
-    pid = sub_comm.id
-    username = None if not sub_comm.author else sub_comm.author.name
-    datetime = utc_to_dt(sub_comm.created_utc)
-
-    # submission attrs
-    if is_sub:
-        url = sub_comm.url
-        text = sub_comm.selftext
-        title = sub_comm.title
-        num_comments = sub_comm.num_comments
-        return SubmissionPost(
-            pid=pid,
-            username=username,
-            datetime=datetime,
-            text=text,
-            url=url,
-            title=title,
-            num_comments=num_comments,
-            subr=subr,
-        )
-
-    # comment attrs
-    text = sub_comm.body
-    parent_id = sub_comm.parent_id
-    return CommentPost(
-        pid=pid,
-        username=username,
-        time=datetime,
-        text=text,
-        parent_id=parent_id,
-        subr=subr
-    )
+from src.schema import Post
+from src.utils import sub_comm_to_post
 
 
 def extract_praw(
@@ -78,35 +38,28 @@ def extract_praw(
     comms = list(psaw.search_comments(after=start_int, subreddit=subr, limit=limit, before=end_int))
 
     # convert Submission/Comment object to Sub/Comm objects
-    sub_objs: List[Post] = [sub_comm_to_post(s, True, subr) for s in subs]
-    comm_objs: List[Post] = [sub_comm_to_post(c, False, subr) for c in comms]
+    sub_objs: List[Post] = [sub_comm_to_post(s, True) for s in subs]
+    comm_objs: List[Post] = [sub_comm_to_post(c, False) for c in comms]
 
     # return list of combined post objects
     return sub_objs + comm_objs
 
 
-def read_praw(
-    psaw: PushshiftAPI,
-    subr: str,
-    start_str: str,
-    end_str: str,
-    limit: int
+def validate_praw(
+    psaw: PushshiftAPI, subr: str, start_str: str, end_str: str, limit: int
 ) -> List[Post]:
     """Read from praw starting from the given date."""
     if re.match(r"\d{4}-\d{2}-\d{2}", start_str):
-        print("Extracting posts from praw .....")
         start_date = datetime.strptime(start_str, "%Y-%m-%d")
 
         if not end_str:
             praw_data = extract_praw(psaw, subr, start_date, limit=limit)
-            print(f"{len(praw_data)} posts from Reddit retrieved.")
             return praw_data
 
         if re.match(r"\d{4}-\d{2}-\d{2}", end_str):
             end_date = datetime.strptime(end_str, "%Y-%m-%d")
             praw_data = extract_praw(psaw, subr, start_date, limit=limit, end_time=end_date)
 
-        print(f"{len(praw_data)} posts from Reddit retrieved.")
         return praw_data
 
     # raise exception if date incorrectly formatted

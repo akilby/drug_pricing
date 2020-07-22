@@ -1,15 +1,14 @@
 """Allows command line execution of programs."""
 import argparse
 import os
-from typing import List
 
 import pandas as pd
 import spacy
 from mongoengine import disconnect
 
-from src.tasks.praw import read_praw, extract_praw
 from src.tasks.csv import read_csv
 from src.tasks.histories import get_users_histories
+from src.tasks.praw import extract_praw, validate_praw
 from src.tasks.spacy import add_spacy_to_mongo
 from src.utils import (
     PROJ_DIR,
@@ -18,6 +17,7 @@ from src.utils import (
     get_praw,
     get_psaw,
     last_date,
+    posts_to_mongo,
 )
 
 
@@ -58,33 +58,35 @@ def main() -> None:
     praw = get_praw()
     psaw = get_psaw(praw)
     nlp = spacy.load("en_core_web_sm")
+    connect_to_mongo()
 
     # retrieve the last date stored in mongo
     if args.lastdate and args.subr:
         print("Getting last date .....")
         date = last_date(args.subr)
         print("Most recent date in the database:", date)
-        return
 
     # retrieve data from praw if valid fields given
     if args.subr:
         print("Retrieving limited posts from Reddit .....")
-        data = read_praw(psaw, args.subr, args.startdate, args.enddate, args.limit)
+        praw_data = validate_praw(psaw, args.subr, args.startdate, args.enddate, args.limit)
+        print(f"{len(praw_data)} posts from Reddit retrieved.")
+        posts_to_mongo(praw_data)
 
     # retrieve data from csv if valid fields given
     if args.csv:
         print("Retrieving data from csv .....")
-        data += read_csv(args.csv, args.posttype)
+        posts = read_csv(args.csv, args.posttype)
+        posts_to_mongo(posts)
 
     # add all recent posts to database
     if args.update:
         print("Retrieving all new posts from Reddit .....")
         for subr_name in SUBR_NAMES:
+            print(f"\tGetting posts from subreddit: {subr_name}")
             start_date = last_date(subr_name)
             posts = extract_praw(psaw, subr_name, start_date)
-            for p in posts:
-                p.save()
-            print(f"{len(posts)} posts inserted")
+            posts_to_mongo(posts)
 
     if args.histories:
         print("Retrieving user histories .....")
@@ -96,7 +98,6 @@ def main() -> None:
     if args.spacy:
         print("Updating documents with spacy .....")
         add_spacy_to_mongo(nlp)
-        return
 
     disconnect()
     print("Program completed.")

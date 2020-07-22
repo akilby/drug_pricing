@@ -4,7 +4,7 @@ from typing import List
 from src.schema import Post
 from src.tasks.csv import COMM_COLNAMES, SUB_COLNAMES, extract_csv
 from src.utils import PROJ_DIR
-from tests.tasks.praw import TestExtractPraw
+from tests.tasks.test_praw import TestExtractPraw
 
 
 class TestExtractCsv(TestExtractPraw):
@@ -16,7 +16,7 @@ class TestExtractCsv(TestExtractPraw):
     """
 
     # file paths that test data are stored in
-    data_dir = os.path.join(PROJ_DIR, "data")
+    data_dir = os.path.join(PROJ_DIR, "..", "data")
 
     def __get_posts(self) -> List[Post]:
         """Overwrite the method for retrieving posts to read from files."""
