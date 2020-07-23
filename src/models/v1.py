@@ -7,18 +7,21 @@ from typing import Callable, Dict, List, Optional, Sequence, Set
 import pandas as pd
 from scipy.special import softmax
 from spacy.lang.en import English
+import spacy
 
-from src.schema import Post
-from src.tasks.spacy import literal_bytes_to_spacy
+from src.schema import Post, User
+from src.tasks.spacy import bytes_to_spacy
 from src.utils import Location, connect_to_mongo
 
 DENYLIST = {"china", "russia", "turkey", "op"}
 
+nlp = spacy.load("en_core_web_sm")
 
-def get_user_spacy(username: str) -> List[English]:
+
+def get_user_spacy(user: User) -> List[English]:
     """Retrieves all of the spacy docs for a given user."""
-    posts = Post.objects(username=username)
-    return [literal_bytes_to_spacy(p.spacy) for p in posts if p.spacy]
+    posts = Post.objects(user=user)
+    return [bytes_to_spacy(p.spacy, nlp) for p in posts if p.spacy]
 
 
 def get_ents(docs: List[English], entity_type: str) -> List[str]:
@@ -44,7 +47,7 @@ def rank_by_frequency(gpes: Sequence[str]) -> Dict[str, float]:
     """Rank each gpe by frequency of occurrence."""
     counts = Counter(gpes)
     keys = list(counts.keys())
-    normalized_counts = softmax(list(counts.values()))
+    normalized_counts = softmax(list(counts.values())) if len(keys) > 0 else []
     return {k: v for k, v in zip(keys, normalized_counts)}
 
 
@@ -55,7 +58,7 @@ def rankings_averager(gpe: str, rankings: List[Dict[str, float]]) -> float:
 
 
 def score_user(
-    username: str,
+    user: User,
     filters: List[Callable[[Set[str]], Set[str]]],
     rankers: Sequence[Callable[[Sequence[str]], Dict[str, float]]],
 ) -> Dict[str, float]:
@@ -68,7 +71,7 @@ def score_user(
                              into a score for each entity.
     """
     # extract user locations
-    spacy_docs = get_user_spacy(username)
+    spacy_docs = get_user_spacy(user)
     gpes = get_ents(spacy_docs, "GPE")
 
     # apply filters
@@ -85,7 +88,7 @@ def score_user(
 
 
 def _predict(
-    username: str,
+    user: User,
     filters: List[Callable[[Set[str]], Set[str]]],
     rankers: Sequence[Callable[[Sequence[str]], Dict[str, float]]],
 ) -> Optional[Location]:
@@ -93,7 +96,7 @@ def _predict(
     Compute likeliness scores for each entity in a user's posting history and
     package them into a single most likely location.
     """
-    entity_scores = score_user(username, filters, rankers)
+    entity_scores = score_user(user, filters, rankers)
 
     if len(entity_scores) == 0:
         return None
@@ -121,8 +124,8 @@ def get_locations(fp: str) -> Set[Location]:
     return set([row_to_loc(row) for _, row in df.iterrows()])
 
 
-def predict(usernames: List[str]):
-    """Predict a collection of usernames."""
+def predict(users: List[User]):
+    """Predict a collection of users."""
 
     locations = get_locations("data/cities-states.csv")
 
@@ -133,11 +136,12 @@ def predict(usernames: List[str]):
 
     rankers = [rank_by_frequency]
 
-    return [score_user(u, filters, rankers) for u in usernames]
+    return [score_user(u, filters, rankers) for u in users]
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-    users = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
+    # users = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
+    users = User.objects.limit(50)
     preds = predict(users)
     breakpoint()
