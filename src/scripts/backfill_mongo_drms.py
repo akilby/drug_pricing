@@ -12,9 +12,14 @@ def praw_to_post() -> None:
     """Convert existing documents in praw to Post/User objects."""
     collection = get_mongo()["drug_pricing"]["praw"]
     print("Getting all documents from praw collection .....")
-    pid_query = list(collection.aggregate([{
-        "$group": {"_id": "$pid"}
-    }]))
+    pid_query = list(collection.aggregate(
+        [
+            {
+                "$group": {"_id": "$pid"}
+            }
+        ],
+        allowDiskUse=True
+    ))
     pids = [item["_id"] for item in pid_query]
 
     connect_to_mongo()
