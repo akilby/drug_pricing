@@ -24,11 +24,6 @@ SUB_LIMIT = 1000
 # load local environment variables
 load_dotenv(os.path.join(PROJ_DIR, "..", ".env"))
 
-# database constants
-DB_NAME = os.getenv("DB_NAME")
-COLL_NAME = os.getenv("COLL_NAME")
-TEST_COLL_NAME = os.getenv("TEST_COLL_NAME")
-
 # --- Utility Functions ---
 
 
