@@ -1,67 +1,147 @@
+import dataclasses
+import functools as ft
 import itertools as it
 from collections import Counter
+from typing import Callable, Dict, List, Optional, Sequence, Set
 
 import pandas as pd
+from scipy.special import softmax
+from spacy.lang.en import English
+import spacy
 
-DENYLIST = ["china", "russia", "turkey", "op"]
+from src.schema import Post, User
+from src.tasks.spacy import bytes_to_spacy
+from src.utils import Location, connect_to_mongo
 
+DENYLIST = {"china", "russia", "turkey", "op"}
 
-def get_ents(df):
-    """Add an entities column to the given df."""
-    df["ents"] = df["spacy"].apply(lambda sp: list(sp.ents)
-                                   if (sp and len(sp.ents) > 0)
-                                   else None)
-    return df.dropna()
-
-
-def df_by_ent(df, e_name):
-    """subset an entity df by the given ent."""
-    sub_df = df.copy()
-    sub_df[e_name] = sub_df["ents"].apply(lambda ents: [e for e in ents if e.label_ == e_name])
-    sub_df[e_name] = sub_df[e_name].apply(lambda ents: ents if len(ents) > 0 else None)
-    return sub_df.dropna()
+nlp = spacy.load("en_core_web_sm")
 
 
-def group_gpes(df):
-    """Group all gpe by user."""
-    def agg_gpe(gpes):
-        return dict(Counter(it.chain.from_iterable(gpes)))
-
-    df["locs"] = df["GPE"].apply(lambda x: [e.text.lower() for e in x])
-    return df.loc[:,["username", "locs"]].groupby("username").agg(agg_gpe)
+def get_user_spacy(user: User) -> List[English]:
+    """Retrieves all of the spacy docs for a given user."""
+    posts = Post.objects(user=user)
+    return [bytes_to_spacy(p.spacy, nlp) for p in posts if p.spacy]
 
 
-def check_locs(loc_df, city_df, denylist):
-    """Filter out any hardcoded, undesired locations."""
-    for c in ["city", "state", "county"]:
-        loc_df[c] = loc_df["locs"]\
-            .apply(lambda x: sorted([(k, v) for k, v in x.items()
-                                     if k in city_df[c].tolist() and k not in denylist],
-                                    key=lambda x: x[1],
-                                    reverse=True))
-    return loc_df
+def get_ents(docs: List[English], entity_type: str) -> List[str]:
+    """Return all entities in the given docs of the given type."""
+    all_ents = it.chain(*[d.ents for d in docs])
+    filt_ents = [e.text.lower() for e in all_ents if e.label_ == entity_type]
+    return filt_ents
 
 
-def predict(loc_df, cit_df):
-    """Strategy for guessing a users location."""
-    users = []
-    guesses = []
-    conf = []
-    for u, cits, states in zip(loc_df["username"].tolist(),
-                               loc_df["filt_city"].tolist(),
-                               loc_df["state"].tolist()):
-        users.append(u)
-        cur_cities = cits.copy()
-        total_freqs = sum(c[1] for c in cur_cities)
-        not_found = True
-        while len(cur_cities) > 0 and not_found:
-            c, f = cur_cities.pop(0)
-            real_states = cit_df.loc[cit_df["city"] == c, "state"].tolist()
-            if len(set(states) & set(states)) > 0:
-                guesses.append(c)
-                conf.append(f / total_freqs)
-                not_found = False
-        if not_found:
-            guesses.append(None)
-            conf.append(None)
-    return pd.DataFrame({"user": users, "guess": guesses, "conf": conf})
+def filter_by_denylist(gpes: Set[str], denylist: Set[str]) -> Set[str]:
+    """Remove gpes in the denylist."""
+    return gpes - denylist
+
+
+def filter_by_location(gpes: Set[str], locations: Set[Location]) -> Set[str]:
+    """Remove any gpes that are not an incorporated location."""
+    return ft.reduce(
+        lambda acc, loc: acc | (gpes & {dataclasses.asdict(loc).values()}), locations, set()
+    )
+
+
+def rank_by_frequency(gpes: Sequence[str]) -> Dict[str, float]:
+    """Rank each gpe by frequency of occurrence."""
+    counts = Counter(gpes)
+    keys = list(counts.keys())
+    normalized_counts = softmax(list(counts.values())) if len(keys) > 0 else []
+    return {k: v for k, v in zip(keys, normalized_counts)}
+
+
+def rankings_averager(gpe: str, rankings: List[Dict[str, float]]) -> float:
+    """Combine rankings for a given gpe by averaging each rankings respective score."""
+    scores = [r[gpe] for r in rankings]
+    return sum(scores) / len(scores)
+
+
+def score_user(
+    user: User,
+    filters: List[Callable[[Set[str]], Set[str]]],
+    rankers: Sequence[Callable[[Sequence[str]], Dict[str, float]]],
+) -> Dict[str, float]:
+    """
+    Strategy for ranking possible user locations.
+
+    :param filters: functions that remove certain entities
+    :param rankers: functions that generate a likeliness score for each entity.
+    :param ranking_combiner: a function that combines the resulting rankings
+                             into a score for each entity.
+    """
+    # extract user locations
+    spacy_docs = get_user_spacy(user)
+    gpes = get_ents(spacy_docs, "GPE")
+
+    # apply filters
+    possible_gpes = ft.reduce(lambda acc, f: f(acc), filters, set(gpes))
+    filtered_gpes = [gpe for gpe in gpes if gpe in possible_gpes]
+
+    # rank gpes with different methods
+    rankings = [r(filtered_gpes) for r in rankers]
+
+    # combine rankings
+    scores = {gpe: rankings_averager(gpe, rankings) for gpe in possible_gpes}
+
+    return scores
+
+
+def _predict(
+    user: User,
+    filters: List[Callable[[Set[str]], Set[str]]],
+    rankers: Sequence[Callable[[Sequence[str]], Dict[str, float]]],
+) -> Optional[Location]:
+    """
+    Compute likeliness scores for each entity in a user's posting history and
+    package them into a single most likely location.
+    """
+    entity_scores = score_user(user, filters, rankers)
+
+    if len(entity_scores) == 0:
+        return None
+
+    max_entity = sorted(entity_scores.items(), key=lambda _: _[1], reverse=True)[0]
+    max_loc = Location(city=max_entity)
+
+    return max_loc
+
+
+def get_locations(fp: str) -> Set[Location]:
+    """
+    Retrieve US city/county/state locations from a csv filepath.
+    """
+    df = pd.read_csv(fp, sep="|")
+
+    def row_to_loc(row: pd.Series) -> Location:
+        return Location(
+            city=row["City"],
+            county=row["County"],
+            state=row["State full"],
+            state_short=row["State short"],
+        )
+
+    return set([row_to_loc(row) for _, row in df.iterrows()])
+
+
+def predict(users: List[User]):
+    """Predict a collection of users."""
+
+    locations = get_locations("data/cities-states.csv")
+
+    filters = [
+        lambda _: filter_by_denylist(_, DENYLIST),
+        lambda _: filter_by_location(_, locations),
+    ]
+
+    rankers = [rank_by_frequency]
+
+    return [score_user(u, filters, rankers) for u in users]
+
+
+if __name__ == "__main__":
+    connect_to_mongo()
+    # users = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
+    users = User.objects.limit(50)
+    preds = predict(users)
+    breakpoint()

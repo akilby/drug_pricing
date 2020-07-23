@@ -2,38 +2,32 @@
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional, cast
+from typing import List, Optional, Union
 
+import mongoengine
 import pymongo
 import pytz
 from dotenv import load_dotenv
+from mongoengine import connect
 from praw import Reddit
+from praw.models import Comment, Submission
 from psaw import PushshiftAPI
+
+from src.schema import CommentPost, Post, SubmissionPost, User
 
 # --- Utility Constants ---
 # project constants
-PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 SUBR_NAMES = ["opiates", "heroin"]
 SUB_LIMIT = 1000
 
-# hardcoded file locations on the HPC cluster
-BASE_DIR = "/work/akilby/drug_pricing_project"
-SUB_DIR = os.path.join(BASE_DIR, "opiates/opiates/threads")
-COMM_DIR = os.path.join(BASE_DIR, "opiates/opiates/comments/complete")
-OUT_JSON = os.path.join(BASE_DIR, "all_posts.json")
-
-# hardcoded column names for legacy comment and submission csv files
-SUB_COLNAMES = ["id", "url", "num_comments", "shortlink", "author", "title",
-                "text", "utc"]
-COMM_COLNAMES = ["id", "sub_url", "parent_id", "text", "author", "utc"]
+# load local environment variables
+load_dotenv(os.path.join(PROJ_DIR, "..", ".env"))
 
 # database constants
 DB_NAME = os.getenv("DB_NAME")
 COLL_NAME = os.getenv("COLL_NAME")
 TEST_COLL_NAME = os.getenv("TEST_COLL_NAME")
-
-# load local environment variables
-load_dotenv(dotenv_path=os.path.join(PROJ_DIR, ".env"))
 
 # --- Utility Functions ---
 
@@ -45,7 +39,18 @@ def get_mongo() -> pymongo.MongoClient:
         int(str(os.getenv("PORT"))),
         username=os.getenv("MUSERNAME"),
         password=os.getenv("MPASSWORD"),
-        authSource=os.getenv("DB_NAME")
+        authSource=os.getenv("DB_NAME"),
+    )
+
+
+def connect_to_mongo():
+    """Allows for lazy connection to Mongo."""
+    connect(
+        host=os.getenv("HOST"),
+        port=int(str(os.getenv("PORT"))),
+        username=os.getenv("MUSERNAME"),
+        password=os.getenv("MPASSWORD"),
+        db=os.getenv("DB_NAME"),
     )
 
 
@@ -56,7 +61,7 @@ def get_praw() -> Reddit:
         client_secret=os.getenv("RSECRET_KEY"),
         password=os.getenv("RPASSWORD"),
         username=os.getenv("RUSERNAME"),
-        user_agent=os.getenv("RUSER_AGENT")
+        user_agent=os.getenv("RUSER_AGENT"),
     )
 
 
@@ -75,103 +80,83 @@ def dt_to_utc(dt_: Optional[datetime]) -> Optional[datetime]:
     return None if not dt_ else dt_.astimezone(pytz.UTC)
 
 
-def last_date(coll: pymongo.collection.Collection, subr: str) -> datetime:
+def last_date(subreddit: Optional[str] = None) -> datetime:
     """Gets the newest date from the mongo collection."""
-    res = coll.aggregate([{
-        "$match": {
-            "subr": subr
-        }
-    }, {
-        "$sort": {
-            "time": -1
-        }
-    }, {
-        "$limit": 1
-    }])
-    time = list(res)[0]["time"]
-    return time
+    base_query = Post.objects(subreddit=subreddit) if subreddit else Post.objects
+    return base_query.order_by("-datetime").first().datetime
 
 
-# --- Objects ---
+def posts_to_mongo(posts: List[Post]) -> None:
+    """Store the given posts in mongo."""
+    n_posted = 0
+    for post in posts:
+        try:
+            post.save()
+            n_posted += 1
+        except mongoengine.errors.ValidationError as e:
+            print(f"Error adding post {post.pid}: {e}")
+    print(f"{n_posted} posts added to mongo.")
 
 
-@dataclass
-class Post():
-    """An abstract representation of Submission and Comment objects."""
-    pid: Optional[str] = None
-    text: Optional[str] = None
-    username: Optional[str] = None
-    time: Optional[datetime] = None
-    subr: Optional[str] = None
-    utc: Optional[datetime] = dt_to_utc(time)
+def user_from_username(username: Optional[str]) -> Optional[User]:
+    """Return the user if it exists, else create it and return."""
+    user = None
+    if isinstance(username, str):
+        query = User.objects(username=username)
+        if query.count() == 0:
+            user = User(username=username)
+            user.save()
+        else:
+            user = query.first()
 
-    def to_dict(self) -> Dict:
-        """Convert the attributes of this object to a dictionary."""
-        return {
-            "text": self.text,
-            "username": self.username,
-            "time": self.utc,
-            "pid": self.pid,
-            "hash": hash(self),
-            "subr": self.subr
-        }
+    return user
 
 
-@dataclass
-class CustomSubmission(Post):
-    """A custom representation of a Submission object."""
-    url: Optional[str] = None
-    title: Optional[str] = None
-    num_comments: Optional[int] = None
+def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool) -> Post:
+    """Convert a Praw Submission or Comment to a Post object."""
+    # convert username to user
+    username = None if not sub_comm.author else sub_comm.author.name
+    user = user_from_username(username)
 
-    def to_dict(self) -> Dict:
-        """Convert the attributes of this object to a dictionary."""
-        base_dict = super().to_dict()
-        base_dict.update({
-            "title": self.title,
-            "num_comments": self.num_comments,
-            "is_sub": True
-        })
-        return base_dict
+    # store attributes common to both submission and comments
+    kwargs = {
+        "pid": sub_comm.id,
+        "user": user,
+        "datetime": utc_to_dt(sub_comm.created_utc),
+        "subreddit": sub_comm.subreddit.display_name,
+    }
 
-    def __eq__(self, obj: object) -> bool:
-        """Determine if the given object equals this object."""
-        if isinstance(obj, CustomSubmission):
-            submission_obj = cast(CustomSubmission, obj)
-            return submission_obj.pid == self.pid and submission_obj.text == self.text
-        return False
+    # assign particular attributes and return the proper post type
+    if is_sub:
+        kwargs["url"] = sub_comm.url
+        kwargs["text"] = sub_comm.selftext
+        kwargs["title"] = sub_comm.title
+        kwargs["num_comments"] = sub_comm.num_comments
+        post = SubmissionPost
+    else:
+        kwargs["text"] = sub_comm.body
+        kwargs["parent_id"] = sub_comm.parent_id
+        post = CommentPost
 
-    def __ne__(self, obj: Any) -> bool:
-        """Determine if the given object does not equal this object."""
-        return not obj == self
+    return post(**kwargs)
 
-    def __hash__(self) -> int:
-        """Establish a hash value for this object."""
-        return 10 * hash(self.text) + hash(self.pid)
+
+# --- Data Structures ---
 
 
 @dataclass
-class CustomComment(Post):
-    """A custom representation a Comment object."""
-    parent_id: Optional[str] = None
+class Location:
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    county: Optional[str] = None
+    state: Optional[str] = None
+    state_short: Optional[str] = None
 
-    def to_dict(self) -> Dict:
-        """Convert the attributes of this object to a dictionary."""
-        base_dict = super().to_dict()
-        base_dict.update({"parent_id": self.parent_id, "is_sub": False})
-        return base_dict
-
-    def __eq__(self, obj: object) -> bool:
-        """Determine if the given object equals this object."""
-        if isinstance(obj, CustomComment):
-            comment_obj = cast(CustomComment, obj)
-            return comment_obj.pid == self.pid and comment_obj.text == self.text
-        return False
-
-    def __ne__(self, obj: Any) -> bool:
-        """Determine if the given object does not equal this object."""
-        return not obj == self
-
-    def __hash__(self) -> int:
-        """Establish a hash value for this object."""
-        return 10 * hash(self.text) + hash(self.pid)
+    def __hash__(self):
+        return (
+            10000 * hash(self.neighborhood)
+            + 1000 * hash(self.city)
+            + 100 * hash(self.county)
+            + 10 * hash(self.state)
+            + hash(self.state_short)
+        )

@@ -1,20 +1,37 @@
-args=
-base=python -m src.__init__
+args=--update
 
-clean:
-	rm -rf slurm* ~* *~ \#* *\#
+setup:
+	pip install pipenv
+	pipenv install
+	pipenv run python -m spacy download en_core_web_sm
 
-update:
-	pipenv run $(base) --update $(args)
+clean-pyc:
+	find . -name '*.pyc' -exec rm -f {} +
+	find . -name '*.pyo' -exec rm -f {} +
+	find . -name '*~' -exec rm -f {} +
+	find . -name '__pycache__' -exec rm -fr {} +
 
-histories:
-	pipenv run $(base) --histories $(args)
+clean-test:
+	rm -f .coverage
+	rm -f .coverage.*
 
-spacy:
-	pipenv run $(base) --spacy $(args)
+clean-slurm:
+	rm -rf slurm*
+
+clean: clean-pyc clean-test clean-slurm
 
 run:
-	pipenv run $(args)
+	pipenv run scheduler $(args)
 
 test:
-	pipenv run python -m unittest
+	pipenv run py.test tests --cov=src --cov-report=term-missing --cov-fail-under 50
+
+lint:
+	pipenv run flake8 src
+	pipenv run mypy src
+
+format:
+	pipenv run black src
+
+check: format lint test
+

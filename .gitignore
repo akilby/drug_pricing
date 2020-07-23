@@ -25,6 +25,7 @@ data/
 
 # other
 .vscode/
+.coverage
 ~*
 *~
 *\#
