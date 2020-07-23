@@ -9,14 +9,19 @@ This project utilizes the python "dotenv" package to read sensitive information 
 A. Create a file named `.env` in the project root
 
 B. Store the following variables in there with your own credentials/info
+**Reddit credentials**
 - RUSERNAME: your Reddit username
 - RPASSWORD: your Reddit password
 - RCLIENT_ID: your Reddit API client id
 - RSECRET_KEY: your Reddit API secret key
 - RUSER_AGENT: the identifier you use for your machine
+
+**Mongo credentials**
 - PORT: the port you plan to run mongo on (27017 is default)
 - DB_NAME: the name of your mongo database
-- COLL_NAME: the name of your mongo collection for the raw data
+- HOST: the database hostname
+- MUSERNAME: the username for the database
+- MPASSWORD: the password for the database
 
 Checkout [here](https://www.reddit.com/dev/api/oauth/) for help with Reddit API setup.
 
