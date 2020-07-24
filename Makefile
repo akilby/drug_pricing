@@ -21,7 +21,7 @@ clean-slurm:
 clean: clean-pyc clean-test clean-slurm
 
 run:
-	pipenv run scheduler $(args)
+	pipenv run python -m src.__init__ $(args)
 
 test:
 	pipenv run py.test tests --cov=src --cov-report=term-missing --cov-fail-under 50

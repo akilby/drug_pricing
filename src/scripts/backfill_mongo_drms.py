@@ -31,7 +31,7 @@ def praw_to_post() -> None:
                 return item
         return None
 
-    n_batches = 10
+    n_batches = 100
     pid_batches = np.array_split(pids, n_batches)
 
     for i, pid_batch in enumerate(pid_batches):

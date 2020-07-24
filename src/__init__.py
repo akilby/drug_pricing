@@ -24,28 +24,35 @@ from src.utils import (
 def gen_args() -> argparse.ArgumentParser:
     """Generate an argument parser."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--subr", help="The subreddit to use.", type=str)
-    parser.add_argument("--startdate", help="The end date for Praw scraping", type=str)
-    parser.add_argument("--enddate", help="The end date for Praw scraping", type=str)
-    parser.add_argument("--limit", help="The number of Praw objects to limit querying", type=int)
-    parser.add_argument("--csv", help="The csv filepath to parse from", type=str)
-    parser.add_argument(
-        "--posttype", help="If data to parse is" + "submissions (s) or comments (c)"
+
+    query_praw = parser.add_argument_group("Praw Querying")
+    query_praw.add_argument("--subr", help="The subreddit to use.", type=str)
+    query_praw.add_argument("--startdate", help="The start date for Praw scraping", type=str)
+    query_praw.add_argument("--enddate", help="The end date for Praw scraping", type=str)
+    query_praw.add_argument("--limit", help="The number of Praw objects to limit querying", type=int)
+
+    csv = parser.add_argument_group("CSV Parsing")
+    csv.add_argument("--csv", help="The csv filepath to parse from", type=str)
+    csv.add_argument(
+        "--posttype", help="If data to parse is " + "submissions (s) or comments (c)"
     )
-    parser.add_argument(
+
+    tasks = parser.add_argument_group("Tasks")
+    tasks.add_argument(
         "--lastdate",
         help="Retrieve the last date stored in the mongo collection.",
         action="store_true",
     )
-    parser.add_argument(
+    tasks.add_argument(
         "--update",
         help="Insert all posts for all subreddits from the last posted date",
         action="store_true",
     )
-    parser.add_argument(
+    tasks.add_argument(
         "--histories", help="Retrieve full posting history for all users.", action="store_true"
     )
-    parser.add_argument("--spacy", help="Run spacy on all new documents.", action="store_true")
+    tasks.add_argument("--spacy", help="Run spacy on all new documents.", action="store_true")
+
     return parser
 
 

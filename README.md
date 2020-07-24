@@ -9,14 +9,15 @@ This project utilizes the python "dotenv" package to read sensitive information 
 A. Create a file named `.env` in the project root
 
 B. Store the following variables in there with your own credentials/info
-**Reddit credentials**
+
+*Reddit credentials*
 - RUSERNAME: your Reddit username
 - RPASSWORD: your Reddit password
 - RCLIENT_ID: your Reddit API client id
 - RSECRET_KEY: your Reddit API secret key
 - RUSER_AGENT: the identifier you use for your machine
 
-**Mongo credentials**
+*Mongo credentials*
 - PORT: the port you plan to run mongo on (27017 is default)
 - DB_NAME: the name of your mongo database
 - HOST: the database hostname
@@ -32,7 +33,7 @@ Run `pipenv install` to install all dependencies
 
 **Updating the database**
 
-To update all new data from all subreddits, run `make run`.
+To update all new data from all subreddits, run `make run args=--update`.
 
 
 **Running tests**
@@ -48,5 +49,5 @@ Other available functionality include:
 - Retrieve all posts from the subreddits listed in `utils.py` file since the last date in the mongo db
 - Add spacy objects to all posts in the mongo db
 
-Run `python -m src.__init__ --help` for more details.
+Run `make run args=--help` for more details.
 
