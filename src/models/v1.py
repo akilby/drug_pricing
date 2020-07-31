@@ -8,6 +8,7 @@ import pandas as pd
 from scipy.special import softmax
 from spacy.lang.en import English
 import spacy
+from tqdm import tqdm
 
 from src.schema import Post, User
 from src.tasks.spacy import bytes_to_spacy
@@ -38,9 +39,9 @@ def filter_by_denylist(gpes: Set[str], denylist: Set[str]) -> Set[str]:
 
 def filter_by_location(gpes: Set[str], locations: Set[Location]) -> Set[str]:
     """Remove any gpes that are not an incorporated location."""
-    return ft.reduce(
-        lambda acc, loc: acc | (gpes & {dataclasses.asdict(loc).values()}), locations, set()
-    )
+    return ft.reduce(lambda acc, loc: acc | (gpes & set(dataclasses.asdict(loc).values())),
+                     locations,
+                     set())
 
 
 def rank_by_frequency(gpes: Sequence[str]) -> Dict[str, float]:
@@ -102,6 +103,8 @@ def _predict(
         return None
 
     max_entity = sorted(entity_scores.items(), key=lambda _: _[1], reverse=True)[0]
+
+    # TODO: add step for forward/backward traversal to fill in other loc attrs of max entity
     max_loc = Location(city=max_entity)
 
     return max_loc
@@ -115,10 +118,10 @@ def get_locations(fp: str) -> Set[Location]:
 
     def row_to_loc(row: pd.Series) -> Location:
         return Location(
-            city=row["City"],
-            county=row["County"],
-            state=row["State full"],
-            state_short=row["State short"],
+            city=row["City"].lower() if type(row["City"]) == str else None,
+            county=row["County"].lower() if type(row["County"]) == str else None,
+            state=row["State full"].lower() if type(row["State full"]) == str else None,
+            state_short=row["State short"].lower() if type(row["State short"]) == str else None,
         )
 
     return set([row_to_loc(row) for _, row in df.iterrows()])
@@ -136,12 +139,18 @@ def predict(users: List[User]):
 
     rankers = [rank_by_frequency]
 
-    return [score_user(u, filters, rankers) for u in users]
+    return [score_user(u, filters, rankers) for u in tqdm(users)]
 
 
 if __name__ == "__main__":
     connect_to_mongo()
     # users = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
-    users = User.objects.limit(50)
+
+    # get the users with the most posts
+    pipeline = [{"$sortByCount": "$user"}, {"$limit": 15}]
+    res = Post.objects().aggregate(pipeline)
+    ids = [str(r["_id"]) for r in res if r["_id"]]
+    users = User.objects(id__in=ids)
+
     preds = predict(users)
     breakpoint()

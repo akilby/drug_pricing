@@ -35,3 +35,6 @@ format:
 
 check: format lint test
 
+build-html:
+	pipenv run jupyter nbconvert --to html notebooks/summary.ipynb
+	mv notebooks/summary.html index.html
