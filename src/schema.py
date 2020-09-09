@@ -1,15 +1,8 @@
 """Schemas for MongoDB."""
-from mongoengine import (
-    BinaryField,
-    DateTimeField,
-    Document,
-    EmbeddedDocument,
-    EmbeddedDocumentField,
-    EmbeddedDocumentListField,
-    IntField,
-    ReferenceField,
-    StringField,
-)
+from mongoengine import (BinaryField, DateTimeField, Document,
+                         EmbeddedDocument, EmbeddedDocumentField,
+                         EmbeddedDocumentListField, IntField, ReferenceField,
+                         StringField)
 
 
 class Location(EmbeddedDocument):
@@ -29,6 +22,10 @@ class County(Location):
 
 class City(Location):
     county = ReferenceField("County")
+
+
+class Neighborhood(Location):
+    city = ReferenceField("City")
 
 
 class DateRangeLocation(EmbeddedDocument):
