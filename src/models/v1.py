@@ -143,7 +143,10 @@ def predict(users: List[User]):
 
 
 if __name__ == "__main__":
+    print("Connecting to mongo .....")
     connect_to_mongo()
+
+    print("Getting users .....")
     # users = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
 
     # get the users with the most posts
@@ -152,5 +155,6 @@ if __name__ == "__main__":
     ids = [str(r["_id"]) for r in res if r["_id"]]
     users = User.objects(id__in=ids)
 
+    print("Making predictions .....")
     preds = predict(users)
     breakpoint()
