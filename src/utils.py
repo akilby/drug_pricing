@@ -7,6 +7,7 @@ from typing import List, Optional, Union
 import mongoengine
 import pymongo
 import pytz
+import spacy
 from dotenv import load_dotenv
 from mongoengine import connect
 from praw import Reddit
@@ -63,6 +64,10 @@ def get_praw() -> Reddit:
 def get_psaw(praw: Reddit) -> PushshiftAPI:
     """Allows for lazy connection to Psaw."""
     return PushshiftAPI(praw)
+
+def get_nlp() -> spacy.lang.en.English:
+    """Allows lazy access of nlp module."""
+    return spacy.load("en_core_web_sm")
 
 
 def utc_to_dt(utc: float) -> datetime:
