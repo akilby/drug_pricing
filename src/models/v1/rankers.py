@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 from dataclasses import dataclass
 from typing import Dict, Sequence
 
 from scipy.special import softmax
-
-from counter import Counter
 
 
 class BaseRanker(ABC):
