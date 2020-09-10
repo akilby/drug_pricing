@@ -7,7 +7,6 @@ from typing import List, Optional, Union
 import mongoengine
 import pymongo
 import pytz
-import spacy
 from dotenv import load_dotenv
 from mongoengine import connect
 from praw import Reddit
