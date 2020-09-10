@@ -7,11 +7,13 @@ from typing import List, Optional, Union
 import mongoengine
 import pymongo
 import pytz
+import spacy
 from dotenv import load_dotenv
 from mongoengine import connect
 from praw import Reddit
 from praw.models import Comment, Submission
 from psaw import PushshiftAPI
+from spacy.lang.en import English
 
 from src.schema import CommentPost, Post, SubmissionPost, User
 
@@ -64,7 +66,7 @@ def get_psaw(praw: Reddit) -> PushshiftAPI:
     """Allows for lazy connection to Psaw."""
     return PushshiftAPI(praw)
 
-def get_nlp() -> spacy.lang.en.English:
+def get_nlp() -> English:
     """Allows lazy access of nlp module."""
     return spacy.load("en_core_web_sm")
 
