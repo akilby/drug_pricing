@@ -21,6 +21,9 @@ class DenylistFilter(BaseFilter):
     def filter(self, gpes: Set[str]) -> Set[str]:
         return gpes - self.denylist
 
+    def __hash__(self) -> int:
+        return hash(frozenset(self.denylist))
+
 
 @dataclass
 class LocationFilter(BaseFilter):
