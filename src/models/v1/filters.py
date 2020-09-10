@@ -36,3 +36,6 @@ class LocationFilter(BaseFilter):
             self.locations,
             set()
         )
+
+    def __hash__(self) -> int:
+        return hash(frozenset(self.locations))
