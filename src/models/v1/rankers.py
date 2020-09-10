@@ -22,3 +22,6 @@ class FrequencyRanker(BaseRanker):
         keys = list(counts.keys())
         normalized_counts = softmax(list(counts.values())) if len(keys) > 0 else []
         return {k: v for k, v in zip(keys, normalized_counts)}
+
+    def __hash__(self) -> int:
+        return hash("frequencyranker")
