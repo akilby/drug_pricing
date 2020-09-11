@@ -140,24 +140,3 @@ def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool) -> Post
         post = CommentPost
 
     return post(**kwargs)
-
-
-# --- Data Structures ---
-
-
-@dataclass
-class Location:
-    neighborhood: Optional[str] = None
-    city: Optional[str] = None
-    county: Optional[str] = None
-    state: Optional[str] = None
-    state_short: Optional[str] = None
-
-    def __hash__(self):
-        return (
-            10000 * hash(self.neighborhood)
-            + 1000 * hash(self.city)
-            + 100 * hash(self.county)
-            + 10 * hash(self.state)
-            + hash(self.state_short)
-        )

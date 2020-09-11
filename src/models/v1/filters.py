@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Set
 
-from src.utils import Location
+from src.schema import Location
 
 
 class BaseFilter(ABC):
@@ -14,28 +14,24 @@ class BaseFilter(ABC):
         pass
 
 
-@dataclass
 class DenylistFilter(BaseFilter):
-    denylist: Set[str]
+
+    def __init__(self, denylist: Set[str]):
+        self.denylist = denylist
 
     def filter(self, gpes: Set[str]) -> Set[str]:
         return gpes - self.denylist
 
-    def __hash__(self) -> int:
-        return hash(frozenset(self.denylist))
 
-
-@dataclass
 class LocationFilter(BaseFilter):
-    locations: Set[Location]
+
+    def __init__(self, locations: Set[Location]):
+        self.locations = locations
 
     def filter(self, gpes: Set[str]) -> Set[str]:
         """Remove any gpes that are not an incorporated location."""
         return ft.reduce(
-            lambda acc, loc: acc | (gpes & set(dataclasses.asdict(loc).values())),
+            lambda acc, loc: acc | (gpes & set(loc.to_mongo().values())),
             self.locations,
             set()
         )
-
-    def __hash__(self) -> int:
-        return hash(frozenset(self.locations))
