@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Set
 
+import pandas as pd
+
 from src.schema import Location
 
 
@@ -25,13 +27,14 @@ class DenylistFilter(BaseFilter):
 
 class LocationFilter(BaseFilter):
 
-    def __init__(self, locations: Set[Location]):
+    def __init__(self, locations: pd.DataFrame):
         self.locations = locations
 
     def filter(self, gpes: Set[str]) -> Set[str]:
         """Remove any gpes that are not an incorporated location."""
+        records = self.locations.to_dict(orient="records")
         return ft.reduce(
-            lambda acc, loc: acc | (gpes & set(loc.to_mongo().values())),
-            self.locations,
+            lambda acc, loc: acc | (gpes & set(loc.values())),
+            records,
             set()
         )

@@ -19,6 +19,7 @@ class FrequencyRanker(BaseRanker):
     def rank(self, gpes: Sequence[str]) -> Dict[str, float]:
         """Rank the following gpes by their frequency."""
         counts = Counter(gpes)
+        return dict(counts)
         keys = list(counts.keys())
         normalized_counts = softmax(list(counts.values())) if len(keys) > 0 else []
         return {k: v for k, v in zip(keys, normalized_counts)}

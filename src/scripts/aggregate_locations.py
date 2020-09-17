@@ -16,10 +16,11 @@ def main():
     # transform data
     print("Transforming data .....")
     neighborhood = neighborhood \
-        .loc[:,["RegionName", "City", "CountyName", "State"]] \
+        .loc[:,["RegionName", "City", "CountyName", "State", "Metro"]] \
         .applymap(to_lower)
 
-    neighborhood["CountyName"] = neighborhood["CountyName"].apply(lambda x: x.replace("county", "").strip())
+    neighborhood["CountyName"] = neighborhood["CountyName"].apply(
+        lambda x: x.replace("county", "").strip())
 
     city_state = city_state \
         .loc[:, ["City", "County", "State short", "State full"]] \
@@ -29,15 +30,16 @@ def main():
         .loc[:, ["Country_or_Area"]] \
         .applymap(to_lower)
 
-    state_map = {row["State short"]: row["State full"] for _, row in city_state.iterrows()}
+    state_map = {
+        row["State short"]: row["State full"]
+        for _, row in city_state.iterrows()
+    }
 
     # group data
-    locations = neighborhood.merge(
-        city_state,
-        how="right",
-        left_on=["City", "CountyName", "State"],
-        right_on=["City", "County", "State short"]
-    )
+    locations = neighborhood.merge(city_state,
+                                   how="left",
+                                   left_on=["City", "CountyName", "State"],
+                                   right_on=["City", "County", "State short"])
 
     locations["country"] = ["united states of america"] * locations.shape[0]
 
@@ -45,12 +47,16 @@ def main():
         foreign,
         how="outer",
         left_on=["country"],
-        right_on=["Country_or_Area"]
-    ).loc[:, ["RegionName", "City", "County", "State", "Country_or_Area"]].drop_duplicates()
+        right_on=["Country_or_Area"]).loc[:, [
+            "RegionName", "City", "County", "State", "Country_or_Area", "Metro"
+        ]].drop_duplicates()
 
-    locations.columns = ["neighborhood", "city", "county", "state", "country"]
+    locations.columns = [
+        "neighborhood", "city", "county", "state", "country", "metro"
+    ]
 
-    locations["state_full"] = locations["state"].apply(lambda x: state_map[x] if type(x) == str else None)
+    locations["state_full"] = locations["state"].apply(
+        lambda x: state_map[x] if type(x) == str else None)
 
     locations = locations.where(pd.notnull(locations), None)
 

@@ -14,12 +14,13 @@ class Location(EmbeddedDocument):
     neighborhood = StringField()
     city = StringField()
     county = StringField()
+    metro = StringField()
     state = StringField()
     country = StringField()
     state_full = StringField()
 
     def __str__(self) -> str:
-        return ", ".join(self.to_mongo().values())
+        return ", ".join([str(v) for v in self.to_mongo().values()])
 
     def __hash__(self) -> int:
         return hash(self.neighborhood) + \
@@ -41,13 +42,18 @@ class Location(EmbeddedDocument):
 
         matching_fields = [k for k, v in self_map.items() if v == entity]
 
-        field_combinations = it.chain(*map(lambda i: it.combinations(matching_fields, i), range(1, 1 + len(matching_fields))))
+        field_combinations = it.chain(
+            *map(lambda i: it.combinations(matching_fields, i),
+                 range(1, 1 + len(matching_fields))))
 
-        possible_locations = [Location(**{k:self_map[k] for k in set(self_map.keys()) & set(field_combo)})
-                              for field_combo in field_combinations]
+        possible_locations = [
+            Location(**{
+                k: self_map[k]
+                for k in set(self_map.keys()) & set(field_combo)
+            }) for field_combo in field_combinations
+        ]
 
         return possible_locations
-
 
 
 class DateRangeLocation(EmbeddedDocument):
@@ -80,7 +86,10 @@ class Post(Document):
     spacy = BinaryField()
     meta = {
         "allow_inheritance": True,
-        "indexes": ["$text", "-datetime", {"fields": ["pid"], "unique": True}],
+        "indexes": ["$text", "-datetime", {
+            "fields": ["pid"],
+            "unique": True
+        }],
     }
 
 

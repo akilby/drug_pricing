@@ -1,7 +1,8 @@
 import functools as ft
 import itertools as it
+from copy import copy
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 import pandas as pd
 from scipy.special import softmax
@@ -32,76 +33,107 @@ def get_ents(docs: List[English], entity_type: str) -> List[str]:
     filt_ents = [e.text.lower() for e in all_ents if e.label_ == entity_type]
     return filt_ents
 
+
 def rankings_averager(gpe: str, rankings: List[Dict[str, float]]) -> float:
     """Combine rankings for a given gpe by averaging each rankings respective score."""
     scores = [r[gpe] for r in rankings]
     return sum(scores) / len(scores)
 
 
-def load_locations(fp: str) -> List[Dict[str, Optional[str]]]:
+def load_locations(fp: str) -> Set[Location]:
     """
     Retrieve US city/county/state locations from a csv filepath.
     """
     df = pd.read_csv(fp)
 
-    return df.to_dict(orient="records")
-
     def string_or_none(maybe_string: Any) -> Optional[str]:
         return maybe_string if type(maybe_string) == str else None
 
     def row_to_loc(row: pd.Series) -> Location:
-        return Location(
-            neighborhood=string_or_none(row["neighborhood"]),
-            city=string_or_none(row["city"]),
-            county=string_or_none(row["county"]),
-            state=string_or_none(row["state"]),
-            country=string_or_none(row["country"])
-        )
+        return Location(neighborhood=string_or_none(row["neighborhood"]),
+                        city=string_or_none(row["city"]),
+                        county=string_or_none(row["county"]),
+                        state=string_or_none(row["state"]),
+                        country=string_or_none(row["country"]),
+                        metro=string_or_none(row["metro"]))
 
     return set([row_to_loc(row) for _, row in df.iterrows()])
 
 
-def convert_entities_to_locations(entities: List[str], locations: pd.DataFrame) -> List[Location]:
+def find_parent_location(record_1: Location,
+                         record_2: Location) -> List[Location]:
     """
-    Convert the given entities into locations.
-    Then, combine them into as few locations as possible such that they are all real locations
-    (as determined by the given set of locations)
+    If a parent exists, return a list just containing that parent.
+    Else, return the two records.
     """
+    parent = Location()
+    if record_1["country"] == record_2["country"]:
+        parent["country"] = record_1["country"]
+        if record_1["state"] == record_2["state"]:
+            parent["state"] = record_1["state"]
+            if record_1["county"] == record_2["county"]:
+                parent["county"] = record_1["county"]
+                if record_1["city"] == record_2["city"]:
+                    parent["city"] = record_1["city"]
 
-    columns = locations.to_dict(orient="list")
-    records = locations.to_dict(orient="records")
-
-    possible_locations = []
-
-    for column in columns:
+    if parent.country:
+        return [parent]
+    return [record_1, record_2]
 
 
-    for entity in entities:
-        for column in columns:
-            if entity in columns[column]:
-                new_location = {column: entity}
+def group_locations(locations: Set[Location]) -> List[Location]:
+    """Find a common parent for the records if possible."""
 
-                possible_locations.append(new_location)
+    for location in locations:
+        location.neighborhood = None
 
-    return []
+    return list(set(locations))
 
+
+def group_locations_by_score(
+    records: List[Location], scores: List[float]
+) -> Tuple[List[Dict[str, Optional[str]]], List[float]]:
+    """Attempt to find a common location parent for locations with the same score."""
+    # group records with same score
+    score_records_map = dict()
+    for record, score in zip(records, scores):
+        if score in score_records_map:
+            score_records_map[score].append(record)
+        else:
+            score_records_map[score] = [record]
+
+    # reduce records for each score that have a common ancestor
+    new_records = []
+    new_scores = []
+    for score in score_records_map:
+        records = score_records_map[score]
+        grouped_records = group_locations(set(records))
+        new_records = new_records + grouped_records
+        new_scores = new_scores + [score] * len(grouped_records)
+
+    return new_records, new_scores
+
+
+def group_by_metro(locations: List[Location],
+                   scores: List[float]) -> Tuple[List[str], List[float]]:
+
+    metro_scores = {l.metro: 0.0 for l in locations}
+    for i, loc in enumerate(locations):
+        score = scores[i]
+        metro_scores[loc.metro] += score
+
+    return metro_scores.keys(), metro_scores.values()
 
 
 # -- MODEL DECLARATION --
 
 
 class V1:
-
-    def __init__(
-            self,
-            filters: Set[BaseFilter],
-            rankers: Set[BaseRanker],
-            possible_locations: Set[Location],
-            nlp: English
-    ):
+    def __init__(self, filters: List[BaseFilter], rankers: List[BaseRanker],
+                 real_locations: pd.DataFrame, nlp: English):
         self.filters = filters
         self.rankers = rankers
-        self.possible_locations = possible_locations
+        self.real_locations = real_locations
         self.nlp = nlp
 
     def score_entities(self, user: User) -> Dict[str, float]:
@@ -111,85 +143,69 @@ class V1:
         gpes = get_ents(spacy_docs, "GPE")
 
         # apply filters
-        possible_gpes = ft.reduce(lambda acc, f: f.filter(acc), self.filters, set(gpes))
+        possible_gpes = ft.reduce(lambda acc, f: f.filter(acc), self.filters,
+                                  set(gpes))
         filtered_gpes = [gpe for gpe in gpes if gpe in possible_gpes]
 
         # rank gpes with different methods
         rankings = [r.rank(filtered_gpes) for r in self.rankers]
 
         # combine rankings
-        scores = {gpe: rankings_averager(gpe, rankings) for gpe in possible_gpes}
+        scores = {
+            gpe: rankings_averager(gpe, rankings)
+            for gpe in possible_gpes
+        }
 
         return scores
 
-    def score_locations(self, entity_scores: Dict[str, float]) -> Dict[Location, float]:
+    def score_locations(
+            self, entity_scores: Dict[str,
+                                      float]) -> List[Tuple[Location, float]]:
         """
         Convert each location entity in a user's posting history to a real location.
         Then, assign a likeliness score to each location.
         """
-        guessed_locations = []
+        records = self.real_locations.to_dict(orient="records")
 
-        def locations_by_type(locations: Sequence[Location]):
-            return {
-                location_type: set([getattr(location, location_type)
-                                    for location in locations
-                                    if type(getattr(location, location_type)) == str])
-                for location_type in Location._fields.keys()
-            }
+        guessed_records = []
+        scores = []
+        for record in records:
+            score = 0.0
+            for field in record.values():
+                if field in entity_scores:
+                    score += entity_scores[field]
+            if score > 0:
+                guessed_records.append(record)
+                scores.append(score)
 
+        guessed_locations = [Location(**record) for record in guessed_records]
 
-        # store each location type (e.g. city, state, etc.) mapped to the unique possibilities
-        location_types = locations_by_type(self.possible_locations)
+        grouped_locations, grouped_scores = group_by_metro(
+            guessed_locations, scores)
 
-        # construct a new location for each entity, combining each with other plausible entities
-        for i, location_type in enumerate(location_types.keys()):
-            for entity in entity_scores.keys():
+        normalized_scores = softmax(scores) if len(grouped_scores) > 0 else []
 
-                # create a new location if the entity exists in the current type
-                if entity in location_types[location_type]:
-                    guessed_location = Location()
-                    setattr(guessed_location, location_type, entity)
-
-                    # iterate up through the hierarchy of location types,
-                    # adding location elements if the exist
-                    if i < (len(location_types) - 1):
-                        types_to_check = list(location_types.keys())[i + 1:]
-                        for new_type in types_to_check:
-                            for new_entity in entity_scores.keys():
-                                subset_locations = [l for l in self.possible_locations
-                                                    if guessed_location.subset_of(l)]
-                                subset_location_types = locations_by_type(subset_locations)
-                                if new_entity in subset_location_types[new_type]:
-                                    setattr(guessed_location, new_type, new_entity)
-
-                    # store the constructed location
-                    guessed_locations.append(guessed_location)
-
-        # score each location
         location_scores = {
-            location: sum(entity_scores[entity] for entity in list(location.to_mongo().values()))
-            for location in guessed_locations
+            location: score
+            for location, score in zip(grouped_locations, normalized_scores)
         }
 
-        normalized_scores = softmax(list(location_scores.values())) if len(location_scores.values()) > 0 else []
+        return sorted(location_scores.items(),
+                      key=lambda _: _[1],
+                      reverse=True)
 
-        location_scores = {location: score for location, score in zip(location_scores.keys(), normalized_scores)}
-
-        return location_scores
-
-    def predict(self, user: User) -> Optional[Location]:
+    def _predict(self, location_scores: Dict[Location,
+                                             float]) -> Optional[Location]:
         """
         Compute likeliness scores for each entity in a user's posting history and
         package them into a single most likely location.
         """
-        entity_scores = self.score_entities(user)
-
-        max_entity = sorted(entity_scores.items(), key=lambda _: _[1], reverse=True)[0]
-
-        # TODO: add step for forward/backward traversal to fill in other loc attrs of max entity
-        max_loc = Location(city=max_entity)
-
-        return max_loc
+        if len(location_scores) > 0:
+            max_loc = sorted(location_scores.items(),
+                             key=lambda _: _[1],
+                             reverse=True)[0]
+            return max_loc
+        return None
 
 
 if __name__ == "__main__":
@@ -198,12 +214,10 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # define filters/rankers
-    locations = load_locations("data/locations/grouped-locations.csv")
-    filters = {
-        DenylistFilter(DENYLIST),
-        LocationFilter(locations)
-    }
-    rankers = {FrequencyRanker()}
+    fp = "data/locations/grouped-locations.csv"
+    locations = pd.read_csv(fp)
+    filters = [DenylistFilter(DENYLIST), LocationFilter(locations)]
+    rankers = [FrequencyRanker()]
     nlp = get_nlp()
 
     # instantiate model
@@ -219,7 +233,8 @@ if __name__ == "__main__":
         ids = [str(r["_id"]) for r in res if r["_id"]]
         users = User.objects(id__in=ids)
     else:
-        usernames = pd.read_csv("data/rand_user_200.csv", squeeze=True).tolist()
+        usernames = pd.read_csv("data/rand_user_200.csv",
+                                squeeze=True).tolist()
         users = User.objects(username__in=usernames).all()
 
     print("Making predictions .....")
