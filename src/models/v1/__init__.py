@@ -1,8 +1,6 @@
 import functools as ft
 import itertools as it
-from copy import copy
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Sequence
 
 import pandas as pd
 from scipy.special import softmax
@@ -92,7 +90,7 @@ def group_locations(locations: Set[Location]) -> List[Location]:
 
 def group_locations_by_score(
     records: List[Location], scores: List[float]
-) -> Tuple[List[Dict[str, Optional[str]]], List[float]]:
+) -> Tuple[List[Location], List[float]]:
     """Attempt to find a common location parent for locations with the same score."""
     # group records with same score
     score_records_map = dict()
@@ -114,15 +112,35 @@ def group_locations_by_score(
     return new_records, new_scores
 
 
-def group_by_metro(locations: List[Location],
-                   scores: List[float]) -> Tuple[List[str], List[float]]:
-
-    metro_scores = {l.metro: 0.0 for l in locations}
-    for i, loc in enumerate(locations):
-        score = scores[i]
+def group_by_metro(location_scores: Dict[Location, float]) -> Dict[Location, float]:
+    # sum scores for each metro area
+    metro_scores = {l.metro: 0.0 for l in location_scores}
+    for loc in location_scores:
+        score = location_scores[loc]
         metro_scores[loc.metro] += score
 
-    return metro_scores.keys(), metro_scores.values()
+    def metro_to_location(metro: str) -> Location:
+        """Helper func to generate full location for a given metro"""
+        for location in location_scores:
+            if location.metro == metro:
+                return Location(metro=metro,
+                                state=location.state,
+                                country=location.country)
+        return None
+
+    # convert metro areas to locations
+    new_location_scores: Dict[Location, float] = dict()
+    for metro in metro_scores:
+        if type(metro) == str:
+            # if metro area exists, convert metro area to a location
+            new_location_scores[metro_to_location(metro)] = metro_scores[metro]
+        else:
+            # otherwise, add each location that doesn't have a metro area with its score
+            non_metro_locs = [l for l in location_scores if not l.metro]
+            for l in non_metro_locs:
+                new_location_scores[l] = location_scores[l]
+
+    return new_location_scores
 
 
 # -- MODEL DECLARATION --
@@ -180,14 +198,15 @@ class V1:
 
         guessed_locations = [Location(**record) for record in guessed_records]
 
-        grouped_locations, grouped_scores = group_by_metro(
-            guessed_locations, scores)
+        metro_scores = group_by_metro({
+            l: s for l, s in zip(guessed_locations, scores)
+        })
 
-        normalized_scores = softmax(scores) if len(grouped_scores) > 0 else []
+        normalized_scores = softmax(list(metro_scores.values())) if len(metro_scores) > 0 else []
 
         location_scores = {
             location: score
-            for location, score in zip(grouped_locations, normalized_scores)
+            for location, score in zip(list(metro_scores.keys()), normalized_scores)
         }
 
         return sorted(location_scores.items(),
