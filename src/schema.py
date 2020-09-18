@@ -86,7 +86,7 @@ class Post(Document):
     spacy = BinaryField()
     meta = {
         "allow_inheritance": True,
-        "indexes": ["$text", "-datetime", {
+        "indexes": ["user", "$text", "-datetime", {
             "fields": ["pid"],
             "unique": True
         }],
