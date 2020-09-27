@@ -7,11 +7,13 @@ from typing import List, Optional, Union
 import mongoengine
 import pymongo
 import pytz
+import spacy
 from dotenv import load_dotenv
 from mongoengine import connect
 from praw import Reddit
 from praw.models import Comment, Submission
 from psaw import PushshiftAPI
+from spacy.lang.en import English
 
 from src.schema import CommentPost, Post, SubmissionPost, User
 
@@ -63,6 +65,10 @@ def get_praw() -> Reddit:
 def get_psaw(praw: Reddit) -> PushshiftAPI:
     """Allows for lazy connection to Psaw."""
     return PushshiftAPI(praw)
+
+def get_nlp() -> English:
+    """Allows lazy access of nlp module."""
+    return spacy.load("en_core_web_sm")
 
 
 def utc_to_dt(utc: float) -> datetime:
@@ -134,24 +140,3 @@ def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool) -> Post
         post = CommentPost
 
     return post(**kwargs)
-
-
-# --- Data Structures ---
-
-
-@dataclass
-class Location:
-    neighborhood: Optional[str] = None
-    city: Optional[str] = None
-    county: Optional[str] = None
-    state: Optional[str] = None
-    state_short: Optional[str] = None
-
-    def __hash__(self):
-        return (
-            10000 * hash(self.neighborhood)
-            + 1000 * hash(self.city)
-            + 100 * hash(self.county)
-            + 10 * hash(self.state)
-            + hash(self.state_short)
-        )

@@ -164,6 +164,10 @@ WTForms = "==2.2.1"
 mongoengine = "*"
 mongomock = "*"
 scipy = "*"
+jupyterlab = "*"
+jupyter = "*"
+jupyter-contrib-nbextensions = "*"
+seaborn = "*"
 
 [requires]
 python_version = "3.7"
