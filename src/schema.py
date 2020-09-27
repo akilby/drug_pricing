@@ -1,34 +1,59 @@
 """Schemas for MongoDB."""
-from mongoengine import (
-    BinaryField,
-    DateTimeField,
-    Document,
-    EmbeddedDocument,
-    EmbeddedDocumentField,
-    EmbeddedDocumentListField,
-    IntField,
-    ReferenceField,
-    StringField,
-)
+import itertools as it
+from typing import List
+
+from mongoengine import (BinaryField, DateTimeField, Document,
+                         EmbeddedDocument, EmbeddedDocumentField,
+                         EmbeddedDocumentListField, IntField, ReferenceField,
+                         StringField)
 
 
 class Location(EmbeddedDocument):
     """A representation of an incorporated location."""
 
-    name = StringField(required=True)
-    meta = {"allow_inheritance": True}
+    neighborhood = StringField()
+    city = StringField()
+    county = StringField()
+    metro = StringField()
+    state = StringField()
+    country = StringField()
+    state_full = StringField()
 
+    def __str__(self) -> str:
+        return ", ".join([str(v) for v in self.to_mongo().values()])
 
-class State(Location):
-    pass
+    def __hash__(self) -> int:
+        return hash(self.neighborhood) + \
+            10 * hash(self.city) + \
+            100 * hash(self.county) + \
+            1000 * hash(self.state) + \
+            10000 * hash(self.country)
 
+    def subset_of(self, other: "Location") -> bool:
+        """Check if this location is a subset of the given location."""
+        self_map = self.to_mongo()
+        other_map = other.to_mongo()
+        return set(self_map.keys()).issubset(set(other_map.keys())) and \
+            all([self_map[field] == other_map[field] for field in self_map.keys()])
 
-class County(Location):
-    state = ReferenceField("State")
+    def match_entity(self, entity: str) -> List["Location"]:
+        """Return all possible sublocations that this entity could be of this location."""
+        self_map = self.to_mongo()
 
+        matching_fields = [k for k, v in self_map.items() if v == entity]
 
-class City(Location):
-    county = ReferenceField("County")
+        field_combinations = it.chain(
+            *map(lambda i: it.combinations(matching_fields, i),
+                 range(1, 1 + len(matching_fields))))
+
+        possible_locations = [
+            Location(**{
+                k: self_map[k]
+                for k in set(self_map.keys()) & set(field_combo)
+            }) for field_combo in field_combinations
+        ]
+
+        return possible_locations
 
 
 class DateRangeLocation(EmbeddedDocument):
@@ -46,6 +71,9 @@ class User(Document):
     locations = EmbeddedDocumentListField(DateRangeLocation)
     meta = {"indexes": [{"fields": ["username"], "unique": True}]}
 
+    def __str__(self) -> str:
+        return self.username
+
 
 class Post(Document):
     """An abstraction over Reddit Submission and Comments."""
@@ -58,7 +86,10 @@ class Post(Document):
     spacy = BinaryField()
     meta = {
         "allow_inheritance": True,
-        "indexes": ["$text", "-datetime", {"fields": ["pid"], "unique": True}],
+        "indexes": ["user", "$text", "-datetime", {
+            "fields": ["pid"],
+            "unique": True
+        }],
     }
 
 
