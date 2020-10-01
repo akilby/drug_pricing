@@ -29,11 +29,15 @@ def get_users(how: str = "all") -> List[str]:
 
 def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
     """Retrieve the full reddit posting history for the given user."""
-    submissions = list(psaw.search_submissions(author=user))
-    comments = list(psaw.search_comments(author=user))
+    try:
+        submissions = list(psaw.search_submissions(author=user))
+        comments = list(psaw.search_comments(author=user))
 
-    posts = sub_comm_to_post(submissions, True) + sub_comm_to_post(comments, False)
-    return posts
+        posts = sub_comm_to_post(submissions, True) + sub_comm_to_post(comments, False)
+        return posts
+    except Exception:
+        print(f"User: {user} was not found with PushshiftAPI")
+        return []
 
 
 def get_users_histories(

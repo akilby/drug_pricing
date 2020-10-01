@@ -177,8 +177,9 @@ class V1:
         return scores
 
     def score_locations(
-            self, entity_scores: Dict[str,
-                                      float]) -> List[Tuple[Location, float]]:
+            self,
+            entity_scores: Dict[str, float]
+    ) -> List[Tuple[Location, float]]:
         """
         Convert each location entity in a user's posting history to a real location.
         Then, assign a likeliness score to each location.
@@ -213,8 +214,7 @@ class V1:
                       key=lambda _: _[1],
                       reverse=True)
 
-    def _predict(self, location_scores: Dict[Location,
-                                             float]) -> Optional[Location]:
+    def _predict(self, location_scores: Dict[Location, float]) -> Optional[Location]:
         """
         Compute likeliness scores for each entity in a user's posting history and
         package them into a single most likely location.
