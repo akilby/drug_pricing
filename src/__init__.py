@@ -97,7 +97,7 @@ def main() -> None:
 
     if args.histories:
         print("Retrieving user histories .....")
-        users_fp = .join(PROJ_DIR, "..", "data", "users.csv")
+        users_fp = os.path.join(PROJ_DIR, "..", "data", "users.csv")
         users = pd.read_csv(users_fp, squeeze=True, header=None).tolist()
         get_users_histories(users, psaw, users_fp)
 
