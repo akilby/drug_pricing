@@ -33,7 +33,8 @@ def extract_user_posts(psaw: PushshiftAPI, user: str) -> List[Post]:
         submissions = list(psaw.search_submissions(author=user))
         comments = list(psaw.search_comments(author=user))
 
-        posts = sub_comm_to_post(submissions, True) + sub_comm_to_post(comments, False)
+        posts = [sub_comm_to_post(s, True) for s in submissions] + \
+                [sub_comm_to_post(c, False) for c in comments]
         return posts
     except Exception:
         print(f"User: {user} was not found with PushshiftAPI")
