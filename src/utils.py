@@ -94,7 +94,7 @@ def posts_to_mongo(posts: List[Post]) -> None:
         try:
             post.save()
             n_posted += 1
-        except (mongoengine.errors.ValidationError or mongoengine.errors.NotUniqueError) as e:
+        except (mongoengine.errors.ValidationError, mongoengine.errors.NotUniqueError) as e:
             print(f"Error adding post {post.pid}: {e}")
     print(f"{n_posted} posts added to mongo.")
 
