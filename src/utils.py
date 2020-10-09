@@ -22,6 +22,9 @@ from src.schema import CommentPost, Post, SubmissionPost, User
 PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 SUBR_NAMES = ["opiates", "heroin"]
 SUB_LIMIT = 1000
+GEONAMES_KEY = os.getenv("GEONAMES_KEY")
+MAPBOX_KEY = os.getenv("MAPBOX_KEY")
+GOOGLE_KEY = os.getenv("GOOGLE_KEY")
 
 # load local environment variables
 load_dotenv(os.path.join(PROJ_DIR, "..", ".env"))

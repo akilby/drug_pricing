@@ -168,6 +168,10 @@ jupyterlab = "*"
 jupyter = "*"
 jupyter-contrib-nbextensions = "*"
 seaborn = "*"
+geocoder = "*"
+sklearn = "*"
+plotly = "*"
+geopy = "*"
 
 [requires]
 python_version = "3.7"

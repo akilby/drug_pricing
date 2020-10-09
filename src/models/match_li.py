@@ -1,14 +1,14 @@
+"""A location inference model that matches entities with a gazetteer."""
 import functools as ft
-import itertools as it
-from typing import Any, Dict, List, Optional, Set, Tuple, Sequence
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 from scipy.special import softmax
 from spacy.lang.en import English
 from tqdm import tqdm
 
+from src.models.__init__ import get_ents, get_user_spacy
 from src.schema import Location, Post, User
-from src.tasks.spacy import bytes_to_spacy
 from src.utils import connect_to_mongo, get_nlp
 
 from .filters import BaseFilter, DenylistFilter, LocationFilter
@@ -17,19 +17,6 @@ from .rankers import BaseRanker, FrequencyRanker
 DENYLIST = {"china", "russia", "turkey", "op"}
 
 # -- HELPER FUNCTIONS --
-
-
-def get_user_spacy(user: User, nlp: English) -> List[English]:
-    """Retrieves all of the spacy docs for a given user."""
-    posts = Post.objects(user=user)
-    return [bytes_to_spacy(p.spacy, nlp) for p in posts if p.spacy]
-
-
-def get_ents(docs: List[English], entity_type: str) -> List[str]:
-    """Return all entities in the given docs of the given type."""
-    all_ents = it.chain(*[d.ents for d in docs])
-    filt_ents = [e.text.lower() for e in all_ents if e.label_ == entity_type]
-    return filt_ents
 
 
 def rankings_averager(gpe: str, rankings: List[Dict[str, float]]) -> float:
@@ -119,7 +106,7 @@ def group_by_metro(location_scores: Dict[Location, float]) -> Dict[Location, flo
         score = location_scores[loc]
         metro_scores[loc.metro] += score
 
-    def metro_to_location(metro: str) -> Location:
+    def metro_to_location(metro: str) -> Optional[Location]:
         """Helper func to generate full location for a given metro"""
         for location in location_scores:
             if location.metro == metro:
@@ -146,7 +133,7 @@ def group_by_metro(location_scores: Dict[Location, float]) -> Dict[Location, flo
 # -- MODEL DECLARATION --
 
 
-class V1:
+class LocationMatcher:
     def __init__(self, filters: List[BaseFilter], rankers: List[BaseRanker],
                  real_locations: pd.DataFrame, nlp: English):
         self.filters = filters
@@ -240,7 +227,7 @@ if __name__ == "__main__":
     nlp = get_nlp()
 
     # instantiate model
-    model = V1(filters, rankers, locations, nlp)
+    model = LocationMatcher(filters, rankers, locations, nlp)
 
     use_top = True
     print("Getting users .....")
