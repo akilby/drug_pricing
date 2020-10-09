@@ -9,6 +9,9 @@ from src.tasks.spacy import bytes_to_spacy
 from src.utils import GEONAMES_KEY, MAPBOX_KEY, GOOGLE_KEY
 
 
+DENYLIST = {"china", "russia", "turkey", "op"}
+
+
 def get_user_spacy(user: User, nlp: English) -> List[English]:
     """Retrieves all of the spacy docs for a given user."""
     posts = Post.objects(user=user)

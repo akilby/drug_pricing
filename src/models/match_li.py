@@ -7,14 +7,13 @@ from scipy.special import softmax
 from spacy.lang.en import English
 from tqdm import tqdm
 
-from src.models.__init__ import get_ents, get_user_spacy
+from src.models.__init__ import get_ents, get_user_spacy, DENYLIST
 from src.schema import Location, Post, User
 from src.utils import connect_to_mongo, get_nlp
 
 from .filters import BaseFilter, DenylistFilter, LocationFilter
 from .rankers import BaseRanker, FrequencyRanker
 
-DENYLIST = {"china", "russia", "turkey", "op"}
 
 # -- HELPER FUNCTIONS --
 

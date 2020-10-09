@@ -11,10 +11,13 @@ import requests
 from sklearn.cluster import DBSCAN
 from sklearn.metrics.pairwise import cosine_similarity
 from spacy.lang.en import English
+import pandas as pd
+from tqdm import tqdm
 
 from src.models.__init__ import (forward_geocode, get_ents, get_user_spacy,
-                                 reverse_geocode)
-from src.models.filters import BaseFilter
+                                 reverse_geocode, DENYLIST)
+from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
+from src.utils import connect_to_mongo, get_nlp
 from src.schema import User
 
 
@@ -74,3 +77,32 @@ class LocationClusterer:
         scores = softmax(top_counts)
 
         return dict(zip(guessed_locations, scores))
+
+
+if __name__ == "__main__":
+    print("Initializing .....")
+    connect_to_mongo()
+    nlp = get_nlp()
+
+    labels_df = pd.read_csv("data/geocoded-location-labels.csv").drop("Unnamed: 0", axis=1)
+    gazetteer = pd.read_csv("data/locations/grouped-locations.csv")
+
+    filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
+    model = LocationClusterer(filters, nlp)
+
+    print("Making guesses for each user .....")
+    users_locations = []
+    for username in tqdm(labels_df["username"].tolist()):
+        user = User.objects(username=username).first()
+        model_entities = model.extract_entities(user)
+        if len(model_entities) > 0:
+            locations = model.predict(model_entities)
+        else:
+            locations = {}
+        users_locations.append(locations)
+
+    print("Writing to csv .....")
+    labels_df["location_guesses"] = users_locations
+    labels_df.to_csv("location-guesses.csv")
+
+    print("Done.")
