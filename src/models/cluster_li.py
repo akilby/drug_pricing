@@ -3,6 +3,7 @@ import functools as ft
 import itertools as it
 from collections import Counter
 from typing import List, Dict
+import pickle
 
 from scipy.special import softmax
 import geocoder
@@ -72,8 +73,11 @@ class LocationClusterer:
             center = find_center(np.array(cluster_latlngs))
             centers.append(center)
 
-        guessed_locations = [reverse_geocode(c[0], c[1], session=session)
-                             for c in centers]
+        try:
+            guessed_locations = [reverse_geocode(c[0], c[1], session=session)
+                                 for c in centers]
+        except:
+            breakpoint()
         scores = softmax(top_counts)
 
         return dict(zip(guessed_locations, scores))
@@ -101,8 +105,8 @@ if __name__ == "__main__":
             locations = {}
         users_locations.append(locations)
 
-    print("Writing to csv .....")
+    print("Writing to pickle .....")
     labels_df["location_guesses"] = users_locations
-    labels_df.to_csv("location-guesses.csv")
+    pickle.dump(labels_df, open("data/location-guesses.pk", "wb"))
 
     print("Done.")
