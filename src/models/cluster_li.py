@@ -59,7 +59,7 @@ class LocationClusterer:
         geocodes = it.chain(*[forward_geocode(e, session=session) for e in entities])
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
-        clusters = DBSCAN(eps=3, min_samples=2).fit_predict(np.array(latlngs))
+        clusters = DBSCAN(eps=1.5, min_samples=2).fit_predict(np.array(latlngs))
         cluster_counts = Counter(clusters)
         top_cluster_counts = cluster_counts.most_common(10)
         top_clusters = [c[0] for c in top_cluster_counts]
@@ -72,6 +72,7 @@ class LocationClusterer:
             center = find_center(np.array(cluster_latlngs))
             centers.append(center)
 
+        # TODO: fix why this is breaking on lat/lng extraction
         guessed_locations = [reverse_geocode(c[0], c[1], session=session)
                              for c in centers]
         scores = softmax(top_counts)
