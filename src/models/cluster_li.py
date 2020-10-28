@@ -3,6 +3,7 @@ import functools as ft
 import itertools as it
 from collections import Counter
 from typing import List, Dict
+import pickle
 
 from scipy.special import softmax
 import geocoder
@@ -55,11 +56,15 @@ class LocationClusterer:
 
     def predict(self, entities: List[str]) -> Dict[geocoder.base.OneResult, float]:
         """Predicts the most likely locations for a user."""
+        if len(entities) == 0:
+            return {}
+
         session = requests.Session()
         geocodes = it.chain(*[forward_geocode(e, session=session) for e in entities])
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         clusters = DBSCAN(eps=1.5, min_samples=2).fit_predict(np.array(latlngs))
+
         cluster_counts = Counter(clusters)
         top_cluster_counts = cluster_counts.most_common(10)
         top_clusters = [c[0] for c in top_cluster_counts]
@@ -72,9 +77,11 @@ class LocationClusterer:
             center = find_center(np.array(cluster_latlngs))
             centers.append(center)
 
-        # TODO: fix why this is breaking on lat/lng extraction
-        guessed_locations = [reverse_geocode(c[0], c[1], session=session)
-                             for c in centers]
+        try:
+            guessed_locations = [reverse_geocode(c[0], c[1], session=session)
+                                 for c in centers]
+        except:
+            breakpoint()
         scores = softmax(top_counts)
 
         return dict(zip(guessed_locations, scores))
@@ -85,25 +92,26 @@ if __name__ == "__main__":
     connect_to_mongo()
     nlp = get_nlp()
 
-    labels_df = pd.read_csv("data/geocoded-location-labels.csv").drop("Unnamed: 0", axis=1)
+    labels_df = pd.read_csv("data/geocoded-location-labels.csv")
     gazetteer = pd.read_csv("data/locations/grouped-locations.csv")
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
     model = LocationClusterer(filters, nlp)
 
     print("Making guesses for each user .....")
+    users_entities = []
     users_locations = []
     for username in tqdm(labels_df["username"].tolist()):
         user = User.objects(username=username).first()
-        model_entities = model.extract_entities(user)
-        if len(model_entities) > 0:
-            locations = model.predict(model_entities)
-        else:
-            locations = {}
+
+        entities = model.extract_entities(user)
+        users_entities.append(entities)
+
+        locations = model.predict(entities)
         users_locations.append(locations)
 
-    print("Writing to csv .....")
+    print("Writing to pickle .....")
     labels_df["location_guesses"] = users_locations
-    labels_df.to_csv("location-guesses.csv")
+    pickle.dump(labels_df, open("data/location-guesses.pk", "wb"))
 
     print("Done.")

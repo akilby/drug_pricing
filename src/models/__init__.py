@@ -26,7 +26,7 @@ def get_ents(docs: List[English], entity_type: str) -> List[str]:
 
 
 def forward_geocode(location: str,
-                    service="geonames",
+                    service="mapbox",
                     session=None) -> List[geocoder.base.OneResult]:
     """Extract the latitude/longitude from a given location."""
     if service == "geonames":
@@ -50,4 +50,8 @@ def reverse_geocode(lat: float,
         location = geocoder.mapbox(coords, key=MAPBOX_KEY, method="reverse")
     else:
         raise Exception("Unsupported geocoding service provided.")
-    return location[0]
+
+    if hasattr(location, "__getitem__") and len(location) > 0:
+        return location[0]
+    else:
+        return location
