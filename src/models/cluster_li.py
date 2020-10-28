@@ -111,6 +111,7 @@ if __name__ == "__main__":
         users_locations.append(locations)
 
     print("Writing to pickle .....")
+    labels_df["entity_guesses"] = users_entities
     labels_df["location_guesses"] = users_locations
     pickle.dump(labels_df, open("data/location-guesses.pk", "wb"))
 
