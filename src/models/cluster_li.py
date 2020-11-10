@@ -73,7 +73,6 @@ def geonames_json_to_location(
                 nearest_metro_idx = nearest_coords((json_result['lat'], json_result['lng']),
                                                    metro_state_coords)
                 nearest_metro = metro_state_coords_list[nearest_metro_idx][0]
-                breakpoint()
                 loc_params['metro'] = nearest_metro.split(',')[0]
                 loc_params['state_full'] = nearest_metro.split(',')[1]
                 # TODO: replace lat/lng w/ metro lat/lng
@@ -116,6 +115,11 @@ class LocationClusterer:
 
         # cluster all possible coordinates
         clusters = DBSCAN(eps=1.5, min_samples=2).fit_predict(np.array(latlngs))
+        clusters_idx = [i for i, c in enumerate(clusters) if c >= 0]
+        clusters = [clusters[i] for i in clusters_idx]
+        latlngs = [latlngs[i] for i in clusters_idx]
+        if len(clusters) == 0:
+            return {}
 
         # extract the largest clusters
         cluster_counts = Counter(clusters)
@@ -145,7 +149,10 @@ class LocationClusterer:
         locations = [geonames_json_to_location(guess, metro_state_coords, metro_state_coords_list)
                      for guess in guessed_locations]
 
-        return dict(zip(locations, scores))
+        location_score_map = {locations[i]: scores[i] for i in range(len(scores))}
+
+        breakpoint()
+        return location_score_map
 
 
 if __name__ == '__main__':
