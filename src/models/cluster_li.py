@@ -85,6 +85,13 @@ def geonames_json_to_location(
     return Location(**loc_params)
 
 
+def map_state_abbrevs(gazetteer: pd.DataFrame) -> Dict[str, str]:
+    '''Create a mapping from state abbreviations to state names'''
+    abbrevs = list(set(gazetteer['state'].tolist()))
+    state_full = list(set(gazetteer['state_full'].tolist))
+    return dict(zip(abbrevs, state_full))
+
+
 class LocationClusterer:
     def __init__(self,
                  filters: List[BaseFilter],
@@ -93,6 +100,7 @@ class LocationClusterer:
         self.nlp = nlp
         self.gazetteer = pd.read_csv('data/gazetteer.csv')
         self.metro_state_coords_map = pickle.load(open('data/metro_state_coord_map.pk', 'rb'))
+        self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
 
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
@@ -106,6 +114,9 @@ class LocationClusterer:
         # return empty map if there are no entities to utilize
         if len(entities) == 0:
             return {}
+
+        # convert state abbrevitions to full state names
+        entities = [self.state_abbrev_map[e] for e in entities if e in self.state_abbrev_map]
 
         # convert entities to possible coordinates
         session = requests.Session()
