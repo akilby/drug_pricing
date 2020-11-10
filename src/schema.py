@@ -5,21 +5,23 @@ from typing import List
 from mongoengine import (BinaryField, DateTimeField, Document,
                          EmbeddedDocument, EmbeddedDocumentField,
                          EmbeddedDocumentListField, IntField, ReferenceField,
-                         StringField)
+                         StringField, FloatField)
 
 
 class Location(EmbeddedDocument):
     """A representation of an incorporated location."""
 
+    lat = FloatField()
+    lng = FloatField()
     neighborhood = StringField()
     city = StringField()
     county = StringField()
     metro = StringField()
+    state_full = StringField()
     state = StringField()
     country = StringField()
-    state_full = StringField()
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return ", ".join([str(v) for v in self.to_mongo().values()])
 
     def __hash__(self) -> int:

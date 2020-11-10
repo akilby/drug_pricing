@@ -1,8 +1,9 @@
 import itertools as it
-from typing import List
+from typing import List, Union, Dict
 
 from spacy.lang.en import English
 import geocoder
+import requests
 
 from src.schema import Post, User
 from src.tasks.spacy import bytes_to_spacy
@@ -40,18 +41,29 @@ def forward_geocode(location: str,
     return list(geocodes)
 
 
+def geonames_reverse(lat: float, lng: float):
+    base_url = "http://api.geonames.org/findNearbyJSON"
+    full_url = base_url + "?lat=" + str(lat) + "&lng=" + str(lng) + "&username=cccdenhart"
+    return requests.get(full_url).json()
+
+
 def reverse_geocode(lat: float,
                     lng: float,
                     service="mapbox",
-                    session=None) -> geocoder.base.OneResult:
+                    session=None) -> Union[geocoder.base.OneResult, Dict]:
     """Return a geocode location given a coordinate pair."""
     coords = (lat, lng)
     if service == "mapbox":
         location = geocoder.mapbox(coords, key=MAPBOX_KEY, method="reverse")
+    if service == "geonames":
+        location = geonames_reverse(lat, lng)
     else:
         raise Exception("Unsupported geocoding service provided.")
 
     if hasattr(location, "__getitem__") and len(location) > 0:
-        return location[0]
+        if service == "mapbox":
+            return location[0]
+        else:
+            return location["geonames"][0]
     else:
         return location
