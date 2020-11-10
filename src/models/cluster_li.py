@@ -2,7 +2,7 @@
 import functools as ft
 import itertools as it
 from collections import Counter
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 import pickle
 
 from scipy.special import softmax
@@ -53,6 +53,39 @@ def nearest_coords(
     return np.argmin(distances)
 
 
+def geonames_json_to_location(
+    json_result: Dict[str, Any],
+    metro_state_coords: List[Tuple[float, float]],
+    metro_state_coords_list: List[Tuple[str, Tuple[float, float]]]
+) -> Location:
+    """Transform a geonames api result in JSON form to a Location."""
+    print(json_result)
+    loc_params = {}
+    if 'countryName' in json_result:
+        loc_params = {
+            'country': json_result['countryName'],
+            'lat': json_result['lat'],
+            'lng': json_result['lng']
+        }
+        if loc_params['country'] == 'United States':
+            if json_result['fcl'] not in ['A', 'P']:
+                # assign to closest metro area
+                nearest_metro_idx = nearest_coords((json_result['lat'], json_result['lng']),
+                                                   metro_state_coords)
+                nearest_metro = metro_state_coords_list[nearest_metro_idx][0]
+                breakpoint()
+                loc_params['metro'] = nearest_metro.split(',')[0]
+                loc_params['state_full'] = nearest_metro.split(',')[1]
+                # TODO: replace lat/lng w/ metro lat/lng
+            else:
+                loc_params['state_full'] = json_result['adminName1']
+                loc_params['country'] = json_result['countryName']
+                if json_result['fcl'] == 'P':
+                    loc_params['city'] = json_result['toponymName']
+
+    return Location(**loc_params)
+
+
 class LocationClusterer:
     def __init__(self,
                  filters: List[BaseFilter],
@@ -99,49 +132,18 @@ class LocationClusterer:
             centers.append(center)
 
         # convert center coordinates to a physical place
-        try:
-            guessed_locations = [reverse_geocode(c[0], c[1], service='geonames', session=session)
-                                 for c in centers]
-        except:
-            breakpoint()
+        guessed_locations = [reverse_geocode(c[0], c[1], service='geonames', session=session)
+                             for c in centers]
 
+        # normalize the scores
         scores = softmax(top_counts)
 
-        '''
-        TODO: reclassify reversed geocodes
+        metro_state_coords_list = list(self.metro_state_coords_map.items())
+        metro_state_coords = [m[1] for m in metro_state_coords_list]
 
-        if feature code == 'A' (e.g. state/country):
-            leave as is
-        if feature code == 'P' (e.g. city/village) AND population > ~ 100,000:
-            leave as is
-        else:
-            convert to nearest metro ares
-        '''
-        metro_state_coords = [m[0] for m in list(self.metro_state_coords_map.items())]
-
-        locations = []
-        for i, guess in enumerate(guessed_locations):
-            loc_params = {
-                'country': guess['countryName'],
-                'lat': guess['lat'],
-                'lng': guess['lng']
-            }
-            if loc_params['country'] == 'United States':
-                if guess['fcl'] not in ['A', 'P']:
-                    # assign to closest metro area
-                    nearest_metro_idx = nearest_coords((guess['lat'], guess['lng']),
-                                                       metro_state_coords)
-                    nearest_metro = metro_state_coords[nearest_metro_idx]
-                    loc_params['metro'] = nearest_metro.split(',')[0]
-                    loc_params['state_full'] = nearest_metro.split(',')[1]
-                    # TODO: replace lat/lng w/ metro lat/lng
-                else:
-                    loc_params['state_full'] = guess['adminName1']
-                    loc_params['country'] = guess['countryName']
-                    if guess['fcl'] == 'P':
-                        loc_params['city'] = guess['toponymName']
-
-            locations.append(Location(**loc_params))
+        # convert geonames responses to Locations
+        locations = [geonames_json_to_location(guess, metro_state_coords, metro_state_coords_list)
+                     for guess in guessed_locations]
 
         return dict(zip(locations, scores))
 
