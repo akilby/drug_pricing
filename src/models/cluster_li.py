@@ -87,8 +87,8 @@ def geonames_json_to_location(
 
 def map_state_abbrevs(gazetteer: pd.DataFrame) -> Dict[str, str]:
     '''Create a mapping from state abbreviations to state names'''
-    abbrevs = list(set(gazetteer['state'].tolist()))
-    state_full = list(set(gazetteer['state_full'].tolist))
+    abbrevs = gazetteer['state'].tolist()
+    state_full = gazetteer['state_full'].tolist()
     return dict(zip(abbrevs, state_full))
 
 
@@ -116,7 +116,9 @@ class LocationClusterer:
             return {}
 
         # convert state abbrevitions to full state names
-        entities = [self.state_abbrev_map[e] for e in entities if e in self.state_abbrev_map]
+        init_entities = entities
+        entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
+                    for e in entities]
 
         # convert entities to possible coordinates
         session = requests.Session()
@@ -164,6 +166,37 @@ class LocationClusterer:
 
         breakpoint()
         return location_score_map
+
+
+def cache_user_geocodes(username: str):
+    '''Store a dataframe with geocodes from a user's posting history.'''
+    print("Configuring .....")
+    connect_to_mongo()
+    nlp = get_nlp()
+    gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
+    filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
+    model = LocationClusterer(filters, nlp)
+    user = User.objects(username=username).first()
+
+    print("Extracting entities .....")
+    user_entities = model.extract_entities(user)
+
+    print("Extracting geocodes .....")
+    geocodes = [geocoder.geonames(entity, key="cccdenhart", maxRows=5)
+                for entity in user_entities]
+    rows = []
+    for e, geocode in zip(user_entities, geocodes):
+        for g in geocode:
+            rows.append({"entity": e,
+                         "address": g.address,
+                         "lat": float(g.lat),
+                         "lng": float(g.lng),
+                         "score": g.population})
+
+    df = pd.DataFrame(rows)
+
+    print("Saving ......")
+    pickle.dump(df, open(f"data/user_geocodes/{username}_geocodes.pk", "wb"))
 
 
 if __name__ == '__main__':
