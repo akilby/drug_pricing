@@ -7,6 +7,7 @@ import pickle
 
 from scipy.special import softmax
 import geocoder
+from geocoder.geonames import GeonamesResult
 from geopy import distance
 import numpy as np
 import requests
@@ -53,43 +54,78 @@ def nearest_coords(
     return np.argmin(distances)
 
 
-def geonames_json_to_location(
-    json_result: Dict[str, Any],
-    metro_state_coords: List[Tuple[float, float]],
-    metro_state_coords_list: List[Tuple[str, Tuple[float, float]]]
-) -> Location:
-    """Transform a geonames api result in JSON form to a Location."""
-    print(json_result)
-    loc_params = {}
-    if 'countryName' in json_result:
-        loc_params = {
-            'country': json_result['countryName'],
-            'lat': json_result['lat'],
-            'lng': json_result['lng']
-        }
-        if loc_params['country'] == 'United States':
-            if json_result['fcl'] not in ['A', 'P']:
-                # assign to closest metro area
-                nearest_metro_idx = nearest_coords((json_result['lat'], json_result['lng']),
-                                                   metro_state_coords)
-                nearest_metro = metro_state_coords_list[nearest_metro_idx][0]
-                loc_params['metro'] = nearest_metro.split(',')[0]
-                loc_params['state_full'] = nearest_metro.split(',')[1]
-                # TODO: replace lat/lng w/ metro lat/lng
-            else:
-                loc_params['state_full'] = json_result['adminName1']
-                loc_params['country'] = json_result['countryName']
-                if json_result['fcl'] == 'P':
-                    loc_params['city'] = json_result['toponymName']
-
-    return Location(**loc_params)
-
-
 def map_state_abbrevs(gazetteer: pd.DataFrame) -> Dict[str, str]:
     '''Create a mapping from state abbreviations to state names'''
     abbrevs = gazetteer['state'].tolist()
     state_full = gazetteer['state_full'].tolist()
     return dict(zip(abbrevs, state_full))
+
+
+def geocode_to_location(geocode: GeonamesResult) -> Location:
+    '''convert a geocode to a location.'''
+    # define base location params
+    loc_params = {
+        'country': geocode.country,
+        'lat': float(geocode.lat),
+        'lng': float(geocode.lng),
+        'population': geocode.population
+    }
+
+    # add more detail if geocode in US
+    city_codes = ["RGNE"]
+    if geocode.country == 'United States':
+        if geocode.feature_class == 'P' or geocode.code in city_codes:
+            loc_params['city'] = geocode.address
+        loc_params['state'] = geocode.state
+
+    return Location(**loc_params)
+
+   
+def location_comparator(l1: Tuple[Location, int], l2: Tuple[Location, int]) -> int:
+    '''
+    Compare two frequency-locations, where a frequency-location is a location
+    paired with a frequency weight.
+
+    -1 if l1 should be before l2
+    1 if l1 should be after l2
+    0 if the two are equal
+    '''
+    # prioritize a location with a city over one without one
+    if l1[0].city and not l2[0].city:
+        return -1
+
+    if l2[0].city and not l1[0].city:
+        return 1
+
+    # prioritize a location with a higher frequency count
+    if l1[1] > l2[1]:
+        return -1
+
+    if l1[1] < l2[1]:
+        return 1
+
+    # prioritize a location wih a larger population
+    if l1[0].population > l2[0].population:
+        return -1
+
+    if l2[0].population > l1[0].population:
+        return 1
+
+    return 0
+
+
+def best_cluster_location(geocodes: GeonamesResult) -> Location:
+    '''Determine the best location to represent the given cluster.'''
+    # convert geocodes to locations
+    locations = [geocode_to_location(g) for g in geocodes]
+
+    # get frequency counts for locations
+    location_frequencies = list(Counter(locations).items())
+
+    # sort locations using the above comparator
+    sorted_locations = sorted(location_frequencies, key=ft.cmp_to_key(location_comparator))
+
+    return sorted_locations[0]
 
 
 class LocationClusterer:
@@ -101,6 +137,7 @@ class LocationClusterer:
         self.gazetteer = pd.read_csv('data/gazetteer.csv')
         self.metro_state_coords_map = pickle.load(open('data/metro_state_coord_map.pk', 'rb'))
         self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
+        self.session = requests.Session()
 
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
@@ -121,50 +158,42 @@ class LocationClusterer:
                     for e in entities]
 
         # convert entities to possible coordinates
-        session = requests.Session()
-        geocodes = it.chain(*[forward_geocode(e, service='geonames', session=session)
-                              for e in entities])
+        geocodes = list(it.chain(*[forward_geocode(e, service='geonames', session=self.session)
+                                   for e in entities]))
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         # cluster all possible coordinates
-        clusters = DBSCAN(eps=1.5, min_samples=2).fit_predict(np.array(latlngs))
+        clusters = DBSCAN(eps=2.5, min_samples=2).fit_predict(np.array(latlngs))
+
+        # remove clusters that have only 1 item
         clusters_idx = [i for i, c in enumerate(clusters) if c >= 0]
         clusters = [clusters[i] for i in clusters_idx]
-        latlngs = [latlngs[i] for i in clusters_idx]
+        geocodes = [geocodes[i] for i in clusters_idx]
+
+        # return an empty map if there are no real clusters
         if len(clusters) == 0:
             return {}
 
-        # extract the largest clusters
+        # extract the largest 10 clusters
         cluster_counts = Counter(clusters)
         top_cluster_counts = cluster_counts.most_common(10)
         top_clusters = [c[0] for c in top_cluster_counts]
         top_counts = [c[1] for c in top_cluster_counts]
 
-        # find the centers for each of the largest clusters
-        centers = []
+        # guess the most representative location within each cluster
+        location_guesses = []
         for cluster in top_clusters:
             cluster_idx = [i for i in range(len(clusters)) if clusters[i] == cluster]
-            cluster_latlngs = [latlngs[i] for i in cluster_idx]
-            center = find_center(np.array(cluster_latlngs))
-            centers.append(center)
-
-        # convert center coordinates to a physical place
-        guessed_locations = [reverse_geocode(c[0], c[1], service='geonames', session=session)
-                             for c in centers]
+            cluster_geocodes = [geocodes[i] for i in cluster_idx]
+            location_guess = best_cluster_location(cluster_geocodes)
+            location_guesses.append(location_guess)
 
         # normalize the scores
-        scores = softmax(top_counts)
+        scores = [tc / sum(top_counts) for tc in top_counts]
 
-        metro_state_coords_list = list(self.metro_state_coords_map.items())
-        metro_state_coords = [m[1] for m in metro_state_coords_list]
+        # map each location guess to a score
+        location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
 
-        # convert geonames responses to Locations
-        locations = [geonames_json_to_location(guess, metro_state_coords, metro_state_coords_list)
-                     for guess in guessed_locations]
-
-        location_score_map = {locations[i]: scores[i] for i in range(len(scores))}
-
-        breakpoint()
         return location_score_map
 
 

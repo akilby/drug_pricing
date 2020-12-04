@@ -1,6 +1,6 @@
 """Schemas for MongoDB."""
 import itertools as it
-from typing import List
+from typing import List, Any
 
 from mongoengine import (BinaryField, DateTimeField, Document,
                          EmbeddedDocument, EmbeddedDocumentField,
@@ -20,6 +20,7 @@ class Location(EmbeddedDocument):
     state_full = StringField()
     state = StringField()
     country = StringField()
+    population = IntField()
 
     def __repr__(self) -> str:
         return ", ".join([str(v) for v in self.to_mongo().values()])
@@ -30,6 +31,15 @@ class Location(EmbeddedDocument):
             100 * hash(self.county) + \
             1000 * hash(self.state) + \
             10000 * hash(self.country)
+
+    def __eq__(self, other: Any) -> bool:
+        return self.neighborhood == other.neighborhood and \
+               self.city == other.city and \
+               self.state == other.state and \
+               self.country == other.country
+
+    def __ne__(self, other: Any) -> bool:
+        return not self == other
 
     def subset_of(self, other: "Location") -> bool:
         """Check if this location is a subset of the given location."""

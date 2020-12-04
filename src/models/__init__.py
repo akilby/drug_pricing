@@ -31,7 +31,7 @@ def forward_geocode(location: str,
                     session=None) -> List[geocoder.base.OneResult]:
     """Extract the latitude/longitude from a given location."""
     if service == "geonames":
-        geocodes = geocoder.geonames(location, key="cccdenhart", session=session)
+        geocodes = geocoder.geonames(location, key="cccdenhart", fuzzy=0.8, session=session)
     elif service == "mapbox":
         geocodes = geocoder.mapbox(location, key=MAPBOX_KEY, session=session)
     elif service == "google":
