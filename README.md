@@ -22,7 +22,7 @@ To update all new data from all subreddits, run `make run args=--update`.
 
 Run `make test` to execute all tests.
 
-*Note:** tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
+*Note:* tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
 
 **Additional Functionality**
 
