@@ -2,8 +2,9 @@
 import functools as ft
 import itertools as it
 from collections import Counter
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Iterable
 import pickle
+import time
 
 from scipy.special import softmax
 import geocoder
@@ -22,6 +23,9 @@ from src.models.__init__ import (forward_geocode, get_ents, get_user_spacy,
 from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
 from src.utils import connect_to_mongo, get_nlp
 from src.schema import User, Location
+
+# store the number of times geonames has been requested globally
+NUM_GEONAMES_REQUESTS = 0
 
 
 def find_center(points: np.array) -> np.array:
@@ -80,7 +84,7 @@ def geocode_to_location(geocode: GeonamesResult) -> Location:
 
     return Location(**loc_params)
 
-   
+
 def location_comparator(l1: Tuple[Location, int], l2: Tuple[Location, int]) -> int:
     '''
     Compare two frequency-locations, where a frequency-location is a location
@@ -128,6 +132,21 @@ def best_cluster_location(geocodes: GeonamesResult) -> Location:
     return sorted_locations[0]
 
 
+def get_geocodes(entity: str, session) -> Iterable[GeonamesResult]:
+    '''Convert an entity to a list of possible geocodes.'''
+    # if number of geonames requests 1000, pause for 1 hr
+    global NUM_GEONAMES_REQUESTS
+    print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
+    if NUM_GEONAMES_REQUESTS >= 1000:
+        print('Pausing for 1 hr .....')
+        time.sleep(3600)
+        NUM_GEONAMES_REQUESTS = 0
+
+    NUM_GEONAMES_REQUESTS += 1
+    geocodes = forward_geocode(entity, service='geonames', session=session)
+    return geocodes
+
+
 class LocationClusterer:
     def __init__(self,
                  filters: List[BaseFilter],
@@ -158,8 +177,7 @@ class LocationClusterer:
                     for e in entities]
 
         # convert entities to possible coordinates
-        geocodes = list(it.chain(*[forward_geocode(e, service='geonames', session=self.session)
-                                   for e in entities]))
+        geocodes = list(it.chain(*[get_geocodes(e, self.session) for e in entities]))
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         # cluster all possible coordinates
@@ -233,7 +251,7 @@ if __name__ == '__main__':
     connect_to_mongo()
     nlp = get_nlp()
 
-    labels_df = pd.read_csv('data/geocoded-location-labels.csv').iloc[0:10, :]
+    labels_df = pd.read_csv('data/geocoded-location-labels.csv')
     gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
@@ -254,6 +272,6 @@ if __name__ == '__main__':
     print('Writing to pickle .....')
     labels_df['entity_guesses'] = users_entities
     labels_df['location_guesses'] = users_locations
-    pickle.dump(labels_df, open('data/location-guesses-10.pk', 'wb'))
+    pickle.dump(labels_df, open('data/location-guesses-all.pk', 'wb'))
 
     print('Done.')
