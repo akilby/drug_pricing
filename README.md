@@ -4,27 +4,9 @@ This project contains code for extracting posts and comments from Reddit. It all
 ## Setup Instructions
 
 ### 1. Environment variables
-This project utilizes the python "dotenv" package to read sensitive information as environment variables. This information is not tracked on version control, so you populate your own credentials by following the below instructions.
+This project utilizes the python `dotenv` package to read sensitive information as environment variables.  **For this project to run properly, you need to:** fill in your own credentials in the `.sample-env` file and rename the file as `.env`. 
 
-A. Create a file named `.env` in the project root
-
-B. Store the following variables in there with your own credentials/info
-
-*Reddit credentials*
-- RUSERNAME: your Reddit username
-- RPASSWORD: your Reddit password
-- RCLIENT_ID: your Reddit API client id
-- RSECRET_KEY: your Reddit API secret key
-- RUSER_AGENT: the identifier you use for your machine
-
-*Mongo credentials*
-- PORT: the port you plan to run mongo on (27017 is default)
-- DB_NAME: the name of your mongo database
-- HOST: the database hostname
-- MUSERNAME: the username for the database
-- MPASSWORD: the password for the database
-
-Checkout [here](https://www.reddit.com/dev/api/oauth/) for help with Reddit API setup.
+Checkout [here](https://www.reddit.com/dev/api/oauth/) for help with Reddit API setup if needed.
 
 ### 2. Install dependencies
 Run `pipenv install` to install all dependencies

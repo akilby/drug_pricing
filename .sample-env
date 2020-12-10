@@ -1,0 +1,18 @@
+# praw reddit variables
+RUSERNAME =  # your Reddit username
+RPASSWORD =  # your Reddit password
+RCLIENT_ID =  # your Reddit API client id
+RSECRET_KEY =  # your Reddit API secret key
+RUSER_AGENT =  # the identifier you use for your machine
+
+# mongo client variables
+HOST =  # the port you plan to run mongo on (27017 is default)
+PORT =  # the name of your mongo database
+MUSERNAME =  # the database hostname
+MPASSWORD =  # the username for the database
+DB_NAME =  # the password for the database
+
+[geocoder]
+GEONAMES_KEY =  # geonames api key
+MAPBOX_KEY =  # OPTIONAL: mapbox api key
+GOOGLE_KEY =  # OPTIONAL: google api key
