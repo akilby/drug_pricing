@@ -94,6 +94,11 @@ def posts_to_mongo(posts: List[Post]) -> None:
     """Store the given posts in mongo."""
     n_posted = 0
     for post in posts:
+        # add full user history if user not in db
+        username = post.user.username
+        if User.objects(username=username).count() == 0:
+            print(f'Adding {username} posting history .....')
+            get_users_histories([username], psaw)
         try:
             post.save()
             n_posted += 1

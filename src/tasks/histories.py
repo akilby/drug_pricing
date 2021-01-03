@@ -49,8 +49,7 @@ def get_users_histories(
 
     :param users: a list of usernames
     :param psaw: a psaw connection object
-    :param coll: a pymongo collection
-    :param cache_file: an optional cache file to write remaining users to
+    :param cache_fn: an optional cache filename to write remaining users to
     """
     for i in tqdm.tqdm(range(len(users))):
         posts = extract_user_posts(psaw, users[i])
