@@ -28,6 +28,12 @@ from src.schema import User, Location
 NUM_GEONAMES_REQUESTS = 0
 
 
+LARGE_STATE_MAP = {
+    'california': ['southern california', 'northern california'],
+    'texas': ['western texas', 'eastern texas']
+}
+
+
 def find_center(points: np.array) -> np.array:
     '''Find the point that is closest to the center of the points.'''
     center = np.mean(points, axis=0)
@@ -63,6 +69,17 @@ def map_state_abbrevs(gazetteer: pd.DataFrame) -> Dict[str, str]:
     abbrevs = gazetteer['state'].tolist()
     state_full = gazetteer['state_full'].tolist()
     return dict(zip(abbrevs, state_full))
+
+
+def split_states(entities: List[str]) -> List[str]:
+    '''Split large states into subsections.'''
+    new_ents = []
+    for ent in entities:
+        if ent in LARGE_STATE_MAP:
+            new_ents += LARGE_STATE_MAP[ent]
+        else:
+            new_ents.append(ent)
+    return new_ents
 
 
 def geocode_to_location(geocode: GeonamesResult) -> Location:
@@ -175,6 +192,7 @@ class LocationClusterer:
         init_entities = entities
         entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
                     for e in entities]
+        entities = split_states(entities)
 
         # convert entities to possible coordinates
         geocodes = list(it.chain(*[get_geocodes(e, self.session) for e in entities]))
