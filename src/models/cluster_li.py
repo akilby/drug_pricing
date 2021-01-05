@@ -30,7 +30,8 @@ NUM_GEONAMES_REQUESTS = 0
 
 LARGE_STATE_MAP = {
     'california': ['southern california', 'northern california'],
-    'texas': ['western texas', 'eastern texas']
+    'texas': ['el paso, texas', 'houston, texas', 'dallas, texas'],
+    'florida': ['florida', 'tallahassee', 'miami']
 }
 
 
