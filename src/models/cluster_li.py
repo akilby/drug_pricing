@@ -154,7 +154,6 @@ def get_geocodes(entity: str, session) -> Iterable[GeonamesResult]:
     '''Convert an entity to a list of possible geocodes.'''
     # if number of geonames requests 1000, pause for 1 hr
     global NUM_GEONAMES_REQUESTS
-    print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
     if NUM_GEONAMES_REQUESTS >= 1000:
         print('Pausing for 1 hr .....')
         time.sleep(3600)
@@ -297,4 +296,5 @@ if __name__ == '__main__':
     })
     pickle.dump(labels_df, open('data/location-guesses-all.pk', 'wb'))
 
+    print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
     print('Done.')
