@@ -270,7 +270,8 @@ if __name__ == '__main__':
     connect_to_mongo()
     nlp = get_nlp()
 
-    labels_df = pd.read_csv('data/geocoded-location-labels.csv')
+    usernames = pd.read_csv('data/all-rand-sample-users.csv', squeeze=True,
+                            header=None).tolist()
     gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
@@ -279,7 +280,7 @@ if __name__ == '__main__':
     print('Making guesses for each user .....')
     users_entities = []
     users_locations = []
-    for username in tqdm(labels_df['username'].tolist()):
+    for username in tqdm(usernames):
         user = User.objects(username=username).first()
 
         entities = model.extract_entities(user)
@@ -289,8 +290,11 @@ if __name__ == '__main__':
         users_locations.append(locations)
 
     print('Writing to pickle .....')
-    labels_df['entity_guesses'] = users_entities
-    labels_df['location_guesses'] = users_locations
+    labels_df = pd.DataFrame({
+        'usernames': usernames,
+        'entity_guesses': users_entities,
+        'location_guesses': users_locations
+    })
     pickle.dump(labels_df, open('data/location-guesses-all.pk', 'wb'))
 
     print('Done.')
