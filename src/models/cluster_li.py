@@ -26,12 +26,21 @@ from src.schema import User, Location
 
 # store the number of times geonames has been requested globally
 NUM_GEONAMES_REQUESTS = 0
+MIN_POPULATION = 30000
 
 
 LARGE_STATE_MAP = {
-    'california': ['southern california', 'northern california'],
+    'california': ['california', 'southern california', 'northern california'],
     'texas': ['el paso, texas', 'houston, texas', 'dallas, texas'],
-    'florida': ['florida', 'tallahassee', 'miami']
+    'florida': ['florida', 'tallahassee, florida', 'miami, florida'],
+    'alaska': ['alaska', 'juneau, alaska', 'anchorage, alaska', 'fairbanks, alaska']
+}
+
+
+ALIAS_MAP = {
+    'vegas': 'las vegas',
+    'nyc': 'new york city',
+    'l.a.': 'los angeles'
 }
 
 
@@ -141,6 +150,9 @@ def best_cluster_location(geocodes: GeonamesResult) -> Location:
     # convert geocodes to locations
     locations = [geocode_to_location(g) for g in geocodes]
 
+    # filter out cities with populations less than some threshold
+    locations = [l for l in locations if l.population < MIN_POPULATION]
+
     # get frequency counts for locations
     location_frequencies = list(Counter(locations).items())
 
@@ -188,10 +200,17 @@ class LocationClusterer:
         if len(entities) == 0:
             return {}
 
-        # convert state abbrevitions to full state names
+        # store initial entity names
         init_entities = entities
+
+        # convert state abbreviations to full state names
         entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
                     for e in entities]
+
+        # convert common locatio nicknames to full names
+        entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in entities]
+
+        # split large states into different geocodable regions
         entities = split_states(entities)
 
         # convert entities to possible coordinates
