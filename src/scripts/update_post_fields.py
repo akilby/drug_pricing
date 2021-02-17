@@ -15,7 +15,7 @@ def fill_missing_post_fields(post: Post, praw: Reddit):
             praw_subcomm = Submission(reddit=praw, id=post.pid)
         else:
             praw_subcomm = Comment(reddit=praw, id=post.pid)
-        post.datetime = utc_to_dtc(praw_subcomm.created_utc)
+        post.datetime = utc_to_dt(praw_subcomm.created_utc)
     if isinstance(post, SubmissionPost) and post.title is None:
         praw_sub = Submission(reddit=praw, id=post.pid)
         post.title = praw_sub.title
