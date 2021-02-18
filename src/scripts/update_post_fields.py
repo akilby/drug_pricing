@@ -10,42 +10,40 @@ from praw.models import Submission, Comment
 
 def fill_missing_post_fields(post: Post, praw: Reddit):
     '''Attempt to fill in any missing fields for a post.'''
+    is_sub = isinstance(post, SubmissionPost)
     if post.datetime is None:
-        if isinstance(post, SubmissionPost):
-            praw_subcomm = Submission(reddit=praw, id=post.pid)
-        else:
-            praw_subcomm = Comment(reddit=praw, id=post.pid)
-        post.datetime = utc_to_dt(praw_subcomm.created_utc)
-    if isinstance(post, SubmissionPost) and post.title is None:
-        praw_sub = Submission(reddit=praw, id=post.pid)
-        post.title = praw_sub.title
+        try:
+            praw_inst = Submission if is_sub else Comment
+            praw_sc = praw_inst(reddit=praw, id=post.pid)
+            post.datetime = utc_to_dt(praw_sc.created_utc)
+        except praw.exceptions.ClientException:
+            pass
+    if is_sub and post.title is None:
+        try:
+            praw_sub = Submission(reddit=praw, id=post.pid)
+            post.title = praw_sub.title
+        except praw.exceptions.ClientException:
+            pass
     post.save()
 
 
 def fill_all_posts():
     # initialize parameters
     praw = get_praw()
-    batch_size = 100000
 
     # update posts without datetimes
     print('Updating posts without datetimes .....')
-    gen_dt_posts = lambda: Post.objects(datetime__exists=False)\
-                               .limit(batch_size)
-    posts = gen_dt_posts()
-    while len(posts) > 0:
-        for p in tqdm.tqdm(posts):
-            fill_missing_post_fields(p, praw)
-        posts = gen_dt_posts()
+    pids = Post.objects(datetime__exists=False).only('pid')
+    for pid in tqdm.tqdm(pids):
+        post = Post.objects(pid=pid).first()
+        fill_missing_post_fields(post, praw)
 
     # update submissions without titles
     print('Updating submissions without titles .....')
-    gen_title_subs = lambda: SubmissionPost.objects(title__exists=False)\
-                                           .limit(batch_size)
-    posts = gen_title_subs()
-    while len(posts) > 0:
-        for p in tqdm.tqdm(posts):
-            fill_missing_post_fields(p, praw)
-        posts = gen_title_subs()
+    pids = SubmissionPost.objects(title__exists=False).only('pid')
+    for pid in tqdm.tqdm(pids):
+        post = Post.objects(pid=pid).first()
+        fill_missing_post_fields(post, praw)
 
 
 if __name__ == '__main__':
