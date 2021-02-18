@@ -33,16 +33,16 @@ def fill_all_posts():
 
     # update posts without datetimes
     print('Updating posts without datetimes .....')
-    pids = Post.objects(datetime__exists=False).only('pid')
-    for pid in tqdm.tqdm(pids):
-        post = Post.objects(pid=pid).first()
+    post_subsets = Post.objects(datetime__exists=False).only('pid')
+    for post_subset in tqdm.tqdm(post_subsets):
+        post = Post.objects(pid=post_subset.pid).first()
         fill_missing_post_fields(post, praw)
 
     # update submissions without titles
     print('Updating submissions without titles .....')
-    pids = SubmissionPost.objects(title__exists=False).only('pid')
-    for pid in tqdm.tqdm(pids):
-        post = Post.objects(pid=pid).first()
+    post_subsets = SubmissionPost.objects(title__exists=False).only('pid')
+    for post_subset in tqdm.tqdm(post_subsets):
+        post = Post.objects(pid=post_subset.pid).first()
         fill_missing_post_fields(post, praw)
 
 

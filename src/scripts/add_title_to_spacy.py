@@ -7,9 +7,9 @@ from src.schema import Post, SubmissionPost
 
 
 def add_title_to_spacy(nlp: English):
-    pids = SubmissionPost.objects.only('pid')
-    for pid in tqdm.tqdm(pids):
-        post = SubmissionPost.objects(pid=pid).first()
+    post_subsets = SubmissionPost.objects.only('pid')
+    for post_subset in tqdm.tqdm(post_subsets):
+        post = SubmissionPost.objects(pid=post_subset.pid).first()
         text = '. '.join([post.title, post.text])
         if type(text) == str:
             post.spacy = nlp(text).to_bytes()
