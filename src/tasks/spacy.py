@@ -10,23 +10,21 @@ from src.schema import Post, SubmissionPost
 
 def add_spacy_to_mongo(nlp: English) -> int:
     """Add spacy field to all posts in mongo."""
-    batch_size = 100000
-    num_total_posts = 0
-    gen_posts = lambda: Post.objects(Q(spacy__exists=False) & Q(text__exists=True))\
-                            .limit(batch_size)
-    posts = gen_posts()
-    while len(posts) > 0:
-        num_total_posts += len(posts)
-        for post in tqdm.tqdm(posts):
-            if isinstance(post, SubmissionPost):
-                text = '. '.join([post.title, post.text])
-            else:
-                text = post.text
-            if type(text) == str:
-                post.spacy = nlp(text).to_bytes()
-                post.save()
-        posts = gen_posts()
-    return num_total_posts
+    post_subsets = Post.objects(Q(spacy__exists=False) & Q(text__exists=True))\
+                       .limit(batch_size)\
+                       .only('pid')
+
+    for post_subset in tqdm.tqdm(post_subsets):
+        post = Post.objects(pid=post_subset.pid).first()
+        if isinstance(post, SubmissionPost):
+            text = '. '.join([post.title, post.text])
+        else:
+            text = post.text
+        if type(text) == str:
+            post.spacy = nlp(text).to_bytes()
+            post.save()
+
+    return len(post_subsets)
 
 
 def bytes_to_spacy(data: bytes, nlp: English) -> Doc:
