@@ -11,7 +11,6 @@ from src.schema import Post, SubmissionPost
 def add_spacy_to_mongo(nlp: English) -> int:
     """Add spacy field to all posts in mongo."""
     post_subsets = Post.objects(Q(spacy__exists=False) & Q(text__exists=True))\
-                       .limit(batch_size)\
                        .only('pid')
 
     for post_subset in tqdm.tqdm(post_subsets):
