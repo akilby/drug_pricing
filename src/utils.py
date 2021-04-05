@@ -20,6 +20,7 @@ from src.schema import CommentPost, Post, SubmissionPost, User
 # --- Utility Constants ---
 # project constants
 PROJ_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.abspath(os.path.join(PROJ_DIR, '..'))
 SUBR_NAMES = ["opiates", "heroin"]
 SUB_LIMIT = 1000
 GEONAMES_KEY = os.getenv("GEONAMES_KEY")

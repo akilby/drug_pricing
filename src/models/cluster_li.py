@@ -1,33 +1,33 @@
 '''A location inference model that attempts to cluster geocoded entities.'''
 import functools as ft
 import itertools as it
-from collections import Counter
-from typing import List, Dict, Tuple, Any, Iterable
+import os
 import pickle
 import time
+from collections import Counter
+from typing import Any, Dict, Iterable, List, Tuple
 
-from scipy.special import softmax
 import geocoder
+import numpy as np
+import pandas as pd
+import requests
 from geocoder.geonames import GeonamesResult
 from geopy import distance
-import numpy as np
-import requests
+from scipy.special import softmax
 from sklearn.cluster import DBSCAN
 from sklearn.metrics.pairwise import cosine_similarity
 from spacy.lang.en import English
-import pandas as pd
 from tqdm import tqdm
 
-from src.models.__init__ import (forward_geocode, get_ents, get_user_spacy,
-                                 reverse_geocode, DENYLIST)
+from src.models.__init__ import (DENYLIST, forward_geocode, get_ents,
+                                 get_user_spacy, reverse_geocode)
 from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
-from src.utils import connect_to_mongo, get_nlp
-from src.schema import User, Location
+from src.schema import Location, User
+from src.utils import ROOT_DIR, connect_to_mongo, get_nlp
 
 # store the number of times geonames has been requested globally
 NUM_GEONAMES_REQUESTS = 0
 MIN_POPULATION = 30000
-
 
 LARGE_STATE_MAP = {
     'california': ['california', 'southern california', 'northern california'],
@@ -35,7 +35,6 @@ LARGE_STATE_MAP = {
     'florida': ['florida', 'tallahassee, florida', 'miami, florida'],
     'alaska': ['alaska', 'juneau, alaska', 'anchorage, alaska', 'fairbanks, alaska']
 }
-
 
 ALIAS_MAP = {
     'vegas': 'las vegas',
@@ -182,17 +181,26 @@ class LocationClusterer:
                  nlp: English):
         self.filters = filters
         self.nlp = nlp
-        self.gazetteer = pd.read_csv('data/gazetteer.csv')
-        self.metro_state_coords_map = pickle.load(open('data/metro_state_coord_map.pk', 'rb'))
+        self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'data/gazetteer.csv'))
+        self.metro_state_coords_map = pickle.load(open(os.path.join(ROOT_DIR, 'data/metro_state_coord_map.pk'), 'rb'))
         self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
+        self.subreddit_location_map = dict(pd.read_csv(os.path.join(ROOT_DIR, 'data/subreddit_location_map.csv')).values)
         self.session = requests.Session()
 
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
+        # extract entities from spacy
         user_spacy_docs = get_user_spacy(user, self.nlp)
         user_entities = get_ents(user_spacy_docs, 'GPE')
         filtered_user_entities = filter_entities(user_entities, self.filters)
-        return filtered_user_entities
+
+        # add subreddit as entity if represents a location subreddit
+        subreddit_entities = [self.subreddit_location_map[p.subreddit]
+                              for p in Post.objects(user=user).only('subreddit')
+                              if p.subreddit in self.subreddit_location_map]
+
+        all_entities = filtered_user_entities + subreddit_entities
+        return all_entities
 
     def predict(self, entities: List[str]) -> Dict[Location, float]:
         '''Predicts the most likely locations for a user.'''

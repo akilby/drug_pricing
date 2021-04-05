@@ -6,6 +6,8 @@ from src.schema import Post, SubmissionPost, CommentPost
 from mongoengine.queryset.visitor import Q
 from praw import Reddit
 from praw.models import Submission, Comment
+from typing import List, Dict
+import requests
 
 
 def fill_missing_post_fields(post: Post, praw: Reddit):
@@ -27,23 +29,38 @@ def fill_missing_post_fields(post: Post, praw: Reddit):
     post.save()
 
 
+def get_posts_by_ids(is_sub: bool, ids: List[str]) -> List[Dict]:
+    base_url = "https://api.pushshift.io/reddit/"
+    base_url += "submission" if is_sub else "comment"
+    base_url += ("/search?ids=" + ",".join(ids))
+    return requests.get(base_url).json()['data']
+
+
 def fill_all_posts():
-    # initialize parameters
-    praw = get_praw()
 
     # update posts without datetimes
     print('Updating posts without datetimes .....')
-    post_subsets = Post.objects(datetime__exists=False).only('pid')
-    for post_subset in tqdm.tqdm(post_subsets):
-        post = Post.objects(pid=post_subset.pid).first()
-        fill_missing_post_fields(post, praw)
+    comment_subsets = Post.objects(datetime__exists=False).only('pid')
+    pids = [c.pid for c in comment_subsets]
+    full_comments = get_posts_by_ids(False, pids)
+    assert len(pids) == len(full_comments)
+    for pid, real_comm in tqdm(zip(pids, full_comments)):
+        comment = Comment.objects(pid=pid).first()
+        comment.datetime = utc_to_dt(real_comm.created_utc)
+        comment.save()
 
     # update submissions without titles
     print('Updating submissions without titles .....')
-    post_subsets = SubmissionPost.objects(title__exists=False).only('pid')
-    for post_subset in tqdm.tqdm(post_subsets):
-        post = Post.objects(pid=post_subset.pid).first()
-        fill_missing_post_fields(post, praw)
+    sub_subsets = SubmissionPost.objects(Q(title__exists=False) | Q(datetime_exists=False))\
+                                .only('pid')
+    pids = [s.pid for s in sub_subsets]
+    full_subs = get_posts_by_ids(True, pids)
+    assert len(pids) == len(full_subs)
+    for pid, real_sub in tqdm(zip(pids, full_subs)):
+        sub = Submission.objects(pid=pid).first()
+        sub.datetime = utc_to_dt(sub.created_utc)
+        sub.title = real_sub.title
+        sub.save()
 
 
 if __name__ == '__main__':
