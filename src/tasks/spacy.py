@@ -21,7 +21,10 @@ def add_spacy_to_mongo(nlp: English) -> int:
             text = post.text
         if type(text) == str:
             post.spacy = nlp(text).to_bytes()
-            post.save()
+            try:
+                post.save()
+            except pymongo.errors.DocumentTooLarge:
+                raise ValueError(f"Post with pid='{post.pid}' is too large to save.")
 
     return len(post_subsets)
 
