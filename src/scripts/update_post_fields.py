@@ -6,6 +6,7 @@ from src.schema import Post, SubmissionPost, CommentPost
 from mongoengine.queryset.visitor import Q
 from praw import Reddit
 from praw.models import Submission, Comment
+import numpy as np
 from typing import List, Dict
 import requests
 
@@ -33,8 +34,11 @@ def get_posts_by_ids(is_sub: bool, ids: List[str]) -> List[Dict]:
     base_url = "https://api.pushshift.io/reddit/"
     base_url += "submission" if is_sub else "comment"
     base_url += ("/search?ids=" + ",".join(ids))
-    return requests.get(base_url).json()['data']
-
+    try:
+        data = requests.get(base_url).json()['data']
+    except:
+        breakpoint()
+    return data
 
 def fill_all_posts():
 

@@ -22,7 +22,7 @@ from tqdm import tqdm
 from src.models.__init__ import (DENYLIST, forward_geocode, get_ents,
                                  get_user_spacy, reverse_geocode)
 from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
-from src.schema import Location, User
+from src.schema import Location, User, Post
 from src.utils import ROOT_DIR, connect_to_mongo, get_nlp
 
 # store the number of times geonames has been requested globally
@@ -150,7 +150,7 @@ def best_cluster_location(geocodes: GeonamesResult) -> Location:
     locations = [geocode_to_location(g) for g in geocodes]
 
     # filter out cities with populations less than some threshold
-    locations = [l for l in locations if l.population < MIN_POPULATION]
+    locations = [l for l in locations if l.population > MIN_POPULATION]
 
     # get frequency counts for locations
     location_frequencies = list(Counter(locations).items())
@@ -158,20 +158,25 @@ def best_cluster_location(geocodes: GeonamesResult) -> Location:
     # sort locations using the above comparator
     sorted_locations = sorted(location_frequencies, key=ft.cmp_to_key(location_comparator))
 
-    return sorted_locations[0]
+    if len(sorted_locations) > 0:
+        return sorted_locations[0]
+    else:
+        return Location()
 
 
-def get_geocodes(entity: str, session) -> Iterable[GeonamesResult]:
+def get_geocodes(entity: str, session, service='geonames') -> Iterable[GeonamesResult]:
     '''Convert an entity to a list of possible geocodes.'''
     # if number of geonames requests 1000, pause for 1 hr
-    global NUM_GEONAMES_REQUESTS
-    if NUM_GEONAMES_REQUESTS >= 1000:
-        print('Pausing for 1 hr .....')
-        time.sleep(3600)
-        NUM_GEONAMES_REQUESTS = 0
+    if service == 'geonames':
+        global NUM_GEONAMES_REQUESTS
+        if NUM_GEONAMES_REQUESTS >= 1000:
+            print('Pausing for 1 hr .....')
+            time.sleep(3600)
+            NUM_GEONAMES_REQUESTS = 0
 
-    NUM_GEONAMES_REQUESTS += 1
-    geocodes = forward_geocode(entity, service='geonames', session=session)
+        NUM_GEONAMES_REQUESTS += 1
+
+    geocodes = forward_geocode(entity, service=service, session=session)
     return geocodes
 
 
@@ -222,7 +227,7 @@ class LocationClusterer:
         entities = split_states(entities)
 
         # convert entities to possible coordinates
-        geocodes = list(it.chain(*[get_geocodes(e, self.session) for e in entities]))
+        geocodes = list(it.chain(*[get_geocodes(e, self.session, service='mapbox') for e in entities]))
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         # cluster all possible coordinates
@@ -256,6 +261,8 @@ class LocationClusterer:
 
         # map each location guess to a score
         location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
+
+        breakpoint()
 
         return location_score_map
 
@@ -296,7 +303,7 @@ if __name__ == '__main__':
     connect_to_mongo()
     nlp = get_nlp()
 
-    usernames = pd.read_csv('data/all-rand-sample-users.csv', squeeze=True,
+    usernames = pd.read_csv('data/600-users.csv', squeeze=True,
                             header=None).tolist()
     gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
 

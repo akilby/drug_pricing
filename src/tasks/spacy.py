@@ -4,6 +4,7 @@ import tqdm
 from mongoengine.queryset.visitor import Q
 from spacy.lang.en import English
 from spacy.tokens import Doc
+import pymongo
 
 from src.schema import Post, SubmissionPost
 
@@ -16,7 +17,8 @@ def add_spacy_to_mongo(nlp: English) -> int:
     for post_subset in tqdm.tqdm(post_subsets):
         post = Post.objects(pid=post_subset.pid).first()
         if isinstance(post, SubmissionPost):
-            text = '. '.join([post.title, post.text])
+            post_title = post.title if isinstance(post.title, str) else ""
+            text = '. '.join([post_title, post.text])
         else:
             text = post.text
         if type(text) == str:
@@ -24,7 +26,7 @@ def add_spacy_to_mongo(nlp: English) -> int:
             try:
                 post.save()
             except pymongo.errors.DocumentTooLarge:
-                raise ValueError(f"Post with pid='{post.pid}' is too large to save.")
+                print(f"Post with pid='{post.pid}' is too large to save.")
 
     return len(post_subsets)
 
