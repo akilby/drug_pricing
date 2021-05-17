@@ -6,6 +6,7 @@ import pickle
 import time
 from collections import Counter
 from typing import Any, Dict, Iterable, List, Tuple
+import datetime
 
 import geocoder
 import numpy as np
@@ -91,21 +92,24 @@ def split_states(entities: List[str]) -> List[str]:
     return new_ents
 
 
-def geocode_to_location(geocode: GeonamesResult) -> Location:
+def geocode_to_location(geocode: GeonamesResult, service='geonames') -> Location:
     '''convert a geocode to a location.'''
     # define base location params
     loc_params = {
         'country': geocode.country,
         'lat': float(geocode.lat),
         'lng': float(geocode.lng),
-        'population': geocode.population
+        'population': (geocode.population if service == 'geonames' else -1)
     }
 
     # add more detail if geocode in US
     city_codes = ["RGNE"]
     if geocode.country == 'United States':
-        if geocode.feature_class == 'P' or geocode.code in city_codes:
-            loc_params['city'] = geocode.address
+        geonames_cond = lambda geocode: geocode.feature_class == 'P' or geocode.code in city_codes
+        mapbox_cond = lambda geocode: (isinstance(geocode.__dict__['raw']['place_name'], str) and (len(geocode.__dict__['raw']['place_name'].split(',')) == 3))
+        city_cond = geonames_cond if service == 'geonames' else mapbox_cond
+        if city_cond(geocode):
+            loc_params['city'] = geocode.address if service == 'geonames' else geocode.__dict__['raw']['text']
         loc_params['state'] = geocode.state
 
     return Location(**loc_params)
@@ -144,13 +148,14 @@ def location_comparator(l1: Tuple[Location, int], l2: Tuple[Location, int]) -> i
     return 0
 
 
-def best_cluster_location(geocodes: GeonamesResult) -> Location:
+def best_cluster_location(geocodes: GeonamesResult, service='geonames') -> Location:
     '''Determine the best location to represent the given cluster.'''
     # convert geocodes to locations
-    locations = [geocode_to_location(g) for g in geocodes]
+    locations = [geocode_to_location(g, service=service) for g in geocodes]
 
     # filter out cities with populations less than some threshold
-    locations = [l for l in locations if l.population > MIN_POPULATION]
+    if service == 'geonames':
+        locations = [l for l in locations if l.population > MIN_POPULATION]
 
     # get frequency counts for locations
     location_frequencies = list(Counter(locations).items())
@@ -227,7 +232,7 @@ class LocationClusterer:
         entities = split_states(entities)
 
         # convert entities to possible coordinates
-        geocodes = list(it.chain(*[get_geocodes(e, self.session, service='mapbox') for e in entities]))
+        geocodes = list(it.chain(*[get_geocodes(e, self.session, service='geonames') for e in entities]))
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         # cluster all possible coordinates
@@ -253,7 +258,7 @@ class LocationClusterer:
         for cluster in top_clusters:
             cluster_idx = [i for i in range(len(clusters)) if clusters[i] == cluster]
             cluster_geocodes = [geocodes[i] for i in cluster_idx]
-            location_guess = best_cluster_location(cluster_geocodes)
+            location_guess = best_cluster_location(cluster_geocodes, service='geonames')
             location_guesses.append(location_guess)
 
         # normalize the scores
@@ -261,8 +266,6 @@ class LocationClusterer:
 
         # map each location guess to a score
         location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
-
-        breakpoint()
 
         return location_score_map
 
@@ -328,7 +331,8 @@ if __name__ == '__main__':
         'entity_guesses': users_entities,
         'location_guesses': users_locations
     })
-    pickle.dump(labels_df, open('data/location-guesses-all.pk', 'wb'))
+    ts = str(int(datetime.datetime.now().timestamp()))
+    pickle.dump(labels_df, open(f'data/location-guesses-all-{ts}.pk', 'wb'))
 
     print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
     print('Done.')
