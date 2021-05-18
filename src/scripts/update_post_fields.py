@@ -34,22 +34,20 @@ def get_posts_by_ids(is_sub: bool, ids: List[str]) -> List[Dict]:
     base_url = "https://api.pushshift.io/reddit/"
     base_url += "submission" if is_sub else "comment"
     base_url += ("/search?ids=" + ",".join(ids))
-    try:
-        data = requests.get(base_url).json()['data']
-    except:
-        breakpoint()
+    data = requests.get(base_url).json()['data']
     return data
 
 def fill_all_posts():
 
+    chunk_size = 1000
+    '''
     # update posts without datetimes
     print('Comments:')
     print('\tRetrieving pids without datetimes .....')
-    comment_subsets = Post.objects(datetime__exists=False).only('pid')
+    comment_subsets = CommentPost.objects(datetime__exists=False).only('pid')
     pids = [c.pid for c in comment_subsets]
 
     print('\tRetrieving missing data from psaw .....')
-    chunk_size = 1000
     n_chunks = int(len(pids) / chunk_size)
     for chunk_pids in np.array_split(pids, n_chunks):
         full_comments = get_posts_by_ids(False, chunk_pids)
@@ -60,6 +58,7 @@ def fill_all_posts():
         comment = Comment.objects(pid=pid).first()
         comment.datetime = utc_to_dt(real_comm.created_utc)
         comment.save()
+    '''
 
     # update submissions without titles
     print('Submissions:')
@@ -70,16 +69,15 @@ def fill_all_posts():
 
     print('\tRetrieving missing data from psaw .....')
     n_chunks = int(len(pids) / chunk_size)
-    for chunk_pids in np.array_split(pids, n_chunks):
+    for chunk_pids in tqdm.tqdm(np.array_split(pids, n_chunks)):
         full_subs = get_posts_by_ids(True, chunk_pids)
-    assert len(pids) == len(full_subs)
+        for pid, real_sub in tqdm(zip(chunk_pids, full_subs)):
+            sub = Submission.objects(pid=pid).first()
+            sub.datetime = utc_to_dt(sub.created_utc)
+            sub.title = real_sub.title
+            sub.save()
 
     print('\tUpdating subs with missing data .....')
-    for pid, real_sub in tqdm(zip(pids, full_subs)):
-        sub = Submission.objects(pid=pid).first()
-        sub.datetime = utc_to_dt(sub.created_utc)
-        sub.title = real_sub.title
-        sub.save()
 
 
 if __name__ == '__main__':
