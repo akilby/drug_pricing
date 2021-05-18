@@ -12,22 +12,22 @@ import requests
 
 
 def fill_missing_post_fields(post: Post, praw: Reddit):
-    '''Attempt to fill in any missing fields for a post.'''
-    is_sub = isinstance(post, SubmissionPost)
-    if post.datetime is None:
-        try:
-            praw_inst = Submission if is_sub else Comment
-            praw_sc = praw_inst(reddit=praw, id=post.pid)
-            post.datetime = utc_to_dt(praw_sc.created_utc)
-        except praw.exceptions.ClientException:
-            pass
-    if is_sub and post.title is None:
-        try:
-            praw_sub = Submission(reddit=praw, id=post.pid)
-            post.title = praw_sub.title
-        except praw.exceptions.ClientException:
-            pass
-    post.save()
+	'''Attempt to fill in any missing fields for a post.'''
+	is_sub = isinstance(post, SubmissionPost)
+	if post.datetime is None:
+		try:
+			praw_inst = Submission if is_sub else Comment
+			praw_sc = praw_inst(reddit=praw, id=post.pid)
+			post.datetime = utc_to_dt(praw_sc.created_utc)
+		except praw.exceptions.ClientException:
+			pass
+	if is_sub and post.title is None:
+		try:
+			praw_sub = Submission(reddit=praw, id=post.pid)
+			post.title = praw_sub.title
+		except praw.exceptions.ClientException:
+			pass
+	post.save()
 
 
 def get_posts_by_ids(is_sub: bool, ids: List[str]) -> List[Dict]:
@@ -60,12 +60,12 @@ def fill_all_posts():
         comment.save()
     '''
 
-    # update submissions without titles
-    print('Submissions:')
-    print('\tUpdating pids without titles/datetimes .....')
-    sub_subsets = SubmissionPost.objects(Q(title__exists=False) | Q(datetime_exists=False))\
-                                .only('pid')
-    pids = [s.pid for s in sub_subsets]
+	# update submissions without titles
+	print('Submissions:')
+	print('\tUpdating pids without titles/datetimes .....')
+	sub_subsets = SubmissionPost.objects(Q(title__exists=False) | Q(datetime__exists=False))\
+								.only('pid')
+	pids = [s.pid for s in sub_subsets]
 
     print('\tRetrieving missing data from psaw .....')
     n_chunks = int(len(pids) / chunk_size)
@@ -81,5 +81,5 @@ def fill_all_posts():
 
 
 if __name__ == '__main__':
-    connect_to_mongo()
-    fill_all_posts()
+	connect_to_mongo()
+	fill_all_posts()
