@@ -10,9 +10,10 @@ import pandas as pd
 from spacy.lang.en import English
 
 from src.utils import connect_to_mongo, get_nlp, ROOT_DIR
-from src.schema import Post
+from src.schema import Post, User
 from src.tasks.spacy import bytes_to_spacy
 from src.models.__init__ import get_user_spacy, get_ents, DENYLIST, forward_geocode
+from src.models.cluster_li import LocationClusterer
 from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
 
 
@@ -71,7 +72,7 @@ def cache_all_user_ents():
     gazetteer = pd.read_csv("data/locations/grouped-locations.csv")
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
     model = LocationClusterer(filters, nlp)
-    all_users = Users.objects.all()
+    all_users = User.objects.all()
 
     print('Caching user entities .....')
     for user in tqdm.tqdm(all_users):
