@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import requests
 from geocoder.geonames import GeonamesResult
+from geocoder.mapbox import MapboxResult
 from geopy import distance
 from scipy.special import softmax
 from sklearn.cluster import DBSCAN
@@ -92,14 +93,15 @@ def split_states(entities: List[str]) -> List[str]:
     return new_ents
 
 
-def geocode_to_location(geocode: GeonamesResult, service='geonames') -> Location:
+def geocode_to_location(geocode: geocoder.base.OneResult) -> Location:
     '''convert a geocode to a location.'''
+    is_geonames = isinstance(geocode, GeonamesResult)
     # define base location params
     loc_params = {
         'country': geocode.country,
         'lat': float(geocode.lat),
         'lng': float(geocode.lng),
-        'population': (geocode.population if service == 'geonames' else -1)
+        'population': (geocode.population if is_geonames else -1)
     }
 
     # add more detail if geocode in US
@@ -107,9 +109,9 @@ def geocode_to_location(geocode: GeonamesResult, service='geonames') -> Location
     if geocode.country == 'United States':
         geonames_cond = lambda geocode: geocode.feature_class == 'P' or geocode.code in city_codes
         mapbox_cond = lambda geocode: (isinstance(geocode.__dict__['raw']['place_name'], str) and (len(geocode.__dict__['raw']['place_name'].split(',')) == 3))
-        city_cond = geonames_cond if service == 'geonames' else mapbox_cond
+        city_cond = geonames_cond if is_geonames else mapbox_cond
         if city_cond(geocode):
-            loc_params['city'] = geocode.address if service == 'geonames' else geocode.__dict__['raw']['text']
+            loc_params['city'] = geocode.address if is_geonames else geocode.__dict__['raw']['text']
         loc_params['state'] = geocode.state
 
     return Location(**loc_params)
@@ -148,10 +150,10 @@ def location_comparator(l1: Tuple[Location, int], l2: Tuple[Location, int]) -> i
     return 0
 
 
-def best_cluster_location(geocodes: GeonamesResult, service='geonames') -> Location:
+def best_cluster_location(geocodes: geocoder.base.OneResult) -> Location:
     '''Determine the best location to represent the given cluster.'''
     # convert geocodes to locations
-    locations = [geocode_to_location(g, service=service) for g in geocodes]
+    locations = [geocode_to_location(g) for g in geocodes]
 
     # filter out cities with populations less than some threshold
     if service == 'geonames':
@@ -169,7 +171,7 @@ def best_cluster_location(geocodes: GeonamesResult, service='geonames') -> Locat
         return Location()
 
 
-def get_geocodes(entity: str, session, service='geonames') -> Iterable[GeonamesResult]:
+def get_geocodes(entity: str, session, service='geonames') -> Iterable[geocoder.base.OneResult]:
     '''Convert an entity to a list of possible geocodes.'''
     # if number of geonames requests 1000, pause for 1 hr
     if service == 'geonames':
@@ -188,17 +190,38 @@ def get_geocodes(entity: str, session, service='geonames') -> Iterable[GeonamesR
 class LocationClusterer:
     def __init__(self,
                  filters: List[BaseFilter],
-                 nlp: English):
+                 nlp: English,
+                 use_caches: bool = True):
         self.filters = filters
         self.nlp = nlp
+        self.session = requests.Session()
+        self.use_caches = use_caches
+        self.load_caches()
+
+    def load_caches(self):
         self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'data/gazetteer.csv'))
         self.metro_state_coords_map = pickle.load(open(os.path.join(ROOT_DIR, 'data/metro_state_coord_map.pk'), 'rb'))
         self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
         self.subreddit_location_map = dict(pd.read_csv(os.path.join(ROOT_DIR, 'data/subreddit_location_map.csv')).values)
-        self.session = requests.Session()
+
+        user_ents_filepath = os.path.join(OORT_DIR, 'data', 'user_ents_cache.pk')
+        if os.path.exists(user_ents_filepath):
+            self.user_ents_cache = pickle.load(open(user_ents_filepath, 'rb'))
+        else:
+            self.user_ents_cache = {}
+
+        geocodes_filepath = os.path.join(ROOT_DIR, 'data', 'geocodes_cache.pk')
+        if os.path.exists(geocodes_filepath):
+            self.geocodes_cache = pickle.load(open(geocodes_filepath, 'rb'))
+        else:
+            self.geocodes_cache = {}
 
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
+        # use cache if requests + exists
+        if self.use_caches and user.username in self.user_ents_cache:
+            return self.user_ents_cache[user.username]
+
         # extract entities from spacy
         user_spacy_docs = get_user_spacy(user, self.nlp)
         user_entities = get_ents(user_spacy_docs, 'GPE')
@@ -225,14 +248,19 @@ class LocationClusterer:
         entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
                     for e in entities]
 
-        # convert common locatio nicknames to full names
+        # convert common location nicknames to full names
         entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in entities]
 
         # split large states into different geocodable regions
         entities = split_states(entities)
 
         # convert entities to possible coordinates
-        geocodes = list(it.chain(*[get_geocodes(e, self.session, service='geonames') for e in entities]))
+        geocodes = []
+        for entity in entities:
+            if self.use_caches and entity in self.geocodes_cache:
+                geocodes += self.geocodes_cache[entity]
+            else:
+                geocodes += get_geocodes(e, self.session, service='geonames')
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         # cluster all possible coordinates
@@ -258,7 +286,7 @@ class LocationClusterer:
         for cluster in top_clusters:
             cluster_idx = [i for i in range(len(clusters)) if clusters[i] == cluster]
             cluster_geocodes = [geocodes[i] for i in cluster_idx]
-            location_guess = best_cluster_location(cluster_geocodes, service='geonames')
+            location_guess = best_cluster_location(cluster_geocodes)
             location_guesses.append(location_guess)
 
         # normalize the scores
