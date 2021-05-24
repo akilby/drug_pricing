@@ -1,8 +1,9 @@
 import os
 import pickle
 import requests
+import itertools as it
 
-from typing import List
+from typing import List, Set
 
 import tqdm
 import pandas as pd
@@ -18,19 +19,19 @@ from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
 
 
 def cache_geocodes(docs: List[English], session: requests.sessions.Session, filepath: str):
-	'''Memoize a map from entities from the spacy docs to geocodes in a file.'''
-	if os.path.exists(filepath):
-		ent_geocode_map = pickle.load(open(filepath, 'rb'))
-	else:
-		ent_geocode_map = {}
+        '''Memoize a map from entities from the spacy docs to geocodes in a file.'''
+        if os.path.exists(filepath):
+                ent_geocode_map = pickle.load(open(filepath, 'rb'))
+        else:
+                ent_geocode_map = {}
 
-	ents = get_ents(docs, 'GPE')
+        ents = get_ents(docs, 'GPE')
 
-	for e in ents:
-		if e not in ent_geocode_map:
-			ent_geocode_map[e] = forward_geocode(e, session=session)
+        for e in ents:
+                if e not in ent_geocode_map:
+                        ent_geocode_map[e] = forward_geocode(e, session=session)
 
-	pickle.dump(ent_geocode_map, open(filepath, 'wb'))
+        pickle.dump(ent_geocode_map, open(filepath, 'wb'))
 
 
 def cache_ents(docs: List[English], filepath: str):
@@ -81,6 +82,26 @@ def cache_all_user_ents():
     print('Done.')
 
 
+def cache_geocodes_from_ents(ents: Set[str]):
+    '''Memoize a map from entities to geocodes in a file.'''
+    user_ents_fp = os.path.join(ROOT_DIR, 'data', 'user_ents_cache.pk')
+    user_ents = pickle.load(open(user_ents_fp, 'rb'))
+    session = requests.Session()
+    cache_filepath = os.path.join(ROOT_DIR, 'data', 'geonames_geocodes_cache.pk')
+    if os.path.exists(cache_filepath):
+        ent_geocode_map = pickle.load(open(cache_filepath, 'rb'))
+    else:
+        ent_geocode_map = {}
+
+    ents = set(it.chain(*user_ents.values()))
+
+    for e in ents:
+        if e not in ent_geocode_map:
+            ent_geocode_map[e] = forward_geocode(e, session=session)
+
+    pickle.dump(ent_geocode_map, open(filepath, 'wb'))
+
+
 def main():
     # utility variables
     session = requests.Session()
@@ -109,5 +130,5 @@ def main():
 
 
 if __name__ == '__main__':
-	# main()
+        # main()
     cache_all_user_ents()
