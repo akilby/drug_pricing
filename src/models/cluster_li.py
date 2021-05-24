@@ -204,7 +204,7 @@ class LocationClusterer:
         self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
         self.subreddit_location_map = dict(pd.read_csv(os.path.join(ROOT_DIR, 'data/subreddit_location_map.csv')).values)
 
-        user_ents_filepath = os.path.join(OORT_DIR, 'data', 'user_ents_cache.pk')
+        user_ents_filepath = os.path.join(ROOT_DIR, 'data', 'user_ents_cache.pk')
         if os.path.exists(user_ents_filepath):
             self.user_ents_cache = pickle.load(open(user_ents_filepath, 'rb'))
         else:

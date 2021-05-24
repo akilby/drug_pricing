@@ -72,7 +72,7 @@ def cache_all_user_ents():
     gazetteer = pd.read_csv("data/locations/grouped-locations.csv")
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
     model = LocationClusterer(filters, nlp)
-    all_users = User.objects.all()
+    all_users = list(User.objects.all())[12944:]
 
     print('Caching user entities .....')
     for user in tqdm.tqdm(all_users):
