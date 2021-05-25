@@ -9,9 +9,9 @@ def main():
 
     # collect data
     print("Reading data .....")
-    city_state = pd.read_csv("data/locations/cities-states.csv", sep="|")
-    neighborhood = pd.read_csv("data/locations/neighborhoods.csv")
-    foreign = pd.read_csv("data/locations/international.csv")
+    city_state = pd.read_csv("resources/cities-states.csv", sep="|")
+    neighborhood = pd.read_csv("resources/neighborhoods.csv")
+    foreign = pd.read_csv("resources/international.csv")
 
     # transform data
     print("Transforming data .....")
@@ -61,7 +61,7 @@ def main():
     locations = locations.where(pd.notnull(locations), None)
 
     # write to disk
-    filepath = "data/locations/grouped-locations.csv"
+    filepath = "resources/grouped-locations.csv"
     locations.to_csv(filepath, index=None)
     print(f"Wrote grouped locations to {filepath} .....")
 

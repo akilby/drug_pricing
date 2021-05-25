@@ -219,7 +219,7 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # define filters/rankers
-    fp = "data/locations/grouped-locations.csv"
+    fp = "resources/grouped-locations.csv"
     locations = pd.read_csv(fp)
     filters = [DenylistFilter(DENYLIST), LocationFilter(locations)]
     rankers = [FrequencyRanker()]
@@ -238,7 +238,7 @@ if __name__ == "__main__":
         ids = [str(r["_id"]) for r in res if r["_id"]]
         users = User.objects(id__in=ids)
     else:
-        usernames = pd.read_csv("data/rand_user_200.csv",
+        usernames = pd.read_csv("clutter/rand_user_200.csv",
                                 squeeze=True).tolist()
         users = User.objects(username__in=usernames).all()
 

@@ -157,8 +157,8 @@ def best_cluster_location(geocodes: geocoder.base.OneResult) -> Location:
     locations = [geocode_to_location(g) for g in geocodes]
 
     # filter out cities with populations less than some threshold
-    if service == 'geonames':
-        locations = [l for l in locations if l.population > MIN_POPULATION]
+    locations = [l for l, g in zip(locations, geocodes)
+                 if l.population > MIN_POPULATION and isinstance(g, GeonamesResult)]
 
     # get frequency counts for locations
     location_frequencies = list(Counter(locations).items())
@@ -200,18 +200,18 @@ class LocationClusterer:
         self.load_caches()
 
     def load_caches(self):
-        self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'data/gazetteer.csv'))
-        self.metro_state_coords_map = pickle.load(open(os.path.join(ROOT_DIR, 'data/metro_state_coord_map.pk'), 'rb'))
+        self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
+        self.metro_state_coords_map = pickle.load(open(os.path.join(ROOT_DIR, 'resources', 'metro_state_coord_map.pk'), 'rb'))
         self.state_abbrev_map = map_state_abbrevs(self.gazetteer)
-        self.subreddit_location_map = dict(pd.read_csv(os.path.join(ROOT_DIR, 'data/subreddit_location_map.csv')).values)
+        self.subreddit_location_map = dict(pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'subreddit_location_map.csv')).values)
 
-        user_ents_filepath = os.path.join(ROOT_DIR, 'data', 'user_ents_cache.pk')
+        user_ents_filepath = os.path.join(ROOT_DIR, 'cache', 'user_ents_cache.pk')
         if os.path.exists(user_ents_filepath):
             self.user_ents_cache = pickle.load(open(user_ents_filepath, 'rb'))
         else:
             self.user_ents_cache = {}
 
-        geocodes_filepath = os.path.join(ROOT_DIR, 'data', 'geonames_geocodes_cache.pk')
+        geocodes_filepath = os.path.join(ROOT_DIR, 'cache', 'geonames_geocodes_cache.pk')
         if os.path.exists(geocodes_filepath):
             self.geocodes_cache = pickle.load(open(geocodes_filepath, 'rb'))
         else:
@@ -222,6 +222,8 @@ class LocationClusterer:
         # use cache if requests + exists
         if self.use_caches and user.username in self.user_ents_cache:
             return self.user_ents_cache[user.username]
+
+        breakpoint()
 
         # extract entities from spacy
         user_spacy_docs = get_user_spacy(user, self.nlp)
@@ -261,8 +263,12 @@ class LocationClusterer:
             if self.use_caches and entity in self.geocodes_cache:
                 geocodes += self.geocodes_cache[entity]
             else:
-                geocodes += get_geocodes(e, self.session, service='geonames')
+                breakpoint()
+                geocodes += get_geocodes(entity, self.session, service='geonames')
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
+
+        if len(latlngs) <= 1:
+            return {}
 
         # cluster all possible coordinates
         clusters = DBSCAN(eps=2.5, min_samples=2).fit_predict(np.array(latlngs))
@@ -295,40 +301,9 @@ class LocationClusterer:
                           for tc in top_counts]
 
         # map each location guess to a score
-        location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
+        location_score_map = {location_guesses[i]: score_features[i] for i in range(len(score_features))}
 
         return location_score_map
-
-
-def cache_user_geocodes(username: str):
-    '''Store a dataframe with geocodes from a user's posting history.'''
-    print("Configuring .....")
-    connect_to_mongo()
-    nlp = get_nlp()
-    gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
-    filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
-    model = LocationClusterer(filters, nlp)
-    user = User.objects(username=username).first()
-
-    print("Extracting entities .....")
-    user_entities = model.extract_entities(user)
-
-    print("Extracting geocodes .....")
-    geocodes = [geocoder.geonames(entity, key="cccdenhart", maxRows=5)
-                for entity in user_entities]
-    rows = []
-    for e, geocode in zip(user_entities, geocodes):
-        for g in geocode:
-            rows.append({"entity": e,
-                         "address": g.address,
-                         "lat": float(g.lat),
-                         "lng": float(g.lng),
-                         "score": g.population})
-
-    df = pd.DataFrame(rows)
-
-    print("Saving ......")
-    pickle.dump(df, open(f"data/user_geocodes/{username}_geocodes.pk", "wb"))
 
 
 def run_all_users():
@@ -337,21 +312,22 @@ def run_all_users():
     nlp = get_nlp()
 
     users = User.objects.all()
-    gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
+    gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
     model = LocationClusterer(filters, nlp)
 
     predictions = []
-    for user in tqdm.tqdm(users):
-        entities = model.extract_entities(user)
-        preds = model.predict(entities)
-        predictions.append(preds)
+    for i, user in tqdm.tqdm(enumerate(users)):
+        if user.username != 'autotldr':
+            entities = model.extract_entities(user)
+            preds = model.predict(entities)
+            predictions.append(preds)
 
     usernames = [u.username for u in users]
     user_preds = dict(zip(usernames, predictions))
     ts = str(int(datetime.datetime.now().timestamp()))
-    preds_fp = os.path.join(ROOT_DIR, 'data', f'user-predictions-{ts}.pk')
+    preds_fp = os.path.join(ROOT_DIR, 'results', f'user-predictions-{ts}.pk')
     pickle.dump(user_preds, open(preds_fp, 'wb'))
 
 
@@ -360,9 +336,8 @@ if __name__ == '__main__':
     connect_to_mongo()
     nlp = get_nlp()
 
-    usernames = pd.read_csv('data/600-users.csv', squeeze=True,
-                            header=None).tolist()
-    gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
+    usernames = pd.read_csv(os.path.join(ROOT_DIR, 'clutter', '600-users.csv'), squeeze=True, header=None).tolist()
+    gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
     model = LocationClusterer(filters, nlp)
@@ -386,7 +361,7 @@ if __name__ == '__main__':
         'location_guesses': users_locations
     })
     ts = str(int(datetime.datetime.now().timestamp()))
-    pickle.dump(labels_df, open(f'data/location-guesses-all-{ts}.pk', 'wb'))
+    pickle.dump(labels_df, open(os.path.join(ROOT_DIR, 'clutter', f'location-guesses-all-{ts}.pk'), 'wb'))
 
     print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
     print('Done.')
