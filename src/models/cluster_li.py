@@ -12,6 +12,8 @@ import geocoder
 import numpy as np
 import pandas as pd
 import requests
+import tqdm
+
 from geocoder.geonames import GeonamesResult
 from geocoder.mapbox import MapboxResult
 from geopy import distance
@@ -19,7 +21,6 @@ from scipy.special import softmax
 from sklearn.cluster import DBSCAN
 from sklearn.metrics.pairwise import cosine_similarity
 from spacy.lang.en import English
-from tqdm import tqdm
 
 from src.models.__init__ import (DENYLIST, forward_geocode, get_ents,
                                  get_user_spacy, reverse_geocode)
@@ -210,7 +211,7 @@ class LocationClusterer:
         else:
             self.user_ents_cache = {}
 
-        geocodes_filepath = os.path.join(ROOT_DIR, 'data', 'geocodes_cache.pk')
+        geocodes_filepath = os.path.join(ROOT_DIR, 'data', 'geonames_geocodes_cache.pk')
         if os.path.exists(geocodes_filepath):
             self.geocodes_cache = pickle.load(open(geocodes_filepath, 'rb'))
         else:
@@ -290,7 +291,8 @@ class LocationClusterer:
             location_guesses.append(location_guess)
 
         # normalize the scores
-        scores = [tc / sum(top_counts) for tc in top_counts]
+        score_features = [{'cluster_pct': tc / sum(top_counts), 'num_entities': len(entities)}
+                          for tc in top_counts]
 
         # map each location guess to a score
         location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
@@ -329,6 +331,30 @@ def cache_user_geocodes(username: str):
     pickle.dump(df, open(f"data/user_geocodes/{username}_geocodes.pk", "wb"))
 
 
+def run_all_users():
+    '''Run location inference on all users.'''
+    connect_to_mongo()
+    nlp = get_nlp()
+
+    users = User.objects.all()
+    gazetteer = pd.read_csv('data/locations/grouped-locations.csv')
+
+    filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
+    model = LocationClusterer(filters, nlp)
+
+    predictions = []
+    for user in tqdm.tqdm(users):
+        entities = model.extract_entities(user)
+        preds = model.predict(entities)
+        predictions.append(preds)
+
+    usernames = [u.username for u in users]
+    user_preds = dict(zip(usernames, predictions))
+    ts = str(int(datetime.datetime.now().timestamp()))
+    preds_fp = os.path.join(ROOT_DIR, 'data', f'user-predictions-{ts}.pk')
+    pickle.dump(user_preds, open(preds_fp, 'wb'))
+
+
 if __name__ == '__main__':
     print('Initializing .....')
     connect_to_mongo()
@@ -344,7 +370,7 @@ if __name__ == '__main__':
     print('Making guesses for each user .....')
     users_entities = []
     users_locations = []
-    for username in tqdm(usernames):
+    for username in tqdm.tqdm(usernames):
         user = User.objects(username=username).first()
 
         entities = model.extract_entities(user)
