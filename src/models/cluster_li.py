@@ -293,6 +293,7 @@ class LocationClusterer:
         for cluster in top_clusters:
             cluster_idx = [i for i in range(len(clusters)) if clusters[i] == cluster]
             cluster_geocodes = [geocodes[i] for i in cluster_idx]
+            breakpoint()
             location_guess = best_cluster_location(cluster_geocodes)
             location_guesses.append(location_guess)
 

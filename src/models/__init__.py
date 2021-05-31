@@ -9,7 +9,7 @@ from src.schema import Post, User
 from src.tasks.spacy import bytes_to_spacy
 from src.utils import GEONAMES_KEY, MAPBOX_KEY, GOOGLE_KEY
 
-MAPBOX_KEY = "pk.eyJ1IjoiY2NjZGVuaGFydCIsImEiOiJjamtzdjNuNHAyMjB4M3B0ZHVoY3l2MndtIn0.jkJIFGPTN7oSkQlHi0xtow"
+MAPBOX_KEY = 'fake'  # "pk.eyJ1IjoiY2NjZGVuaGFydCIsImEiOiJjamtzdjNuNHAyMjB4M3B0ZHVoY3l2MndtIn0.jkJIFGPTN7oSkQlHi0xtow"
 DENYLIST = {"china", "russia", "turkey", "op"}
 
 
