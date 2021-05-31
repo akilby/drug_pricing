@@ -172,8 +172,11 @@ def best_cluster_location(geocodes: geocoder.base.OneResult) -> Location:
         return Location()
 
 
-def get_geocodes(entity: str, session, service='geonames') -> Iterable[geocoder.base.OneResult]:
+def get_geocodes(entity: str, session, cache: Dict = None, service='geonames') -> Iterable[geocoder.base.OneResult]:
     '''Convert an entity to a list of possible geocodes.'''
+    if cache and entity in cache:
+        return cache[entity]
+
     # if number of geonames requests 1000, pause for 1 hr
     if service == 'geonames':
         global NUM_GEONAMES_REQUESTS
