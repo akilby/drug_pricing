@@ -220,6 +220,19 @@ class LocationClusterer:
         else:
             self.geocodes_cache = {}
 
+        post_count_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_counts_cache.pk')
+        if os.path.exists(post_count_fp):
+            post_count_cache = pickle.load(open(post_count_fp, 'rb'))
+        else:
+            post_count_cache = {}
+
+        post_timerange_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_timerange_cache.pk')
+        if os.path.exists(post_timerange_fp):
+            post_timerange_cache = pickle.load(open(post_timerange_fp, 'rb'))
+        else:
+            post_timerange_cache = {}
+
+
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
         # use cache if requests + exists
@@ -241,7 +254,7 @@ class LocationClusterer:
         all_entities = filtered_user_entities + subreddit_entities
         return all_entities
 
-    def predict(self, entities: List[str]) -> Dict[Location, float]:
+    def predict(self, entities: List[str], user: User) -> Dict[Location, float]:
         '''Predicts the most likely locations for a user.'''
         # return empty map if there are no entities to utilize
         if len(entities) == 0:
@@ -296,13 +309,18 @@ class LocationClusterer:
         for cluster in top_clusters:
             cluster_idx = [i for i in range(len(clusters)) if clusters[i] == cluster]
             cluster_geocodes = [geocodes[i] for i in cluster_idx]
-            breakpoint()
             location_guess = best_cluster_location(cluster_geocodes)
             location_guesses.append(location_guess)
 
         # normalize the scores
-        score_features = [{'cluster_pct': tc / sum(top_counts), 'num_entities': len(entities)}
-                          for tc in top_counts]
+        score_features = [{
+            'cluster_pct': tc / sum(top_counts),
+            'num_entities': len(entities),
+            'is_in_us': int(location_guesses[i].country == 'United States'),
+            'num_posts': self.post_count_cache[user.username],
+            'timerange': self.post_timerange_cache[user.username],
+            'population': location_guesses[i].population,
+        } for i, tc in enumerate(top_counts)]
 
         # map each location guess to a score
         location_score_map = {location_guesses[i]: score_features[i] for i in range(len(score_features))}
@@ -325,7 +343,7 @@ def run_all_users():
     for i, user in tqdm.tqdm(enumerate(users)):
         if user.username != 'autotldr':
             entities = model.extract_entities(user)
-            preds = model.predict(entities)
+            preds = model.predict(entities, user)
             predictions.append(preds)
 
     usernames = [u.username for u in users]
@@ -355,7 +373,7 @@ if __name__ == '__main__':
         entities = model.extract_entities(user)
         users_entities.append(entities)
 
-        locations = model.predict(entities)
+        locations = model.predict(entities, user)
         users_locations.append(locations)
 
     print('Writing to pickle .....')
