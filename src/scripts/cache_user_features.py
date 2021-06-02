@@ -46,20 +46,21 @@ def cache_users_features():
     else:
         post_count_cache = {}
 
-    if os.path.exists(post_timerange, fp):
+    if os.path.exists(post_timerange_fp):
         post_timerange_cache = pickle.load(open(post_timerange_fp, 'rb'))
     else:
         post_timerange_cache = {}
 
     for user in tqdm.tqdm(users):
-        user_post_count = get_user_post_count(user)
-        timerange = get_user_post_timerange(user)
+        if user not in post_count_cache:
+            user_post_count = get_user_post_count(user)
+            post_count_cache[user.username] = user_post_count
+            pickle.dump(post_count_cache, open(post_count_fp, 'wb'))
 
-        post_count_cache[user.username] = user_post_count
-        pickle.dump(post_count_cache, open(post_count_fp, 'wb'))
-
-        post_timerange_cache[user.username] = timerange
-        pickle.dump(post_timerange_count, open(post_timerange, fp, 'wb'))
+        if user not in post_timerange_cache:
+            timerange = get_user_post_timerange(user)
+            post_timerange_cache[user.username] = timerange
+            pickle.dump(post_timerange_count, open(post_timerange_fp, 'wb'))
 
 
 if __name__ == '__main__':

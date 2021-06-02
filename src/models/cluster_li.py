@@ -222,16 +222,15 @@ class LocationClusterer:
 
         post_count_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_counts_cache.pk')
         if os.path.exists(post_count_fp):
-            post_count_cache = pickle.load(open(post_count_fp, 'rb'))
+            self.post_count_cache = pickle.load(open(post_count_fp, 'rb'))
         else:
-            post_count_cache = {}
+            self.post_count_cache = {}
 
         post_timerange_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_timerange_cache.pk')
         if os.path.exists(post_timerange_fp):
-            post_timerange_cache = pickle.load(open(post_timerange_fp, 'rb'))
+            self.post_timerange_cache = pickle.load(open(post_timerange_fp, 'rb'))
         else:
-            post_timerange_cache = {}
-
+            self.post_timerange_cache = {}
 
     def extract_entities(self, user: User) -> List[str]:
         '''Extract and filter all location entities for a user.'''
