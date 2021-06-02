@@ -25,7 +25,7 @@ def get_user_post_count(user: User) -> int:
 def get_user_post_timerange(user: User) -> int:
     '''Get the first, last datetime of a user's posting history.'''
     u_posts = Post.objects(user=user).only('datetime').all()
-    u_dt = [p.datetime for p in u_posts]
+    u_dt = [p.datetime for p in u_posts if p.datetime]
 
     if len(u_dt) > 0:
         timerange = (max(u_dt) - min(u_dt)).days
