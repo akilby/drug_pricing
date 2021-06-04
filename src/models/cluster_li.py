@@ -7,6 +7,7 @@ import time
 from collections import Counter
 from typing import Any, Dict, Iterable, List, Tuple
 import datetime
+import math
 
 import geocoder
 import numpy as np
@@ -192,15 +193,23 @@ def get_geocodes(entity: str, session, cache: Dict = None, service='geonames') -
 
 
 class LocationClusterer:
-    def __init__(self,
-                 filters: List[BaseFilter],
-                 nlp: English,
-                 use_caches: bool = True):
+    def __init__(
+            self,
+            filters: List[BaseFilter],
+            nlp: English,
+            use_caches: bool = True,
+            dbscan_mile_sep: int = 100
+    ):
         self.filters = filters
         self.nlp = nlp
         self.session = requests.Session()
         self.use_caches = use_caches
         self.load_caches()
+
+        # calculate the optimal epsilon to be used for dbscan
+        earth_radius = 3958.8
+        optimal_h = lambda d: math.sin(d / (2 * earth_radius)) ** 2
+        self.epsilon = optimal_h(dbscan_mile_sep)
 
     def load_caches(self):
         self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
@@ -286,7 +295,7 @@ class LocationClusterer:
             return {}
 
         # cluster all possible coordinates
-        clusters = DBSCAN(eps=2.5, min_samples=2).fit_predict(np.array(latlngs))
+        clusters = DBSCAN(eps=self.epsilon, min_samples=2).fit_predict(np.array(latlngs))
 
         # remove clusters that have only 1 item
         clusters_idx = [i for i, c in enumerate(clusters) if c >= 0]
