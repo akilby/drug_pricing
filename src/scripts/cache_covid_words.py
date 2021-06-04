@@ -3,6 +3,7 @@ import pickle
 import requests
 import itertools as it
 
+from datetime import datetime
 from typing import List, Set
 
 import tqdm
@@ -33,7 +34,7 @@ def cache_users_covid_words():
     else:
         cache = {}
 
-    all_users = User.objects.limit(100).all()
+    all_users = User.objects.all()
 
     for user in tqdm.tqdm(all_users):
         if user.username not in cache:
@@ -45,3 +46,8 @@ def cache_users_covid_words():
                 post_posts = Post.objects(user=user, datetime__lt=max_dt, datetime__gt=lockdown_dt, text__icontains=keyword).count()
                 cache[user.username][keyword] = (pre_posts, post_posts)
                 pickle.dump(cache, open(cache_fp, 'wb'))
+
+
+if __name__ == '__main__':
+    connect_to_mongo()
+    cache_users_covid_words()
