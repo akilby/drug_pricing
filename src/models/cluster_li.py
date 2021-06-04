@@ -168,7 +168,7 @@ def best_cluster_location(geocodes: geocoder.base.OneResult) -> Location:
     sorted_locations = sorted(location_frequencies, key=ft.cmp_to_key(location_comparator))
 
     if len(sorted_locations) > 0:
-        return sorted_locations[0]
+        return sorted_locations[0][0]
     else:
         return Location()
 
