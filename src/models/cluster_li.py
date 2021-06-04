@@ -324,10 +324,10 @@ class LocationClusterer:
         score_features = [{
             'cluster_pct': tc / sum(top_counts),
             'num_entities': len(entities),
-            'is_in_us': int(location_guesses[i].country == 'United States'),
+            'is_in_us': int(location_guesses[i][0].country == 'United States'),
             'num_posts': self.post_count_cache[user.username],
             'timerange': self.post_timerange_cache[user.username],
-            'population': location_guesses[i].population,
+            'population': location_guesses[i][0].population,
         } for i, tc in enumerate(top_counts)]
 
         # map each location guess to a score
