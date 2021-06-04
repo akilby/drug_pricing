@@ -37,6 +37,7 @@ def get_user_post_timerange(user: User) -> int:
 
 def cache_users_features():
     '''Cache features of a user that will be used for confidence scoring.'''
+    connect_to_mongo()
     users = User.objects.all()
     post_count_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_counts_cache.pk')
     post_timerange_fp = os.path.join(ROOT_DIR, 'cache', 'users_post_timerange_cache.pk')
@@ -60,7 +61,7 @@ def cache_users_features():
         if user not in post_timerange_cache:
             timerange = get_user_post_timerange(user)
             post_timerange_cache[user.username] = timerange
-            pickle.dump(post_timerange_count, open(post_timerange_fp, 'wb'))
+            pickle.dump(post_timerange_cache, open(post_timerange_fp, 'wb'))
 
 
 if __name__ == '__main__':
