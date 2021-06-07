@@ -329,10 +329,10 @@ class LocationClusterer:
         score_features = [{
             'cluster_pct': tc / sum(top_counts),
             'num_entities': len(entities),
-            'is_in_us': int(location_guesses[i][0].country == 'United States'),
+            'is_in_us': int(location_guesses[i].country == 'United States'),
             'num_posts': self.post_count_cache[user.username],
             'timerange': self.post_timerange_cache[user.username],
-            'population': location_guesses[i][0].population if location_guesses[i].population else -1,
+            'population': location_guesses[i].population if location_guesses[i].population else -1,
         } for i, tc in enumerate(top_counts)]
 
         scores = self.confidence_scorer.predict(np.array(list(score_features.values()), dtype='float32'))
