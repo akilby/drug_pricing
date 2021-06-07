@@ -198,7 +198,8 @@ class LocationClusterer:
             filters: List[BaseFilter],
             nlp: English,
             use_caches: bool = True,
-            dbscan_mile_sep: int = 100
+            dbscan_mile_sep: int = 100,
+            return_features: bool = False
     ):
         self.filters = filters
         self.nlp = nlp
@@ -210,6 +211,10 @@ class LocationClusterer:
         earth_radius = 3958.8
         optimal_h = lambda d: math.sin(d / (2 * earth_radius)) ** 2
         self.epsilon = optimal_h(dbscan_mile_sep)
+
+        # load a confidence scoring model
+        confidence_scorer_fp = os.path.join(ROOT_DIR, 'resources', 'confidence_scorer.pk')
+        self.confidence_scorer = pickle.load(open(confidence_scorer_fp, 'rb'))
 
     def load_caches(self):
         self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
@@ -327,11 +332,16 @@ class LocationClusterer:
             'is_in_us': int(location_guesses[i][0].country == 'United States'),
             'num_posts': self.post_count_cache[user.username],
             'timerange': self.post_timerange_cache[user.username],
-            'population': location_guesses[i][0].population,
+            'population': location_guesses[i][0].population if location_guesses[i].population else -1,
         } for i, tc in enumerate(top_counts)]
 
+        scores = self.confidence_scorer.predict(np.array(list(score_features.values()), dtype='float32'))
+
         # map each location guess to a score
-        location_score_map = {location_guesses[i]: score_features[i] for i in range(len(score_features))}
+        location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
+
+        if self.return_features:
+            return location_score_map, score_features
 
         return location_score_map
 
