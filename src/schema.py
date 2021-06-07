@@ -33,6 +33,9 @@ class Location(EmbeddedDocument):
             10000 * hash(self.country)
 
     def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Location):
+            return False
+
         return self.neighborhood == other.neighborhood and \
                self.city == other.city and \
                self.state == other.state and \
@@ -40,6 +43,12 @@ class Location(EmbeddedDocument):
 
     def __ne__(self, other: Any) -> bool:
         return not self == other
+
+    def __gt__(self, other: Any) -> bool:
+        return repr(self) > repr(other)
+
+    def __lt__(self, other: Any) -> bool:
+        return not self > other
 
     def subset_of(self, other: "Location") -> bool:
         """Check if this location is a subset of the given location."""
