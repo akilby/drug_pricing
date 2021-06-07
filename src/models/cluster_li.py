@@ -206,6 +206,7 @@ class LocationClusterer:
         self.session = requests.Session()
         self.use_caches = use_caches
         self.load_caches()
+        self.return_features = return_features
 
         # calculate the optimal epsilon to be used for dbscan
         earth_radius = 3958.8
