@@ -335,7 +335,8 @@ class LocationClusterer:
             'population': location_guesses[i].population if location_guesses[i].population else -1,
         } for i, tc in enumerate(top_counts)]
 
-        scores = self.confidence_scorer.predict(np.array(list(score_features.values()), dtype='float32'))
+        features_X = np.array([list(x.values()) for x in score_features], dtype='float32')
+        scores = self.confidence_scorer.predict(features_X)
 
         # map each location guess to a score
         location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
