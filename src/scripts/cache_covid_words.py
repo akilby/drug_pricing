@@ -25,7 +25,7 @@ def cache_users_covid_words():
     min_dt = lockdown_dt - (max_dt - lockdown_dt)
 
     # establish keywords
-    keywords = ['money', 'withdrawal', 'overdose']
+    keywords = ['money', 'withdraw', 'overdose', 'fent', 'heroin', 'addict', 'pain', 'tolerance', 'oxy', 'covid', 'virus', 'corona', 'quarantine']
 
     # get cache file
     cache_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache.pk')
