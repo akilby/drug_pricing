@@ -28,7 +28,8 @@ def cache_users_covid_words():
     keywords = ['money', 'withdraw', 'overdose', 'fent', 'heroin', 'addict', 'pain', 'tolerance', 'oxy', 'covid', 'virus', 'corona', 'quarantine']
 
     # get cache file
-    cache_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache.pk')
+    ts = str(int(datetime.datetime.now().timestamp()))
+    cache_fp = os.path.join(ROOT_DIR, 'cache', f'covid_keyword_counts_cache_{ts}.pk')
     if os.path.exists(cache_fp):
         cache = pickle.load(open(cache_fp, 'rb'))
     else:
