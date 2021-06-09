@@ -47,7 +47,7 @@ def cache_users_covid_words():
 
     # get cache file
     ts = str(int(datetime.now().timestamp()))
-    cache_fp = os.path.join(ROOT_DIR, 'cache', f'covid_keyword_counts_cache_{ts}.pk')
+    cache_fp = os.path.join(ROOT_DIR, 'cache', f'covid_keyword_counts_cache.pk')
     if os.path.exists(cache_fp):
         cache = pickle.load(open(cache_fp, 'rb'))
     else:
