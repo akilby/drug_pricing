@@ -208,7 +208,7 @@ class LocationClusterer:
         self.load_caches()
         self.return_features = return_features
 
-        # calculate the optimal epsilon to be used for dbscan
+        # calculate the optimal epsilon to be used for dbscan (not currently being used)
         earth_radius = 3958.8
         optimal_h = lambda d: math.sin(d / (2 * earth_radius)) ** 2
         self.epsilon = optimal_h(dbscan_mile_sep)
@@ -301,7 +301,7 @@ class LocationClusterer:
             return {}
 
         # cluster all possible coordinates
-        clusters = DBSCAN(eps=self.epsilon, min_samples=2).fit_predict(np.array(latlngs))
+        clusters = DBSCAN(eps=2.5, min_samples=2).fit_predict(np.array(latlngs))
 
         # remove clusters that have only 1 item
         clusters_idx = [i for i, c in enumerate(clusters) if c >= 0]
