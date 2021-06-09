@@ -98,6 +98,7 @@ def split_states(entities: List[str]) -> List[str]:
 def geocode_to_location(geocode: geocoder.base.OneResult) -> Location:
     '''convert a geocode to a location.'''
     is_geonames = isinstance(geocode, GeonamesResult)
+
     # define base location params
     loc_params = {
         'country': geocode.country,
@@ -290,11 +291,7 @@ class LocationClusterer:
         # convert entities to possible coordinates
         geocodes = []
         for entity in entities:
-            if self.use_caches and entity in self.geocodes_cache:
-                geocodes += self.geocodes_cache[entity]
-            else:
-                breakpoint()
-                geocodes += get_geocodes(entity, self.session, service='geonames')
+            geocodes += get_geocodes(entity, self.session, cache=self.geocodes_cache, service='geonames')
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         if len(latlngs) <= 1:
@@ -339,13 +336,30 @@ class LocationClusterer:
         features_X = np.array([list(x.values()) for x in score_features], dtype='float32')
         scores = self.confidence_scorer.predict(features_X)
 
+        # convert foreign places to countries
+        updated_locations = [self.convert_foreign_to_country(l) for l in location_guesses]
+
         # map each location guess to a score
-        location_score_map = {location_guesses[i]: scores[i] for i in range(len(scores))}
+        location_score_map = {updated_locations[i]: scores[i] for i in range(len(scores))}
 
         if self.return_features:
             return location_score_map, score_features
 
         return location_score_map
+
+    def convert_foreign_to_country(self, location: Location) -> Location:
+        '''
+        If the given location is not in the US, regeocode and locationize it as a country.
+        This is necessary so that the country has the proper coords and population
+        (as opposed to the coords/pop of some town in that country).
+        '''
+        if location.country == 'United States':
+            return location
+        
+        geocode = get_geocodes(location.country, self.session, cache=self.geocodes_cache, service='geonames')
+        new_location = geocode_to_location(geocode)
+        return new_location
+
 
 
 def run_all_users():

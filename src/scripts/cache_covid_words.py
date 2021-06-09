@@ -16,6 +16,25 @@ from src.models.__init__ import get_user_spacy, get_ents, DENYLIST, forward_geoc
 from src.models.cluster_li import LocationClusterer, get_geocodes, map_state_abbrevs, ALIAS_MAP, LARGE_STATE_MAP
 from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
 
+KEYWORDS = [
+    'money', 
+    'withdraw', 
+    'overdose', 
+    'fent', 
+    'heroin', 
+    'addict', 
+    'pain', 
+    'tolerance', 
+    'oxy', 
+    'covid', 
+    'virus', 
+    'corona', 
+    'quarantine',
+    'unemployment',
+    'pandemic', 
+    'vaccinations',
+    'testing center'
+ ]
 
 def cache_users_covid_words():
     '''Cache covid word counts pre/post lockdown.'''
@@ -25,7 +44,6 @@ def cache_users_covid_words():
     min_dt = lockdown_dt - (max_dt - lockdown_dt)
 
     # establish keywords
-    keywords = ['money', 'withdraw', 'overdose', 'fent', 'heroin', 'addict', 'pain', 'tolerance', 'oxy', 'covid', 'virus', 'corona', 'quarantine']
 
     # get cache file
     ts = str(int(datetime.datetime.now().timestamp()))
@@ -41,7 +59,7 @@ def cache_users_covid_words():
         if user.username not in cache:
             cache[user.username] = {}
 
-        for keyword in keywords:
+        for keyword in KEYWORDS:
             if keyword not in cache[user.username]:
                 pre_posts = Post.objects(user=user, datetime__gt=min_dt, datetime__lt=lockdown_dt, text__icontains=keyword).count()
                 post_posts = Post.objects(user=user, datetime__lt=max_dt, datetime__gt=lockdown_dt, text__icontains=keyword).count()
