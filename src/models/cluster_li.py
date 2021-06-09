@@ -200,14 +200,12 @@ class LocationClusterer:
             nlp: English,
             use_caches: bool = True,
             dbscan_mile_sep: int = 100,
-            return_features: bool = False
     ):
         self.filters = filters
         self.nlp = nlp
         self.session = requests.Session()
         self.use_caches = use_caches
         self.load_caches()
-        self.return_features = return_features
 
         # calculate the optimal epsilon to be used for dbscan (not currently being used)
         earth_radius = 3958.8
@@ -254,8 +252,6 @@ class LocationClusterer:
         if self.use_caches and user.username in self.user_ents_cache:
             return self.user_ents_cache[user.username]
 
-        breakpoint()
-
         # extract entities from spacy
         user_spacy_docs = get_user_spacy(user, self.nlp)
         user_entities = get_ents(user_spacy_docs, 'GPE')
@@ -269,33 +265,44 @@ class LocationClusterer:
         all_entities = filtered_user_entities + subreddit_entities
         return all_entities
 
-    def predict(self, entities: List[str], user: User) -> Dict[Location, float]:
+    def predict(
+        self, 
+        user: User, 
+        return_features: bool = True, 
+        return_scores: bool = True
+    ) -> List:
         '''Predicts the most likely locations for a user.'''
+        entities = self.extract_entities(user)
+
+        # build the return for the case of no location guesses
+        empty_return = [Location()]
+        if return_features:
+            empty_return.append(self.build_features([], [], User, entities))
+        if return_scores:
+            empty_return.append([])
+
         # return empty map if there are no entities to utilize
         if len(entities) == 0:
-            return {}
-
-        # store initial entity names
-        init_entities = entities
+            return empty_return
 
         # convert state abbreviations to full state names
-        entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
+        abbrev_entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
                     for e in entities]
 
         # convert common location nicknames to full names
-        entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in entities]
+        alias_entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in abbrev_entities]
 
         # split large states into different geocodable regions
-        entities = split_states(entities)
+        state_entities = split_states(alias_entities)
 
         # convert entities to possible coordinates
         geocodes = []
-        for entity in entities:
+        for entity in state_entities:
             geocodes += get_geocodes(entity, self.session, cache=self.geocodes_cache, service='geonames')
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         if len(latlngs) <= 1:
-            return {}
+            return empty_return
 
         # cluster all possible coordinates
         clusters = DBSCAN(eps=2.5, min_samples=2).fit_predict(np.array(latlngs))
@@ -307,7 +314,7 @@ class LocationClusterer:
 
         # return an empty map if there are no real clusters
         if len(clusters) == 0:
-            return {}
+            return empty_return
 
         # extract the largest 10 clusters
         cluster_counts = Counter(clusters)
@@ -323,29 +330,50 @@ class LocationClusterer:
             location_guess = best_cluster_location(cluster_geocodes)
             location_guesses.append(location_guess)
 
-        # normalize the scores
-        score_features = [{
-            'cluster_pct': tc / sum(top_counts),
-            'num_entities': len(entities),
-            'is_in_us': int(location_guesses[i].country == 'United States'),
-            'num_posts': self.post_count_cache[user.username],
-            'timerange': self.post_timerange_cache[user.username],
-            'population': location_guesses[i].population if location_guesses[i].population else -1,
-        } for i, tc in enumerate(top_counts)]
-
-        features_X = np.array([list(x.values()) for x in score_features], dtype='float32')
-        scores = self.confidence_scorer.predict(features_X)
+        # build features for user guesses
+        features = self.build_features(top_counts, location_guesses, user, state_entities)
 
         # convert foreign places to countries
         updated_locations = [self.convert_foreign_to_country(l) for l in location_guesses]
 
-        # map each location guess to a score
-        location_score_map = {updated_locations[i]: scores[i] for i in range(len(scores))}
+        # build output
+        output = [updated_locations]
+        if return_features:
+            output.append(features)
+        if return_scores:
+            features_X = np.array([list(x.values()) for x in features], dtype='float32')
+            scores = self.confidence_scorer.predict(features_X)
+            output.append(scores)
 
-        if self.return_features:
-            return location_score_map, score_features
+        return output
 
-        return location_score_map
+    def build_features(
+        self, 
+        top_counts: List[int], 
+        location_guesses: List[Location], 
+        user: User, 
+        entities: List[str],
+    ) -> List[Dict]:
+
+        if len(location_guesses) > 0:
+            # case of existing location guesses
+            features = [{
+                'cluster_pct': tc / sum(top_counts),
+                'num_entities': len(entities),
+                'is_in_us': int(location_guesses[i].country == 'United States'),
+                'num_posts': self.post_count_cache[user.username],
+                'timerange': self.post_timerange_cache[user.username],
+                'population': location_guesses[i].population if location_guesses[i].population else -1,
+            } for i, tc in enumerate(top_counts)]
+        else:
+            # case of no location guesses
+            features = [{
+                'num_entities': len(entities),
+                'num_posts': self.post_count_cache[user.username],
+                'timerange': self.post_timerange_cache[user.username],
+            }]
+
+        return features
 
     def convert_foreign_to_country(self, location: Location) -> Location:
         '''
@@ -376,8 +404,7 @@ def run_all_users():
     predictions = []
     for i, user in tqdm.tqdm(enumerate(users)):
         if user.username != 'autotldr':
-            entities = model.extract_entities(user)
-            preds = model.predict(entities, user)
+            preds = model.predict(user)
             predictions.append(preds)
 
     usernames = [u.username for u in users]
@@ -407,7 +434,7 @@ if __name__ == '__main__':
         entities = model.extract_entities(user)
         users_entities.append(entities)
 
-        locations = model.predict(entities, user)
+        locations = model.predict(user)
         users_locations.append(locations)
 
     print('Writing to pickle .....')
