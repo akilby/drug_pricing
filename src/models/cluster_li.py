@@ -356,7 +356,7 @@ class LocationClusterer:
             output.append(features)
         if return_scores:
             features_X = np.array([list(x.values()) for x in features], dtype='float32')
-            scores = self.confidence_scorer.predict(features_X)
+            scores = self.pos_confidence_scorer.predict(features_X)
             output.append(scores)
 
         return output
