@@ -383,7 +383,7 @@ class LocationClusterer:
         if location.country == 'United States':
             return location
         
-        geocode = get_geocodes(location.country, self.session, cache=self.geocodes_cache, service='geonames')
+        geocode = get_geocodes(location.country, self.session, cache=self.geocodes_cache, service='geonames')[0]
         new_location = geocode_to_location(geocode)
         return new_location
 
