@@ -225,9 +225,12 @@ class LocationClusterer:
         optimal_h = lambda d: math.sin(d / (2 * earth_radius)) ** 2
         self.epsilon = optimal_h(dbscan_mile_sep)
 
-        # load a confidence scoring model
-        confidence_scorer_fp = os.path.join(ROOT_DIR, 'resources', 'confidence_scorer.pk')
-        self.confidence_scorer = pickle.load(open(confidence_scorer_fp, 'rb'))
+        # load confidence scoring models
+        pos_confidence_scorer_fp = os.path.join(ROOT_DIR, 'resources', 'pos_confidence_scorer.pk')
+        self.pos_confidence_scorer = pickle.load(open(pos_confidence_scorer_fp, 'rb'))
+        none_confidence_scorer_fp = os.path.join(ROOT_DIR, 'resources', 'none_confidence_scorer.pk')
+        self.none_confidence_scorer = pickle.load(open(none_confidence_scorer_fp, 'rb'))
+
 
     def load_caches(self):
         self.gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
@@ -289,22 +292,21 @@ class LocationClusterer:
 
         # build the return for the case of no location guesses
         empty_return = [Location()]
+        empty_features = self.build_features([], [], user, entities)
         if return_features:
-            empty_return.append(self.build_features([], [], user, entities))
+            empty_return.append(empty_features)
         if return_scores:
-            empty_return.append([])
+            features_X = np.array([list(x.values()) for x in empty_features], dtype='float32')
+            scores = self.none_confidence_scorer.predict(features_X)
+            empty_return.append(scores)
 
         # return empty map if there are no entities to utilize
         if len(entities) == 0:
             return empty_return
 
-        # convert state abbreviations to full state names
+        # map nicknames to entities
         abbrev_entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e for e in entities]
-
-        # convert common location nicknames to full names
         alias_entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in abbrev_entities]
-
-        # split large states into different geocodable regions
         state_entities = split_states(alias_entities)
 
         # convert entities to possible coordinates
@@ -402,7 +404,6 @@ class LocationClusterer:
 
         new_location = geocode_to_location(geocodes[0])
         return new_location
-
 
 
 def run_all_users():
