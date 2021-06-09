@@ -174,10 +174,18 @@ def best_cluster_location(geocodes: geocoder.base.OneResult) -> Location:
         return Location()
 
 
-def get_geocodes(entity: str, session, cache: Dict = None, service='geonames') -> Iterable[geocoder.base.OneResult]:
+def get_geocodes(
+    entity: str, 
+    session, 
+    cache: Dict = None, 
+    cache_fp: str = None, 
+    service='geonames'
+) -> Iterable[geocoder.base.OneResult]:
     '''Convert an entity to a list of possible geocodes.'''
     if cache and entity in cache:
         return cache[entity]
+
+    print(f"'{entity}' not found in cache ...")
 
     # if number of geonames requests 1000, pause for 1 hr
     if service == 'geonames':
@@ -190,6 +198,11 @@ def get_geocodes(entity: str, session, cache: Dict = None, service='geonames') -
         NUM_GEONAMES_REQUESTS += 1
 
     geocodes = forward_geocode(entity, service=service, session=session)
+
+    if cache and cache_fp:
+        cache[entity] = geocodes
+        pickle.dump(cache, open(cache_fp, 'wb'))
+
     return geocodes
 
 
@@ -228,9 +241,9 @@ class LocationClusterer:
         else:
             self.user_ents_cache = {}
 
-        geocodes_filepath = os.path.join(ROOT_DIR, 'cache', 'geonames_geocodes_cache.pk')
-        if os.path.exists(geocodes_filepath):
-            self.geocodes_cache = pickle.load(open(geocodes_filepath, 'rb'))
+        self.geocodes_filepath = os.path.join(ROOT_DIR, 'cache', 'geonames_geocodes_cache.pk')
+        if os.path.exists(self.geocodes_filepath):
+            self.geocodes_cache = pickle.load(open(self.geocodes_filepath, 'rb'))
         else:
             self.geocodes_cache = {}
 
@@ -297,7 +310,7 @@ class LocationClusterer:
         # convert entities to possible coordinates
         geocodes = []
         for entity in state_entities:
-            geocodes += get_geocodes(entity, self.session, cache=self.geocodes_cache, service='geonames')
+            geocodes += get_geocodes(entity, self.session, cache=self.geocodes_cache, cache_fp=self.geocodes_filepath, service='geonames')
         latlngs = [(float(g.lat), float(g.lng)) for g in geocodes]
 
         if len(latlngs) <= 1:
@@ -380,11 +393,14 @@ class LocationClusterer:
         This is necessary so that the country has the proper coords and population
         (as opposed to the coords/pop of some town in that country).
         '''
-        if location.country == 'United States':
+        if location.country == 'United States' or not location.country:
             return location
         
-        geocode = get_geocodes(location.country, self.session, cache=self.geocodes_cache, service='geonames')[0]
-        new_location = geocode_to_location(geocode)
+        geocodes = get_geocodes(location.country.lower(), self.session, cache=self.geocodes_cache, cache_fp=self.geocodes_filepath, service='geonames')
+        if len(geocodes) == 0:
+            return location
+
+        new_location = geocode_to_location(geocodes[0])
         return new_location
 
 
