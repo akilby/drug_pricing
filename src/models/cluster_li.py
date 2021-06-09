@@ -277,7 +277,7 @@ class LocationClusterer:
         # build the return for the case of no location guesses
         empty_return = [Location()]
         if return_features:
-            empty_return.append(self.build_features([], [], User, entities))
+            empty_return.append(self.build_features([], [], user, entities))
         if return_scores:
             empty_return.append([])
 
@@ -286,8 +286,7 @@ class LocationClusterer:
             return empty_return
 
         # convert state abbreviations to full state names
-        abbrev_entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e
-                    for e in entities]
+        abbrev_entities = [self.state_abbrev_map[e] if e in self.state_abbrev_map else e for e in entities]
 
         # convert common location nicknames to full names
         alias_entities = [ALIAS_MAP[e] if e in ALIAS_MAP else e for e in abbrev_entities]
