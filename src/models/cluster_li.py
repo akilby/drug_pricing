@@ -411,7 +411,7 @@ def run_all_users():
     connect_to_mongo()
     nlp = get_nlp()
 
-    users = User.objects.all()
+    users = User.objects(username__ne='autotldr').all()
     gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
@@ -419,9 +419,8 @@ def run_all_users():
 
     predictions = []
     for i, user in tqdm.tqdm(enumerate(users)):
-        if user.username != 'autotldr':
-            preds = model.predict(user)
-            predictions.append(preds)
+        preds = model.predict(user)
+        predictions.append(preds)
 
     usernames = [u.username for u in users]
     user_preds = dict(zip(usernames, predictions))
