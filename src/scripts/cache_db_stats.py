@@ -1,6 +1,5 @@
 import os
 import pickle
-import requests
 import itertools as it
 
 from datetime import datetime
@@ -14,30 +13,34 @@ from src.schema import Post, User
 
 
 def get_num_subreddits() -> int:
-    pipeline = [ 
-        { "$group": { "_id": "$subreddit"}  },
-        { "$group": { "_id": 1, "count": { "$sum": 1 } } }
+    pipeline = [
+        {"$group": {"_id": "$subreddit"}},
+        {"$group": {"_id": 1, "count": {"$sum": 1}}}
     ]
-    scounts = Post.objects().aggregate(pipeline)    
+    scounts = Post.objects().aggregate(pipeline)
     nsubreddits = list(scounts)[0]['count']
     return nsubreddits
 
 
 def get_dt_range() -> Tuple[datetime, datetime]:
     pipeline_min = [
-        {"$group": {"_id": {}, "mindt": { "$min": "$datetime" } } }
+        {"$group": {"_id": {}, "mindt": {"$min": "$datetime"}}}
     ]
     pipeline_max = [
-        {"$group": {"_id": {}, "maxdt": { "$max": "$datetime" } } }
+        {"$group": {"_id": {}, "maxdt": {"$max": "$datetime"}}}
     ]
-    dmin = Post.objects().aggregate(pipeline_min)
-    dmax = Post.objects().aggregate(pipeline_max)
+    dmin_out = Post.objects().aggregate(pipeline_min)
+    dmax_out = Post.objects().aggregate(pipeline_max)
+
+    dmin = list(dmin_out)[0]['mindt']
+    dmax = list(dmax_out)[0]['maxdt']
+
     return (dmin, dmax)
 
 
 def get_year_counts() -> Dict[int, int]:
     pipeline = [
-        { "$group": { "_id": { "$year": "$datetime"}, "count": { "$sum": 1 } } }
+        {"$group": {"_id": {"$year": "$datetime"}, "count": {"$sum": 1}}}
     ]
     year_counts = Post.objects().aggregate(pipeline)
     year_counts_dict = {r['_id']: r['count'] for r in list(year_counts)}
@@ -45,7 +48,7 @@ def get_year_counts() -> Dict[int, int]:
 
 
 def main():
-    connect_to_mongo()  
+    connect_to_mongo()
     cache_fp = os.path.join(ROOT_DIR, 'cache', 'db_stats.pk')
     if not os.path.exists(cache_fp):
         cache = {}
@@ -66,6 +69,7 @@ def main():
     year_counts = get_year_counts()
     cache['year_counts'] = year_counts
     pickle.dump(cache, open(cache_fp, 'wb'))
+
 
 if __name__ == '__main__':
     main()
