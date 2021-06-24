@@ -98,7 +98,6 @@ class User(Document):
 
 class Post(Document):
     """An abstraction over Reddit Submission and Comments."""
-
     pid = StringField(required=True)
     text = StringField()
     user = ReferenceField(User)
@@ -116,7 +115,6 @@ class Post(Document):
 
 class SubmissionPost(Post):
     """A Reddit Submission."""
-
     url = StringField()
     title = StringField()
     num_comments = IntField()
@@ -124,5 +122,5 @@ class SubmissionPost(Post):
 
 class CommentPost(Post):
     """A Reddit Comment."""
-
     parent_id = StringField()
+    meta = {'indexes': ['parent_id']}
