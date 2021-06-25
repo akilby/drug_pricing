@@ -22,16 +22,18 @@ def main():
 		cache = {}
 
 	limit = 10000
+	skipping = False
 	target_subs = SubmissionPost.objects.limit(limit).all()
 
 	for sub in tqdm.tqdm(target_subs):
 		pid = sub.pid
-		sub_text = [sub.text]
-		if pid not in cache:
+		sub_texts = [sub.text]
+		comment_ids = []
+		if pid not in cache and skipping:
 			sub_comms = CommentPost.objects(parent_id=pid).all()
 			for comm in sub_comms:
-				sub_text.append(comm.text)
-			cache[pid] = '. '.join(sub_text)
+				sub_texts.append(comm.text)
+			cache[pid] = {'texts': sub_texts, 'title': sub.title, 'comment_ids': comment_ids}
 			pickle.dump(cache, open(cache_fp, 'wb'))
 
 
