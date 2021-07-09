@@ -24,14 +24,14 @@ def build_tree():
 
 	previous_comm_pids = []
 
-	batch_size = 10000
-	all_submissions = SubmissionPost.objects(subreddit='opiates').all()
+	batch_size = 100
+	all_submissions = SubmissionPost.objects(subreddit='opiates').limit(1000).all()
 	all_sub_pids = [s.pid for s in all_submissions]
 	for sub in all_submissions:
 		if sub.pid not in cache:
-			cache[sub.pid] = {'title': sub.title, 'body': sub.body, 'comms': []}
+			cache[sub.pid] = {'title': sub.title, 'body': sub.text, 'comms': []}
 
-	all_comm_pids_objs = CommentPost.objects(subreddit='opiates').only('pid').all()
+	all_comm_pids_objs = CommentPost.objects(subreddit='opiates').limit(10000).only('pid').all()
 	all_comm_pids = [c.pid for c in all_comm_pids_objs]
 	start_idx = 0
 	comm_pid_batches = []
@@ -41,10 +41,10 @@ def build_tree():
 		comm_pid_batches.append(all_comm_pids[start_idx:end_idx])
 		start_idx = end_idx
 		
-	for comm_batch_pids in tqdm(comm_pid_batches):
+	for comm_batch_pids in tqdm.tqdm(comm_pid_batches):
 		subset_comms = CommentPost.objects(subreddit='opiates', pid__in=comm_batch_pids).all()
-		subset_comm_pids = [c.pid for c in subset_comms]
-		for i, par_id in enumerate(subset_comm_pids):
+		subset_comm_par_ids = [c.parent_id for c in subset_comms]
+		for i, par_id in enumerate(subset_comm_par_ids):
 			match_idxs = [pid for pid in all_sub_pids if pid in par_id]
 			if len(match_idxs) > 0:
 				cache[sub.pid]['comms'].append(subset_comms[i])
