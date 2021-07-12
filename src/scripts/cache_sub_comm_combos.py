@@ -13,6 +13,29 @@ from src.utils import connect_to_mongo, get_nlp, ROOT_DIR
 from src.schema import Post, User, SubmissionPost, CommentPost
 
 
+def cache_tree():
+	print('Querying for submissions')
+	all_submissions = SubmissionPost.objects(subreddit='opiates').only('pid').all()
+	all_sub_pids = [s.pid for s in all_submissions]
+
+	print('Querying for comments')
+	res = CommentPost.objects(subreddit='opiates', parent_id__exists=True)\
+		.only('pid', 'parent_id')\
+		.all()
+
+	print('Grouping parent ids')
+	par_id_map = pd.DataFrame([(r.pid, r.parent_id.split('_')[1]) for r in res], columns=['pid', 'parent_id'])\
+		.groupby('parent_id')\
+		.agg(lambda x: list(x))['pid']\
+        .to_dict()
+
+	matches = set(par_id_map.keys()) & set(all_sub_pids)
+	matched_par_id_map = {k: v for k, v in par_id_map.items() if k in matches}
+
+	print('Writing to file')
+	pickle.dump(matched_par_id_map, open('cache/parent_id_tree.pk'))
+
+	
 def build_tree():
 	connect_to_mongo()
 
@@ -31,7 +54,15 @@ def build_tree():
 		if sub.pid not in cache:
 			cache[sub.pid] = {'title': sub.title, 'body': sub.text, 'comms': []}
 
-	all_comm_pids_objs = CommentPost.objects(subreddit='opiates').limit(10000).only('pid').all()
+	all_comm_pids_objs = CommentPost.objects(subreddit='opiates', parent_id__exists=True)\
+		.only('pid', 'parent_id')\
+		.limit(10)\
+		.all()
+	par_id_map = pd.DataFrame([(r.pid, r.parent_id) for r in all_comm_pids_objs], columns=['pid', 'parent_id'])\
+		.groupby('parent_id')\
+		.agg(lambda x: list(x))['pid']\
+		.to_dict()
+
 	all_comm_pids = [c.pid for c in all_comm_pids_objs]
 	start_idx = 0
 	comm_pid_batches = []
@@ -78,4 +109,4 @@ def main():
 
 
 if __name__ == '__main__':
-	build_tree()
+	cache_tree()	
