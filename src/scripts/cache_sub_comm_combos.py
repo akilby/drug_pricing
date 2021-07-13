@@ -33,7 +33,22 @@ def cache_tree():
 	matched_par_id_map = {k: v for k, v in par_id_map.items() if k in matches}
 
 	print('Writing to file')
-	pickle.dump(matched_par_id_map, open('cache/parent_id_tree.pk'))
+	pickle.dump(matched_par_id_map, open('cache/parent_id_tree.pk', 'wb'))
+
+
+def combine_tree_text():
+	connect_to_mongo()
+
+	par_id_map = pickle.load(open('cache/parent_id_tree.pk', 'rb'))
+
+	cache = {}
+
+	for pid in tqdm.tqdm(par_id_map):
+		all_ids = [pid] + par_id_map[pid]
+		subset_posts = SubmissionPost.objects(subreddit='opiates', pid__in=all_ids).only('text').all()
+		texts = [p.text for p in subset_posts]
+		cache[pid] = texts
+		pickle.dump(open('cache/sub_tree_texts.pk', 'wb'))
 
 	
 def build_tree():
