@@ -43,12 +43,12 @@ def combine_tree_text():
 
 	cache = {}
 
-	for pid in tqdm.tqdm(par_id_map):
+	for pid in tqdm.tqdm(list(par_id_map.keys())[:40000]):
 		all_ids = [pid] + par_id_map[pid]
-		subset_posts = SubmissionPost.objects(subreddit='opiates', pid__in=all_ids).only('text').all()
-		texts = [p.text for p in subset_posts]
+		subset_posts = Post.objects(subreddit='opiates', spacy__exists=True, pid__in=all_ids).only('spacy').all()
+		texts = [p.spacy for p in subset_posts]
 		cache[pid] = texts
-		pickle.dump(open('cache/sub_tree_texts.pk', 'wb'))
+		pickle.dump(cache, open('cache/sub_tree_texts_sm_spacy.pk', 'wb'))
 
 	
 def build_tree():
@@ -124,4 +124,4 @@ def main():
 
 
 if __name__ == '__main__':
-	cache_tree()	
+	combine_tree_text()
