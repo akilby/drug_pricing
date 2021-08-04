@@ -3,6 +3,7 @@ import pickle
 import requests
 import itertools as it
 import re
+import math
 
 from datetime import datetime
 from typing import List, Set
@@ -53,31 +54,43 @@ def cache_users_covid_words():
 
 	# get cache file
 	ts = str(int(datetime.now().timestamp()))
-	cache_read_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_3.pk')
-	cache_write_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_3.pk')
+	cache_read_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_4.pk')
+	cache_write_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_4.pk')
 	if os.path.exists(cache_read_fp):
 		cache = pickle.load(open(cache_read_fp, 'rb'))
 	else:
 		cache = {}
 
-	all_users = User.objects.all()
+	print('Loading all post ids .....')
+	all_pid_objs = Post.objects.only('pid').all()
+	all_pids = [obj.pid for obj in all_pid_objs]
 
-	for user in tqdm.tqdm(all_users):
-		if user.username not in cache:
-			cache[user.username] = {}
+	batch_size = 100000
+	n_batches = math.ceil(len(all_pids) / batch_size)
 
-		user_pre_posts = Post.objects(user=user, datetime__gt=min_dt, datetime__lt=lockdown_dt).all()
-		user_pre_text = ' '.join([str(p.text) for p in user_pre_posts])
+	print('Iterating through batches .....')
+	for batch_num in tqdm.tqdm(range(n_batches)):
+		n_start, n_end = (batch_num * batch_size, (batch_num + 1) * batch_size)
+		current_pids = all_pids[n_start:n_end]
+		current_posts = Post.objects(pid__in=current_pids, datetime__gt=min_dt).only(['pid', 'text', 'user', 'datetime'])
+		for post in current_posts:
+			username = post.user.username
 
-		user_post_posts = Post.objects(user=user, datetime__lt=max_dt, datetime__gt=lockdown_dt).all()
-		user_post_text = ' '.join([str(p.text) for p in user_post_posts])
+			if username not in cache:
+				cache[username] = {}
+				for keyword in KEYWORDS:
+					cache[username][keyword] = (0, 0)
 
-		for keyword in KEYWORDS:
-			if keyword not in cache[user.username]:
-				pre_count = len(re.findall(keyword, user_pre_text))
-				post_count = len(re.findall(keyword, user_post_text))
-				cache[user.username][keyword] = (pre_count, post_count)
-				pickle.dump(cache, open(cache_write_fp, 'wb'))
+			use_pre = post.datetime < lockdown_dt
+
+			for keyword in KEYWORDS:
+				pre_count, post_count = cache[username][keyword]	
+				keyword_count = len(re.findall(keyword, post.text)) 
+				new_pre_count = pre_count + keyword_count if use_pre else pre_count
+				new_post_count = post_count + keyword_count if not use_pre else post_count
+				cache[username][keyword] = (new_pre_count, new_post_count)
+		
+		pickle.dump(cache, open(cache_write_fp, 'wb'))
 
 
 if __name__ == '__main__':
