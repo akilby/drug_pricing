@@ -41,6 +41,23 @@ KEYWORDS = [
 	'death',
 	'died',
 	'withdrawal',
+	'check',
+	'payment',
+	'paid',
+	'broke',
+	'finance',
+	'dying',
+	'trust',
+	'dry',
+	'empty',
+	'bill',
+	'health',
+	'mental',
+	'spend',
+	'bank',
+	'narc',
+	'desparate',
+	'funds'
  ]
 
 def cache_users_covid_words():
