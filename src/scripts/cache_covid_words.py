@@ -6,10 +6,16 @@ import re
 import math
 
 from datetime import datetime
+from dateutil import rrule
 from typing import List, Set
 
 import tqdm
 import pandas as pd
+import spacy
+
+from nltk.corpus import wordnet
+from itertools import chain
+from spacy.lang.en import English
 
 from src.utils import connect_to_mongo, get_nlp, ROOT_DIR
 from src.schema import Post, User
@@ -57,17 +63,32 @@ KEYWORDS = [
 	'bank',
 	'narc',
 	'desparate',
-	'funds'
+	'funds',
+    'irs'
  ]
 
-def cache_users_covid_words():
+
+def build_new_keywords(og_keywords: List[str], nlp: English) -> Set[str]:
+	 '''Synonymize and lemmatize all keywords.'''
+	 lemmas = set([t.lemma_ for t in nlp(' '.join(og_keywords))])
+	 synonyms = []
+	 for key_lemma in lemmas:
+		 for synset in wordnet.synsets(key_lemma):
+			 for syn_lemma in synset.lemma_names():
+				 synonyms.append(syn_lemma.replace('_', ' ').replace('-', ' '))
+	 return set(synonyms)
+
+
+def cache_users_covid_words(nlp: English):
 	'''Cache covid word counts pre/post lockdown.'''
 	# establish timeframes
-	lockdown_dt = datetime(2020, 3, 1)
+	lockdown_dt = datetime(2020, 3, 15)
 	max_dt = datetime.now()
 	min_dt = lockdown_dt - (max_dt - lockdown_dt)
+	dtrange = rrule.rrule(rrule.MONTHLY, dtstart=min_dt, until=max_dt)
 
 	# establish keywords
+	new_keywords = build_new_keywords(KEYWORDS, nlp)
 
 	# get cache file
 	ts = str(int(datetime.now().timestamp()))
@@ -89,31 +110,25 @@ def cache_users_covid_words():
 	for batch_num in tqdm.tqdm(range(n_batches)):
 		n_start, n_end = (batch_num * batch_size, (batch_num + 1) * batch_size)
 		current_pids = all_pids[n_start:n_end]
-		current_posts = Post.objects(pid__in=current_pids).only('pid', 'text', 'user', 'datetime')
+		current_posts = Post.objects(pid__in=current_pids).only('pid', 'spacy', 'user', 'datetime')
 		for post in current_posts:
-			if post.user:
+			if post.user and post.datetime and post.datetime.year and post.datetime.month and post.spacy:
 				username = post.user.username
 
+				lemmas = [t.lemma_.lower() for t in bytes_to_spacy(post.spacy)]
+
 				if username not in cache:
-					cache[username] = {}
-					for keyword in KEYWORDS:
-						cache[username][keyword] = (0, 0)
+					cache[username] = {k: {(d.month, d.year): 0 for d in dtrange} for k in new_keywords}
 
-				use_pre = post.datetime < lockdown_dt
-
-				for keyword in KEYWORDS:
-					pre_count, post_count = cache[username][keyword]
-					try:
-						keyword_count = len(re.findall(keyword, post.text)) 
-						new_pre_count = pre_count + keyword_count if use_pre else pre_count
-						new_post_count = post_count + keyword_count if not use_pre else post_count
-						cache[username][keyword] = (new_pre_count, new_post_count)
-					except:
-						pass
+				for keyword in new_keywords:
+					date_key = (post.datetime.month, post.datetime.year)
+					keyword_count = lemmas.count(keyword)
+					cache[username][keyword][date_key] += keyword_count
 		
 		pickle.dump(cache, open(cache_write_fp, 'wb'))
 
 
 if __name__ == '__main__':
+	nlp = spacy.load("en_core_web_sm")
 	connect_to_mongo()
-	cache_users_covid_words()
+	cache_users_covid_words(nlp)
