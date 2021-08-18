@@ -75,7 +75,7 @@ def build_new_keywords(og_keywords: List[str], nlp: English) -> Set[str]:
 	 for key_lemma in lemmas:
 		 for synset in wordnet.synsets(key_lemma):
 			 for syn_lemma in synset.lemma_names():
-				 synonyms.append(syn_lemma.replace('_', ' ').replace('-', ' '))
+				 synonyms.append(syn_lemma.replace('_', ' ').replace('-', ' ').lower())
 	 return set(synonyms)
 
 
@@ -92,8 +92,8 @@ def cache_users_covid_words(nlp: English):
 
 	# get cache file
 	ts = str(int(datetime.now().timestamp()))
-	cache_read_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_7.pk')
-	cache_write_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_7.pk')
+	cache_read_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_9.pk')
+	cache_write_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_9.pk')
 	if os.path.exists(cache_read_fp):
 		cache = pickle.load(open(cache_read_fp, 'rb'))
 	else:
@@ -103,7 +103,7 @@ def cache_users_covid_words(nlp: English):
 	all_pid_objs = Post.objects(datetime__gt=min_dt).only('pid').all()
 	all_pids = [obj.pid for obj in all_pid_objs]
 
-	batch_size = 100000
+	batch_size = 10000
 	n_batches = math.ceil(len(all_pids) / batch_size)
 
 	print('Iterating through batches .....')
@@ -115,7 +115,7 @@ def cache_users_covid_words(nlp: English):
 			if post.user and post.datetime and post.datetime.year and post.datetime.month and post.spacy:
 				username = post.user.username
 
-				lemmas = [t.lemma_.lower() for t in bytes_to_spacy(post.spacy)]
+				lemmas = [t.lemma_.lower() for t in bytes_to_spacy(post.spacy, nlp)]
 
 				if username not in cache:
 					cache[username] = {k: {(d.month, d.year): 0 for d in dtrange} for k in new_keywords}
@@ -123,7 +123,10 @@ def cache_users_covid_words(nlp: English):
 				for keyword in new_keywords:
 					date_key = (post.datetime.month, post.datetime.year)
 					keyword_count = lemmas.count(keyword)
-					cache[username][keyword][date_key] += keyword_count
+					try:
+						cache[username][keyword][date_key] += keyword_count
+					except:
+						breakpoint()
 		
 		pickle.dump(cache, open(cache_write_fp, 'wb'))
 
