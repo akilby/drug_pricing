@@ -92,8 +92,8 @@ def cache_users_covid_words(nlp: English):
 
 	# get cache file
 	ts = str(int(datetime.now().timestamp()))
-	cache_read_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_9.pk')
-	cache_write_fp = os.path.join(ROOT_DIR, 'cache', 'covid_keyword_counts_cache_9.pk')
+	cache_read_fp = os.path.join('/work/akilby/drug_pricing_project', 'cache', 'covid_keyword_counts_cache.pk')
+	cache_write_fp = os.path.join('/work/akilby/drug_pricing_project', 'cache', 'covid_keyword_counts_cache.pk')
 	if os.path.exists(cache_read_fp):
 		cache = pickle.load(open(cache_read_fp, 'rb'))
 	else:
