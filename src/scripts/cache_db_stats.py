@@ -46,6 +46,25 @@ def get_year_counts() -> Dict[int, int]:
     year_counts_dict = {r['_id']: r['count'] for r in list(year_counts)}
     return year_counts_dict
 
+def get_month_counts() -> pd.DataFrame:
+    pipeline = [
+        {
+            "$group": { 
+                "_id": { "year": {"$year": "$datetime"}, "month": {"$month": "$datetime"}}, 
+                "num_datetimes": {"$sum": {"$cond": { "if": { "$ne": ["$datetime","true"] },"then": 1,"else": 0 }}},
+                "num_spacy": {"$sum": {"$cond": { "if": { "$ne": ["$spacy","true"] },"then": 1,"else": 0 }}}
+            }
+        }
+    ]
+    month_counts = Post.objects().limit(100000).aggregate(pipeline)
+    res = list(month_counts)
+    rows = [{'datetime': datetime(r['_id']['year'], r['_id']['month'], 1), 
+            'num_datetimes': r['num_datetimes'],
+            'num_spacy': r['num_spacy'],
+            'num_posts': r['num_posts']
+            } for r in res]
+    df = pd.DataFrame(rows)
+    return df
 
 def main():
     connect_to_mongo()
@@ -72,4 +91,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    connect_to_mongo()
+    month_counts_df = get_month_counts()
+    month_counts_df.to_csv('cache/month_counts.csv', index=False)
