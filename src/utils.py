@@ -150,3 +150,32 @@ def sub_comm_to_post(sub_comm: Union[Submission, Comment], is_sub: bool) -> Post
         post = CommentPost
 
     return post(**kwargs)
+
+
+def psaw_obj_to_post(sub_comm, is_sub: bool) -> Post:
+    """Convert a Praw Submission or Comment to a Post object."""
+    # convert username to user
+    username = sub_comm.author
+    user = user_from_username(username)
+
+    # store attributes common to both submission and comments
+    kwargs = {
+        "pid": sub_comm.id,
+        "user": user,
+        "datetime": utc_to_dt(sub_comm.created_utc),
+        "subreddit": sub_comm.subreddit,
+    }
+
+    # assign particular attributes and return the proper post type
+    if is_sub:
+        kwargs["url"] = sub_comm.url
+        kwargs["text"] = sub_comm.selftext
+        kwargs["title"] = sub_comm.title
+        kwargs["num_comments"] = sub_comm.num_comments
+        post = SubmissionPost
+    else:
+        kwargs["text"] = sub_comm.body
+        kwargs["parent_id"] = sub_comm.parent_id
+        post = CommentPost
+
+    return post(**kwargs)
