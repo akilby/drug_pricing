@@ -64,15 +64,26 @@ KEYWORDS = [
 	'narc',
 	'desparate',
 	'funds',
-    'irs'
+	'irs',
+	'dopesick',
+	'dope sick',
+	'fiending',
+	'suicide',
+	'narcan',
+	'naxolone',
+	'buprenorphine',
+	'suboxone',
+	'subutex',
+	'methadone'
  ]
 
 
 def build_new_keywords(og_keywords: List[str], nlp: English) -> Set[str]:
 	 '''Synonymize and lemmatize all keywords.'''
-	 lemmas = set([t.lemma_ for t in nlp(' '.join(og_keywords))])
+	 lemmas = set([t.lemma_ for t in nlp(' '.join(og_keywords))]) | set(og_keywords)
 	 synonyms = []
 	 for key_lemma in lemmas:
+		 synonyms.append(key_lemma)
 		 for synset in wordnet.synsets(key_lemma):
 			 for syn_lemma in synset.lemma_names():
 				 synonyms.append(syn_lemma.replace('_', ' ').replace('-', ' ').lower())
@@ -92,25 +103,25 @@ def cache_users_covid_words(nlp: English):
 
 	# get cache file
 	ts = str(int(datetime.now().timestamp()))
-	cache_read_fp = os.path.join('/work/akilby/drug_pricing_project', 'cache', 'covid_keyword_counts_cache.pk')
-	cache_write_fp = os.path.join('/work/akilby/drug_pricing_project', 'cache', 'covid_keyword_counts_cache.pk')
+	cache_read_fp = os.path.join('/work/akilby/drug_pricing_project', 'denhart_cache', f'covid_keyword_counts_cache_opiates_{ts}.pk')
+	cache_write_fp = os.path.join('/work/akilby/drug_pricing_project', 'denhart_cache', f'covid_keyword_counts_cache_opiates_{ts}.pk')
 	if os.path.exists(cache_read_fp):
 		cache = pickle.load(open(cache_read_fp, 'rb'))
 	else:
 		cache = {}
 
 	print('Loading all post ids .....')
-	all_pid_objs = Post.objects(datetime__gt=min_dt).only('pid').all()
+	all_pid_objs = Post.objects(subreddit='opiates', datetime__gt=min_dt).only('pid').all()
 	all_pids = [obj.pid for obj in all_pid_objs]
 
-	batch_size = 10000
+	batch_size = 100000
 	n_batches = math.ceil(len(all_pids) / batch_size)
 
 	print('Iterating through batches .....')
 	for batch_num in tqdm.tqdm(range(n_batches)):
 		n_start, n_end = (batch_num * batch_size, (batch_num + 1) * batch_size)
 		current_pids = all_pids[n_start:n_end]
-		current_posts = Post.objects(pid__in=current_pids).only('pid', 'spacy', 'user', 'datetime')
+		current_posts = Post.objects(subreddit='opiates', datetime__gt=min_dt, pid__in=current_pids).only('pid', 'spacy', 'user', 'datetime')
 		for post in current_posts:
 			if post.user and post.datetime and post.datetime.year and post.datetime.month and post.spacy:
 				username = post.user.username
@@ -129,6 +140,7 @@ def cache_users_covid_words(nlp: English):
 						breakpoint()
 		
 		pickle.dump(cache, open(cache_write_fp, 'wb'))
+	print('Written to', cache_write_fp)
 
 
 if __name__ == '__main__':

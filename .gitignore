@@ -18,6 +18,11 @@ sample_data/
 data/
 .metals/
 *.csv
+cache/
+clutter/
+data/
+figures/
+results/
 
 # slurm files
 *.sh

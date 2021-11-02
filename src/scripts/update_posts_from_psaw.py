@@ -25,6 +25,7 @@ def main():
     api = get_psaw(r)
 
     start = int(dt_to_utc(datetime(2018, 8, 1)).timestamp())
+    # end = int(dt_to_utc(datetime(2018, 8, 2)).timestamp())
     end = int(dt_to_utc(datetime.now()).timestamp())
     print('Start:', start)
     print('End:', end)
@@ -44,8 +45,8 @@ def main():
     cache_month_counts(comms, False)
 
     print('Converting to Posts .....')
-    sub_posts = sub_comm_to_post(subs, True)
-    comm_posts = sub_comm_to_post(comms, False)
+    sub_posts = [sub_comm_to_post(s, True) for s in subs]
+    comm_posts = [sub_comm_to_post(c, False) for c in comms]
 
     print('Storing in DB .....')
     posts_to_mongo(sub_posts + comm_posts)
