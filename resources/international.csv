@@ -1,0 +1,250 @@
+Region_Code,Region_Name,Sub_Region_Code,Sub_Region_Name,Intermediate_Region_Code,Intermediate_Region_Name,Country_or_Area,M49_Code,ISO_Alpha3_Code,Is_Least_Developed_Countries_LDC,Is_Land_Locked_Developing_Countries_LLDC,Is_Small_Island_Developing_States_SIDS,Developed_Or_Developing_Countries
+002,Africa,015,Northern Africa,,,Algeria,12,DZA,False,False,False,Developing
+002,Africa,015,Northern Africa,,,Egypt,818,EGY,False,False,False,Developing
+002,Africa,015,Northern Africa,,,Libya,434,LBY,False,False,False,Developing
+002,Africa,015,Northern Africa,,,Morocco,504,MAR,False,False,False,Developing
+002,Africa,015,Northern Africa,,,Sudan,729,SDN,True,False,False,Developing
+002,Africa,015,Northern Africa,,,Tunisia,788,TUN,False,False,False,Developing
+002,Africa,015,Northern Africa,,,Western Sahara,788,ESH,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,British Indian Ocean Territory,788,IOT,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Burundi,788,BDI,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Comoros,788,COM,True,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Djibouti,788,DJI,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Eritrea,788,ERI,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Ethiopia,788,ETH,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,French Southern Territories,788,ATF,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Kenya,788,KEN,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Madagascar,788,MDG,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Malawi,788,MWI,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Mauritius,788,MUS,False,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Mayotte,788,MYT,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Mozambique,788,MOZ,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Réunion,788,REU,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Rwanda,788,RWA,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Seychelles,788,SYC,False,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Somalia,788,SOM,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,South Sudan,788,SSD,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Uganda,788,UGA,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,United Republic of Tanzania,788,TZA,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Zambia,788,ZMB,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,014,Eastern Africa,Zimbabwe,788,ZWE,False,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Angola,788,AGO,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Cameroon,788,CMR,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Central African Republic,788,CAF,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Chad,788,TCD,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Congo,788,COG,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Democratic Republic of the Congo,788,COD,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Equatorial Guinea,788,GNQ,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Gabon,788,GAB,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,017,Middle Africa,Sao Tome and Principe,788,STP,True,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,018,Southern Africa,Botswana,788,BWA,False,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,018,Southern Africa,Lesotho,788,LSO,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,018,Southern Africa,Namibia,788,NAM,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,018,Southern Africa,South Africa,788,ZAF,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,018,Southern Africa,Swaziland,788,SWZ,False,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Benin,788,BEN,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Burkina Faso,788,BFA,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Cabo Verde,788,CPV,False,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Côte d'Ivoire,788,CIV,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Gambia,788,GMB,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Ghana,788,GHA,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Guinea,788,GIN,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Guinea-Bissau,788,GNB,True,False,True,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Liberia,788,LBR,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Mali,788,MLI,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Mauritania,788,MRT,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Niger,788,NER,True,True,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Nigeria,788,NGA,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Saint Helena,788,SHN,False,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Senegal,788,SEN,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Sierra Leone,788,SLE,True,False,False,Developing
+002,Africa,202,Sub-Saharan Africa,011,Western Africa,Togo,788,TGO,True,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Anguilla,788,AIA,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Antigua and Barbuda,788,ATG,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Aruba,788,ABW,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Bahamas,788,BHS,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Barbados,788,BRB,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,"Bonaire, Sint Eustatius and Saba",788,BES,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,British Virgin Islands,788,VGB,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Cayman Islands,788,CYM,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Cuba,788,CUB,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Curaçao,788,CUW,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Dominica,788,DMA,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Dominican Republic,788,DOM,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Grenada,788,GRD,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Guadeloupe,788,GLP,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Haiti,788,HTI,True,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Jamaica,788,JAM,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Martinique,788,MTQ,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Montserrat,788,MSR,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Puerto Rico,788,PRI,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Saint Barthélemy,788,BLM,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Saint Kitts and Nevis,788,KNA,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Saint Lucia,788,LCA,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Saint Martin (French Part),788,MAF,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Saint Vincent and the Grenadines,788,VCT,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Sint Maarten (Dutch part),788,SXM,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Trinidad and Tobago,788,TTO,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,Turks and Caicos Islands,788,TCA,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,029,Caribbean,United States Virgin Islands,788,VIR,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Belize,788,BLZ,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Costa Rica,788,CRI,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,El Salvador,788,SLV,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Guatemala,788,GTM,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Honduras,788,HND,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Mexico,788,MEX,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Nicaragua,788,NIC,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,013,Central America,Panama,788,PAN,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Argentina,788,ARG,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Bolivia (Plurinational State of),788,BOL,False,True,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Bouvet Island,788,BVT,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Brazil,788,BRA,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Chile,788,CHL,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Colombia,788,COL,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Ecuador,788,ECU,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Falkland Islands (Malvinas),788,FLK,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,French Guiana,788,GUF,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Guyana,788,GUY,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Paraguay,788,PRY,False,True,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Peru,788,PER,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,South Georgia and the South Sandwich Islands,788,SGS,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Suriname,788,SUR,False,False,True,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Uruguay,788,URY,False,False,False,Developing
+019,Americas,419,Latin America and the Caribbean,005,South America,Venezuela (Bolivarian Republic of),788,VEN,False,False,False,Developing
+019,Americas,021,Northern America,,,Bermuda,788,BMU,False,False,False,Developed
+019,Americas,021,Northern America,,,Canada,788,CAN,False,False,False,Developed
+019,Americas,021,Northern America,,,Greenland,788,GRL,False,False,False,Developed
+019,Americas,021,Northern America,,,Saint Pierre and Miquelon,788,SPM,False,False,False,Developed
+019,Americas,021,Northern America,,,United States of America,788,USA,False,False,False,Developed
+000,,000,,,,Antarctica,788,ATA,False,False,False,
+142,Asia,143,Central Asia,,,Kazakhstan,788,KAZ,False,True,False,Developing
+142,Asia,143,Central Asia,,,Kyrgyzstan,788,KGZ,False,True,False,Developing
+142,Asia,143,Central Asia,,,Tajikistan,788,TJK,False,True,False,Developing
+142,Asia,143,Central Asia,,,Turkmenistan,788,TKM,False,True,False,Developing
+142,Asia,143,Central Asia,,,Uzbekistan,788,UZB,False,True,False,Developing
+142,Asia,030,Eastern Asia,,,China,788,CHN,False,False,False,Developing
+142,Asia,030,Eastern Asia,,,"China, Hong Kong Special Administrative Region",788,HKG,False,False,False,Developing
+142,Asia,030,Eastern Asia,,,"China, Macao Special Administrative Region",788,MAC,False,False,False,Developing
+142,Asia,030,Eastern Asia,,,Democratic People's Republic of Korea,788,PRK,False,False,False,Developing
+142,Asia,030,Eastern Asia,,,Japan,788,JPN,False,False,False,Developed
+142,Asia,030,Eastern Asia,,,Mongolia,788,MNG,False,True,False,Developing
+142,Asia,030,Eastern Asia,,,Republic of Korea,788,KOR,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Brunei Darussalam,788,BRN,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Cambodia,788,KHM,True,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Indonesia,788,IDN,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Lao People's Democratic Republic,788,LAO,True,True,False,Developing
+142,Asia,035,South-eastern Asia,,,Malaysia,788,MYS,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Myanmar,788,MMR,True,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Philippines,788,PHL,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Singapore,788,SGP,False,False,True,Developing
+142,Asia,035,South-eastern Asia,,,Thailand,788,THA,False,False,False,Developing
+142,Asia,035,South-eastern Asia,,,Timor-Leste,788,TLS,True,False,True,Developing
+142,Asia,035,South-eastern Asia,,,Viet Nam,788,VNM,False,False,False,Developing
+142,Asia,034,Southern Asia,,,Afghanistan,788,AFG,True,True,False,Developing
+142,Asia,034,Southern Asia,,,Bangladesh,788,BGD,True,False,False,Developing
+142,Asia,034,Southern Asia,,,Bhutan,788,BTN,True,True,False,Developing
+142,Asia,034,Southern Asia,,,India,788,IND,False,False,False,Developing
+142,Asia,034,Southern Asia,,,Iran (Islamic Republic of),788,IRN,False,False,False,Developing
+142,Asia,034,Southern Asia,,,Maldives,788,MDV,False,False,True,Developing
+142,Asia,034,Southern Asia,,,Nepal,788,NPL,True,True,False,Developing
+142,Asia,034,Southern Asia,,,Pakistan,788,PAK,False,False,False,Developing
+142,Asia,034,Southern Asia,,,Sri Lanka,788,LKA,False,False,False,Developing
+142,Asia,145,Western Asia,,,Armenia,788,ARM,False,True,False,Developing
+142,Asia,145,Western Asia,,,Azerbaijan,788,AZE,False,True,False,Developing
+142,Asia,145,Western Asia,,,Bahrain,788,BHR,False,False,False,Developing
+142,Asia,145,Western Asia,,,Cyprus,788,CYP,False,False,False,Developing
+142,Asia,145,Western Asia,,,Georgia,788,GEO,False,False,False,Developing
+142,Asia,145,Western Asia,,,Iraq,788,IRQ,False,False,False,Developing
+142,Asia,145,Western Asia,,,Israel,788,ISR,False,False,False,Developing
+142,Asia,145,Western Asia,,,Jordan,788,JOR,False,False,False,Developing
+142,Asia,145,Western Asia,,,Kuwait,788,KWT,False,False,False,Developing
+142,Asia,145,Western Asia,,,Lebanon,788,LBN,False,False,False,Developing
+142,Asia,145,Western Asia,,,Oman,788,OMN,False,False,False,Developing
+142,Asia,145,Western Asia,,,Qatar,788,QAT,False,False,False,Developing
+142,Asia,145,Western Asia,,,Saudi Arabia,788,SAU,False,False,False,Developing
+142,Asia,145,Western Asia,,,State of Palestine,788,PSE,False,False,False,Developing
+142,Asia,145,Western Asia,,,Syrian Arab Republic,788,SYR,False,False,False,Developing
+142,Asia,145,Western Asia,,,Turkey,788,TUR,False,False,False,Developing
+142,Asia,145,Western Asia,,,United Arab Emirates,788,ARE,False,False,False,Developing
+142,Asia,145,Western Asia,,,Yemen,788,YEM,True,False,False,Developing
+150,Europe,151,Eastern Europe,,,Belarus,788,BLR,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Bulgaria,788,BGR,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Czechia,788,CZE,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Hungary,788,HUN,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Poland,788,POL,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Republic of Moldova,788,MDA,False,True,False,Developed
+150,Europe,151,Eastern Europe,,,Romania,788,ROU,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Russian Federation,788,RUS,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Slovakia,788,SVK,False,False,False,Developed
+150,Europe,151,Eastern Europe,,,Ukraine,788,UKR,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Åland Islands,788,ALA,False,False,False,Developed
+150,Europe,154,Northern Europe,830,Channel Islands,Guernsey,788,GGY,False,False,False,Developed
+150,Europe,154,Northern Europe,830,Channel Islands,Jersey,788,JEY,False,False,False,Developed
+150,Europe,154,Northern Europe,830,Channel Islands,Sark,788,,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Denmark,788,DNK,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Estonia,788,EST,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Faroe Islands,788,FRO,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Finland,788,FIN,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Iceland,788,ISL,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Ireland,788,IRL,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Isle of Man,788,IMN,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Latvia,788,LVA,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Lithuania,788,LTU,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Norway,788,NOR,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Svalbard and Jan Mayen Islands,788,SJM,False,False,False,Developed
+150,Europe,154,Northern Europe,,,Sweden,788,SWE,False,False,False,Developed
+150,Europe,154,Northern Europe,,,United Kingdom of Great Britain and Northern Ireland,788,GBR,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Albania,788,ALB,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Andorra,788,AND,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Bosnia and Herzegovina,788,BIH,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Croatia,788,HRV,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Gibraltar,788,GIB,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Greece,788,GRC,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Holy See,788,VAT,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Italy,788,ITA,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Malta,788,MLT,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Montenegro,788,MNE,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Portugal,788,PRT,False,False,False,Developed
+150,Europe,039,Southern Europe,,,San Marino,788,SMR,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Serbia,788,SRB,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Slovenia,788,SVN,False,False,False,Developed
+150,Europe,039,Southern Europe,,,Spain,788,ESP,False,False,False,Developed
+150,Europe,039,Southern Europe,,,The former Yugoslav Republic of Macedonia,788,MKD,False,True,False,Developed
+150,Europe,155,Western Europe,,,Austria,788,AUT,False,False,False,Developed
+150,Europe,155,Western Europe,,,Belgium,788,BEL,False,False,False,Developed
+150,Europe,155,Western Europe,,,France,788,FRA,False,False,False,Developed
+150,Europe,155,Western Europe,,,Germany,788,DEU,False,False,False,Developed
+150,Europe,155,Western Europe,,,Liechtenstein,788,LIE,False,False,False,Developed
+150,Europe,155,Western Europe,,,Luxembourg,788,LUX,False,False,False,Developed
+150,Europe,155,Western Europe,,,Monaco,788,MCO,False,False,False,Developed
+150,Europe,155,Western Europe,,,Netherlands,788,NLD,False,False,False,Developed
+150,Europe,155,Western Europe,,,Switzerland,788,CHE,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,Australia,788,AUS,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,Christmas Island,788,CXR,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,Cocos (Keeling) Islands,788,CCK,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,Heard Island and McDonald Islands,788,HMD,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,New Zealand,788,NZL,False,False,False,Developed
+009,Oceania,053,Australia and New Zealand,,,Norfolk Island,788,NFK,False,False,False,Developed
+009,Oceania,054,Melanesia,,,Fiji,788,FJI,False,False,True,Developing
+009,Oceania,054,Melanesia,,,New Caledonia,788,NCL,False,False,True,Developing
+009,Oceania,054,Melanesia,,,Papua New Guinea,788,PNG,False,False,True,Developing
+009,Oceania,054,Melanesia,,,Solomon Islands,788,SLB,True,False,True,Developing
+009,Oceania,054,Melanesia,,,Vanuatu,788,VUT,True,False,True,Developing
+009,Oceania,057,Micronesia,,,Guam,788,GUM,False,False,True,Developing
+009,Oceania,057,Micronesia,,,Kiribati,788,KIR,True,False,True,Developing
+009,Oceania,057,Micronesia,,,Marshall Islands,788,MHL,False,False,True,Developing
+009,Oceania,057,Micronesia,,,Micronesia (Federated States of),788,FSM,False,False,True,Developing
+009,Oceania,057,Micronesia,,,Nauru,788,NRU,False,False,True,Developing
+009,Oceania,057,Micronesia,,,Northern Mariana Islands,788,MNP,False,False,True,Developing
+009,Oceania,057,Micronesia,,,Palau,788,PLW,False,False,True,Developing
+009,Oceania,057,Micronesia,,,United States Minor Outlying Islands,788,UMI,False,False,False,Developing
+009,Oceania,061,Polynesia,,,American Samoa,788,ASM,False,False,True,Developing
+009,Oceania,061,Polynesia,,,Cook Islands,788,COK,False,False,True,Developing
+009,Oceania,061,Polynesia,,,French Polynesia,788,PYF,False,False,True,Developing
+009,Oceania,061,Polynesia,,,Niue,788,NIU,False,False,True,Developing
+009,Oceania,061,Polynesia,,,Pitcairn,788,PCN,False,False,False,Developing
+009,Oceania,061,Polynesia,,,Samoa,788,WSM,False,False,True,Developing
+009,Oceania,061,Polynesia,,,Tokelau,788,TKL,False,False,False,Developing
+009,Oceania,061,Polynesia,,,Tonga,788,TON,False,False,True,Developing
+009,Oceania,061,Polynesia,,,Tuvalu,788,TUV,True,False,True,Developing
+009,Oceania,061,Polynesia,,,Wallis and Futuna Islands,788,WLF,False,False,False,Developing
