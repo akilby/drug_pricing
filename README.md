@@ -1,7 +1,16 @@
-# Drug Pricing Scheduler
-This project contains code for extracting posts and comments from Reddit. It allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.
+# Location inference on social media data for agile monitoring of public health crises
+
+## Overview
+This project contains the code for work done in [this](https://arxiv.org/abs/2111.01778) paper. There are three primary components:
+1. [Data collection/processing](#data-collection)
+2. [Location Inference](#location-inference)
+3. [Analysis](#analysis)
 
 ## Setup Instructions
+
+Follow the below instructions before attempting to run anything within the project. You can optionally utilize the Makefile to automate install portions of this process by running `make setup`.
+
+The `virtualenv` package is recommended for managing a virtual environment as this is what was used for development. 
 
 ### 1. Environment variables
 This project utilizes the python `dotenv` package to read sensitive information as environment variables.  **For this project to run properly, you need to:** fill in your own credentials in the `.sample-env` file and rename the file as `.env`. 
@@ -9,27 +18,43 @@ This project utilizes the python `dotenv` package to read sensitive information 
 Checkout [here](https://www.reddit.com/dev/api/oauth/) for help with Reddit API setup if needed.
 
 ### 2. Install dependencies
-Run `pipenv install` to install all dependencies
+Run `pip install -r requirements.txt` to install all dependencies
 
-## Running the Project
+### 3. Install Spacy language model
+Run `python -m spacy download en_core_web_sm`
 
-**Updating the database**
+## Components
+### Data Collection
+The primary component here is a scheduler that allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.  The entrance point for the scheduler is the `src.__main__` file.
 
-To update all new data from all subreddits, run `make run args=--update`.
+You can optionally use commands in a provided Makefile to simplify program running.
 
+**Command Line Functionality**
 
-**Running tests**
+```
+usage: __main__.py [-h] [--subr SUBR] [--startdate STARTDATE] [--enddate ENDDATE] [--limit LIMIT] [--csv CSV] [--posttype POSTTYPE] [--lastdate] [--update] [--histories] [--spacy]
 
-Run `make test` to execute all tests.
+optional arguments:
+  -h, --help            show this help message and exit
 
-*Note:* tests involving loading data from files will not run using code from git because sample data is not maintained in version control.
+Praw Querying:
+  --subr SUBR           The subreddit to use.
+  --startdate STARTDATE
+                        The start date for Praw scraping
+  --enddate ENDDATE     The end date for Praw scraping
+  --limit LIMIT         The number of Praw objects to limit querying
 
-**Additional Functionality**
+CSV Parsing:
+  --csv CSV             The csv filepath to parse from
+  --posttype POSTTYPE   If data to parse is submissions (s) or comments (c)
 
-Other available functionality include:
-- Retrieve Reddit posts by subreddit and timeframe
-- Retrieve all posts from the subreddits listed in `utils.py` file since the last date in the mongo db
-- Add spacy objects to all posts in the mongo db
+Tasks:
+  --lastdate            Retrieve the last date stored in the mongo collection.
+  --update              Insert all posts for all subreddits from the last posted date
+  --histories           Retrieve full posting history for all users.
+  --spacy               Run spacy on all new documents.
+```
 
-Run `make run args=--help` for more details.
+### Location Inference
 
+**

@@ -1,8 +1,5 @@
 import os
 import pickle
-import requests
-import itertools as it
-import re
 import math
 
 from datetime import datetime
@@ -10,19 +7,13 @@ from dateutil import rrule
 from typing import List, Set
 
 import tqdm
-import pandas as pd
 import spacy
-
 from nltk.corpus import wordnet
-from itertools import chain
 from spacy.lang.en import English
 
-from src.utils import connect_to_mongo, get_nlp, ROOT_DIR
-from src.schema import Post, User
+from src.utils import connect_to_mongo
+from src.schema import Post
 from src.tasks.spacy import bytes_to_spacy
-from src.models.__init__ import get_user_spacy, get_ents, DENYLIST, forward_geocode
-from src.models.cluster_li import LocationClusterer, get_geocodes, map_state_abbrevs, ALIAS_MAP, LARGE_STATE_MAP
-from src.models.filters import BaseFilter, DenylistFilter, LocationFilter
 
 KEYWORDS = [
 	'money', 

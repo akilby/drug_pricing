@@ -9,7 +9,6 @@ from src.schema import Post, User
 from src.tasks.spacy import bytes_to_spacy
 from src.utils import GEONAMES_KEY, MAPBOX_KEY, GOOGLE_KEY
 
-MAPBOX_KEY = 'fake'  # "pk.eyJ1IjoiY2NjZGVuaGFydCIsImEiOiJjamtzdjNuNHAyMjB4M3B0ZHVoY3l2MndtIn0.jkJIFGPTN7oSkQlHi0xtow"
 DENYLIST = {"china", "russia", "turkey", "op"}
 
 
@@ -26,10 +25,12 @@ def get_ents(docs: List[English], entity_type: str) -> List[str]:
 	return filt_ents
 
 
-def forward_geocode(location: str,
-					service="mapbox",
-					session=None,
-					as_list=True) -> List[geocoder.base.OneResult]:
+def forward_geocode(
+  location: str,
+  service="mapbox",
+  session=None,
+  as_list=True
+) -> List[geocoder.base.OneResult]:
 	"""Extract the latitude/longitude from a given location."""
 	if service == "geonames":
 		geocodes = geocoder.geonames(location, key="cccdenhart", fuzzy=0.8, session=session)
@@ -50,10 +51,12 @@ def geonames_reverse(lat: float, lng: float):
 	return requests.get(full_url).json()
 
 
-def reverse_geocode(lat: float,
-					lng: float,
-					service="mapbox",
-					session=None) -> Union[geocoder.base.OneResult, Dict]:
+def reverse_geocode(
+  lat: float,
+  lng: float,
+  service="mapbox",
+  session=None
+) -> Union[geocoder.base.OneResult, Dict]:
 	"""Return a geocode location given a coordinate pair."""
 	coords = (lat, lng)
 	if service == "mapbox":

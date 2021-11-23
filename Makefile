@@ -1,9 +1,10 @@
 args=--update
 
 setup:
-	pip install pipenv
-	pipenv install
-	pipenv run python -m spacy download en_core_web_sm
+	python -m virtualenv .venv + 
+	source .venv/bin/activate + 
+	python -m pip install -r requirements.txt +
+	python -m spacy download en_core_web_sm
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -21,17 +22,16 @@ clean-slurm:
 clean: clean-pyc clean-test clean-slurm
 
 run:
-	pipenv run python -m src.__init__ $(args)
+	python -m src $(args)
 
 test:
-	pipenv run py.test tests --cov=src --cov-report=term-missing --cov-fail-under 50
+	python -m py.test tests --cov=src --cov-report=term-missing --cov-fail-under 50
 
 lint:
-	pipenv run flake8 src
-	pipenv run mypy src
+	python -m flake8 src
+	python -m mypy src
 
-format:
-	pipenv run black src
+format: python -m black src
 
 check: format lint test
 
