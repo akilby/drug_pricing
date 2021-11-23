@@ -24,10 +24,10 @@ Run `pip install -r requirements.txt` to install all dependencies
 Run `python -m spacy download en_core_web_sm`
 
 ## Components
-### Data Collection
-The primary component here is a scheduler that allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.  The entrance point for the scheduler is the `src.__main__` file.
+The entrance point for running programs is the `src.__main__` file.  The full list of available command line functionality is displayed below.  Specific and relevant commands are also discussed in more detail in their corresponding subsections.
 
 You can optionally use commands in a provided Makefile to simplify program running.
+
 
 **Command Line Functionality**
 
@@ -53,8 +53,14 @@ Tasks:
   --update              Insert all posts for all subreddits from the last posted date
   --histories           Retrieve full posting history for all users.
   --spacy               Run spacy on all new documents.
+
+Location Inference:
+  --infer-users INFER_USERS
+                        Provide a csv filepath containing usernames (one on each line) to perform location inference on.
 ```
 
-### Location Inference
 
-**
+### Data Collection
+The primary component here is a scheduler that allows for extraction from various subreddits and over flexible periods of time. It persists all retrieved data in a MongoDB database.  
+### Location Inference
+To perform location inference on a specific set of users, run the command `python -m src --infer-users <filepath>` where `<filepath>` is a path to a csv containing line separated usernames.  The output will be writted to a pickle file.

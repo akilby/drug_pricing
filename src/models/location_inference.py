@@ -429,12 +429,11 @@ def run_all_users():
     pickle.dump(user_preds, open(preds_fp, 'wb'))
 
 
-if __name__ == '__main__':
+def infer_users(usernames: List[str]):
     print('Initializing .....')
     connect_to_mongo()
     nlp = get_nlp()
 
-    usernames = pd.read_csv(os.path.join(ROOT_DIR, 'clutter', '600-users.csv'), squeeze=True, header=None).tolist()
     gazetteer = pd.read_csv(os.path.join(ROOT_DIR, 'resources', 'gazetteer.csv'))
 
     filters = [DenylistFilter(DENYLIST), LocationFilter(gazetteer)]
@@ -463,3 +462,13 @@ if __name__ == '__main__':
 
     print('NUM_GEONAMES_REQUESTS:', NUM_GEONAMES_REQUESTS)
     print('Done.')
+
+
+def infer_users_from_file(filepath: str):
+    usernames = pd.read_csv(filepath, squeeze=True, header=None).tolist()
+    infer_users(usernames)
+
+
+if __name__ == '__main__':
+    usernames = pd.read_csv(os.path.join(ROOT_DIR, 'clutter', '600-users.csv'), squeeze=True, header=None).tolist()
+    infer_users(usernames)

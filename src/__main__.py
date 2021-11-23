@@ -6,6 +6,7 @@ import pandas as pd
 import spacy
 from mongoengine import disconnect
 
+from src.models.location_inference import infer_users_from_file
 from src.tasks.csv import read_csv
 from src.tasks.histories import get_users_histories
 from src.tasks.praw import extract_praw, validate_praw
@@ -52,6 +53,13 @@ def gen_args() -> argparse.ArgumentParser:
         "--histories", help="Retrieve full posting history for all users.", action="store_true"
     )
     tasks.add_argument("--spacy", help="Run spacy on all new documents.", action="store_true")
+
+    location_inference = parser.add_argument_group("Location Inference")
+    location_inference.add_argument(
+        "--infer-users",
+        help="Provide a csv filepath containing usernames (one on each line) to perform location inference on.",
+        type=str
+    )
 
     return parser
 
@@ -105,6 +113,10 @@ def main() -> None:
     if args.spacy:
         print("Updating documents with spacy .....")
         add_spacy_to_mongo(nlp)
+
+    if args.location_inference:
+        usernames_fp = args.location_inference
+        infer_users_from_file(usernames_fp)
 
     disconnect()
     print("Program completed.")
